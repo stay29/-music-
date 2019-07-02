@@ -1,34 +1,20 @@
 <?php
 namespace app\index\controller;
-
-
 use think\Controller;
-use think\Db;
-
 class Index extends Controller
 {
-   public function initialize(){
+    public function index()
+    {
 
-   }
-   protected $beforeActionList = [
-     'first',
-     'second'=>['except'=>'hello'],
-     'three' => ['only'=>'hello,data']
-   ];
-   public function first(){
-       echo 'first';
-   }
-   public function second(){
-       echo 'second';
-   }
-   public function three(){
-       echo 'three';
-   }
-   public function hello(){
-       return 'hello';
-   }
-   public function data(){
+    	return view();
+    }
+    public function add(){
 
+    	$this->success('111',url('index/hello'));
+    }
 
-   }
+    public function hello($name = 'ThinkPHP5')
+    {
+        return '第三次--嘉俊测试,' . $name;
+    }
 }
