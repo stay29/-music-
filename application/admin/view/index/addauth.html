@@ -1,0 +1,98 @@
+{include file="public/head" /}
+<title>添加管理员 - 管理员管理 - H-ui.admin v3.1</title>
+<meta name="keywords" content="H-ui.admin v3.1,H-ui网站后台模版,后台模版下载,后台管理系统模版,HTML后台模版下载">
+<meta name="description" content="H-ui.admin v3.1，是一款由国人开发的轻量级扁平化网站后台模板，完全免费开源的网站后台管理系统模版，适合中小型CMS后台系统。">
+</head>
+<body>
+<article class="page-container">
+  <form class="form form-horizontal" id="form-admin-add">
+  <div class="row cl">
+    <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>栏目添加：</label>
+    <div class="formControls col-xs-8 col-sm-9">
+      <input type="text" class="input-text" value="" placeholder="" id="aname" name="aname">
+    </div>
+  </div>
+<div class="row cl">
+    <label class="form-label col-xs-4 col-sm-3">父级栏目：</label>
+    <div class="formControls col-xs-8 col-sm-9"> <span class="select-box" style="width:150px;">
+      <select class="select" name="pid" size="1" id="pid">
+        <option value="0">顶级栏目</option>
+        {volist name="list" id="vo"}
+        <option value="{$vo.aid}">{$vo.aname}</option>
+        {/volist}
+      </select>
+      </span> </div>
+</div>
+  <div id="tp" class="row cl">
+    <label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>URL：</label>
+    <div class="formControls col-xs-8 col-sm-9">
+       <input type="text" class="input-text" value="" placeholder="顶级分类不用填写" id="url" name="url">
+    </div>
+  </div>
+
+  <div class="row cl">
+    <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-3">
+      <input class="btn btn-primary radius" type="submit" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
+    </div>
+  </div>
+  </form>
+</article>
+<!--_footer 作为公共模版分离出去--> 
+{include file="public/foot" /}
+<!--请在下方写此页面业务相关的脚本-->
+<script type="text/javascript" src="__URL__/lib/jquery.validation/1.14.0/jquery.validate.js"></script> 
+<script type="text/javascript" src="__URL__/lib/jquery.validation/1.14.0/validate-methods.js"></script> 
+<script type="text/javascript" src="__URL__/lib/jquery.validation/1.14.0/messages_zh.js"></script> 
+<script type="text/javascript">
+$(function(){
+  $("#tp").hide();
+  $("#pid").change(function() {
+  if($(this).val()==0) {
+    $("#tp").hide();
+  }else{
+    $("#tp").show();
+  }
+ });
+  $('.skin-minimal input').iCheck({
+    checkboxClass: 'icheckbox-blue',
+    radioClass: 'iradio-blue',
+    increaseArea: '20%'
+  });
+  
+  $("#form-admin-add").validate({
+    rules:{
+      aname:{
+        required:true,
+        minlength:2,
+        maxlength:16
+      },
+      pid:{
+        required:true,
+      },
+    },
+    onkeyup:false,
+    focusCleanup:true,
+    success:"valid",
+    submitHandler:function(form){
+      $(form).ajaxSubmit({
+        type: 'post',
+        url: "{:url('admin/Index/addon')}" ,
+        success: function(data){
+          if(data==1){
+          layer.msg('添加成功',{icon:1,time:2000});
+          }else{
+          layer.msg('添加失败',{icon:1,time:1000}); 
+          }
+        },
+      });
+      var index = parent.layer.getFrameIndex(window.name);
+      window.parent.location.reload();//刷新父页面
+      parent.$('.btn-refresh').click();
+      parent.layer.close(index);
+    }
+  });
+});
+</script> 
+<!--/请在上方写此页面业务相关的脚本-->
+</body>
+</html>

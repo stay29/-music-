@@ -1,0 +1,90 @@
+{include file="public/head" /}
+<title>添加管理员 - 管理员管理 - H-ui.admin v3.1</title>
+</head>
+<body>
+<article class="page-container">
+	<form class="form form-horizontal" id="form-admin-add">
+		<input type="hidden" name="admin_id" value="{$afid.admin_id}">
+	<div class="row cl">
+		<label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>管理员：</label>
+		<div class="formControls col-xs-8 col-sm-9">
+			<input type="text" class="input-text" value="{$afid.account}" placeholder="" id="account" name="account">
+		</div>
+	</div>
+	<div class="row cl">
+		<label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>初始密码：</label>
+		<div class="formControls col-xs-8 col-sm-9">
+			<input type="password" class="input-text" autocomplete="off" value="{$afid.password}" placeholder="密码" id="password" name="password">
+		</div>
+	</div>
+	<div class="row cl">
+		<label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>确认密码：</label>
+		<div class="formControls col-xs-8 col-sm-9">
+			<input type="password" class="input-text" autocomplete="off"  placeholder="确认新密码" id="password2" name="password2">
+		</div>
+	</div>
+	<div class="row cl">
+		<label class="form-label col-xs-4 col-sm-3">角色：</label>
+		<div class="formControls col-xs-8 col-sm-9"> <span class="select-box" style="width:150px;">
+			<select class="select" id="rid" name="rid" size="1">
+				{volist name="list" id="vo"}
+                  <option   value='{$vo.rid}'>{$vo.rname}</option> 
+				{/volist}
+			</select>
+			</span>
+		</div>
+	</div>
+	<div class="row cl">
+		<div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-3">
+			<input class="btn btn-primary radius" id="sub" type="button" value="&nbsp;&nbsp;提交&nbsp;&nbsp;">
+		</div>
+	</div>
+	</form>
+</article>
+<!--_footer 作为公共模版分离出去--> 
+{include file="public/foot" /}
+<!--请在下方写此页面业务相关的脚本-->
+<script type="text/javascript" src="__URL__lib/jquery.validation/1.14.0/jquery.validate.js"></script> 
+<script type="text/javascript" src="__URL__lib/jquery.validation/1.14.0/validate-methods.js"></script> 
+<script type="text/javascript" src="__URL__lib/jquery.validation/1.14.0/messages_zh.js"></script> 
+<script type="text/javascript">
+$(function(){
+	$('.skin-minimal input').iCheck({
+		checkboxClass: 'icheckbox-blue',
+		radioClass: 'iradio-blue',
+		increaseArea: '20%'
+	});
+	$('#sub').click(function(){
+		var account = $('#account').val();
+		var password = $('#password').val();
+		var password2 = $('#password2').val();
+		var rid = $('#rid').val();
+		if (account=='' || password=='') {
+			layer.msg('用户名密码不能为空',{icon:1,time:1000});
+			return false;
+		}
+		if (password!=password2) {
+			layer.msg('2次密码不一样',{icon:1,time:1000});
+			return false;
+		}
+	        $.ajax({
+			type: 'POST',
+			url: "{:url('admin/admin/addon')}",
+			data:{account:account,password:password,rid:rid},
+			success: function(data){
+				if(data==1){
+					layer.msg('成功!',{icon:1,time:2000});
+					 window.parent.location.reload();//刷新父页面
+				     parent.$('.btn-refresh').click();
+				     parent.layer.close(index);
+				}else{
+					layer.msg('失败!',{icon:1,time:1000});
+				}
+			}
+		});
+	});
+});
+</script> 
+<!--/请在上方写此页面业务相关的脚本-->
+</body>
+</html>

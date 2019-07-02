@@ -1,0 +1,32 @@
+<table class="table table-border table-bordered table-bg">
+		<thead>
+			<tr>
+				<th scope="col" colspan="9">员工列表</th>
+			</tr>
+			<tr class="text-c">
+				<th width="25"><input type="checkbox" name="" value=""></th>
+				<th width="40">ID</th>
+				<th width="400">登录名</th>
+				<th>角色</th>
+				<th width="400">加入时间</th>
+			
+				<th width="100">操作</th>
+			</tr>
+		</thead>
+		<tbody>
+			{volist name="list" id="vo"}
+			<tr class="text-c">
+				<td><input type="checkbox" value="1" name=""></td>
+				<td>{$vo.admin_id}</td>
+				<td>{$vo.account}</td>
+				<td>{$vo.rname.rname}</td>
+				<td>{$vo.time}</td>
+	
+				<td class="td-manage">
+			<!-- <a style="text-decoration:none" onClick="admin_stop(this,'10001')" href="javascript:;" title="停用"><i class="Hui-iconfont">&#xe631;</i></a> -->
+			 <a title="编辑" href="javascript:;" onclick="admin_edit('管理员编辑',{$vo['admin_id']},'800','500')" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6df;</i></a> 
+			 <a title="删除" href="javascript:;" onclick="admin_del(this,{$vo['admin_id']})" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6e2;</i></a></td>
+			</tr>
+			{/volist}
+		</tbody>
+	</table>
