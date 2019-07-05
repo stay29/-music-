@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>首页</title>
+	<link rel="stylesheet" href="/static/common/layui/css/layui.css">
+    <script src="/static/common/layui/layui.js"></script>
+    <script src="/static/common/jquery-3.3.1.min.js"></script>
+</head>
+<body>
+	<blockquote class="layui-elem-quote">个人信息</blockquote>
+	<table class="layui-table">
+	  <colgroup>
+	    <col width="150">
+	    <col width="200">
+	    <col>
+	  </colgroup>
+	  <thead>
+	    <tr>
+	      <th>账号</th>
+	      <th>身份</th>
+	      <th>上次登录时间</th>
+	      <th>注册时间</th>
+	      <th>操作</th>
+	    </tr> 
+	  </thead>
+	  <tbody>
+	    <tr>
+	      <td>{$ad_account}</td>
+	      <td>
+	      {$rnames}
+	      </td>
+	      <td>{:date('Y-m-d H:i:s',$ad_login_time)}</td>
+	      <td>{:date('Y-m-d H:i:s',$ad_create_time)}</td>
+	      
+	      <td>
+	      	<a href="{:url('admin/index/logout')}" class="layui-btn" target="_top">退出</a>
+	      </td>
+	    </tr> 
+	  </tbody>
+	</table>
+</body>
+</html>

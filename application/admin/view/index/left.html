@@ -1,0 +1,55 @@
+<base target="right">
+<link rel="stylesheet" href="/static/common/layui/css/layui.css">
+<style>
+	*{
+		margin:0;
+		padding: 0;
+	}
+	#nav_left{
+		text-align: left;
+		padding:10px 0;
+		text-indent: 1em;
+	}
+	#nav_left .parent{
+		background: #333;
+		padding: 6px 0;
+		border-bottom: 1px dashed #333;
+		font-size: 14px;
+		color:#fff;
+		cursor: pointer;
+	}
+	#nav_left .children{
+		background: #eee;
+	}
+	#nav_left .children a{
+		text-decoration: none;
+		display: inline-block;
+		width: 100%;
+		padding: 8px 0;
+	}
+</style>
+<div style="background: #333;height: 100%" id="nav_left">
+	{volist name='accesses' id='item'}
+		<div class="parent"><b class="layui-icon layui-icon-triangle-d"></b> {$item.aname}</div>
+		<div class="children">
+			{volist name='item.son' id='v'}
+			<div><a href="{:url($v['aurl'])}">{$v.aname}</a></div>
+			{/volist}
+		</div>
+	{/volist}
+</div>
+<script src="/static/common/jquery-3.3.1.min.js"></script>
+<script>
+	$(function(){
+		$('.parent').click(function(){
+			$(this).next('.children').toggle();
+			if($(this).next('.children').css('display') == 'block'){
+				$(this).find('b').addClass('layui-icon-triangle-d');
+				$(this).find('b').removeClass('layui-icon-triangle-r');
+			}else{
+				$(this).find('b').removeClass('layui-icon-triangle-d');
+				$(this).find('b').addClass('layui-icon-triangle-r');
+			}
+		})
+	})
+</script>
