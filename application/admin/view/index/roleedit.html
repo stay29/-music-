@@ -1,0 +1,127 @@
+{include file="public/head" /}
+<title>新建网站角色 - 管理员管理 - H-ui.admin v3.1</title>
+</head>
+<body>
+<article class="page-container">
+	<form action="" method="post" class="form form-horizontal" id="form-admin-role-add">
+		<div class="row cl">
+			<input type="hidden"  value="{$res.rid}"  id="rid" name="rid">
+			<label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>角色名称：</label>
+			<input type="hidden" name="rid" value="{$res.rid}">
+			<div class="formControls col-xs-8 col-sm-9">
+				<input type="text" class="input-text" value="{$res.rname}" placeholder="" id="rname" name="rname">
+			</div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-3">备注：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<input type="text" class="input-text" value="{$res.sex}" placeholder="" id="sex" name="sex">
+			</div>
+		</div>
+		<div class="row cl">
+			<label class="form-label col-xs-4 col-sm-3">网站角色：</label>
+			<div class="formControls col-xs-8 col-sm-9">
+				<dl class="permission-list">
+					<dt>
+						<label>
+							<input type="checkbox"  id="user-Character-0">
+							全选栏目</label>
+					</dt>
+				 	<dd>
+					 	{volist name="list" id="vo"}
+						<dl class="cl permission-list2">
+							<dt>
+								<label class="">
+									<input type="checkbox" value="{$vo.aid}" name="aid" id="user-Character-0-0">
+									{$vo.aname}</label>
+							</dt>
+							<dd>
+								{volist name="vo.list" id="v"}
+								<label class="">
+									<input type="checkbox" value="{$v.aid}" name="aid" id="user-Character-0-0-0">
+									 {$v.aname}</label>
+								{/volist}
+								</dd>
+						</dl>
+						{/volist}
+					</dd> 
+				</dl>
+			
+			</div>
+		</div>
+		<div class="row cl">
+			<div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-3">
+				<button type="button" class="btn btn-success radius" id="admin-role-save" ><i class="icon-ok"></i> 确定</button>
+			</div>
+		</div>
+	</form>
+</article>
+
+<!--_footer 作为公共模版分离出去-->
+{include file="public/foot" /}
+<!--请在下方写此页面业务相关的脚本-->
+<script type="text/javascript" src="__URL__lib/jquery.validation/1.14.0/jquery.validate.js"></script>
+<script type="text/javascript" src="__URL__lib/jquery.validation/1.14.0/validate-methods.js"></script>
+<script type="text/javascript" src="__URL__lib/jquery.validation/1.14.0/messages_zh.js"></script>
+<script type="text/javascript">
+$(function(){
+	$(".permission-list dt input:checkbox").click(function(){
+		$(this).closest("dl").find("dd input:checkbox").prop("checked",$(this).prop("checked"));
+	});
+	$(".permission-list2 dd input:checkbox").click(function(){
+		var l =$(this).parent().parent().find("input:checked").length;
+		var l2=$(this).parents(".permission-list").find(".permission-list2 dd").find("input:checked").length;
+		if($(this).prop("checked")){
+			$(this).closest("dl").find("dt input:checkbox").prop("checked",true);
+			$(this).parents(".permission-list").find("dt").first().find("input:checkbox").prop("checked",true);
+		}
+		else{
+			if(l==0){
+				$(this).closest("dl").find("dt input:checkbox").prop("checked",false);
+			}
+			if(l2==0){
+				$(this).parents(".permission-list").find("dt").first().find("input:checkbox").prop("checked",false);
+			}
+		}
+		});
+		$('#admin-role-save').click(function(){
+			var rname = $('#rname').val();
+			var sex = $('#sex').val();
+			var aid= "";
+			$("input:checkbox[name='aid']:checked").each(function () {
+                aid+= $(this).val()+".";
+            });
+            var rid = $('#rid').val();
+  		 $.ajax({
+			type: 'POST',
+			url: "{:url('admin/Index/editroleon')}",
+			data:{rid:rid,rpid:aid,rname:rname,sex:sex},
+			success: function(data){
+				if(data==1){
+					layer.msg('添加成功!',{icon:1,time:2000});
+					  window.parent.location.reload();//刷新父页面
+				      parent.$('.btn-refresh').click();
+				      parent.layer.close(index);
+				}else{
+					layer.msg('添加失败!',{icon:1,time:1000});
+				}
+			}
+		});
+		});
+  var pidxw = "{$res['rpid']}";
+  var  pidxws = pidxw.split('.');
+ 	$("input:checkbox[name='aid']").each(function(i,n) {
+ 		//console.log($(this).val())
+ 		 var c = $(this).val();
+ 	     for(var is=0;is<=pidxws.length;is++){
+ 	     	if(pidxws[is]==c){
+ 	     		$(this).prop("checked",true);
+ 	     	}	
+ 	     }
+        
+});
+});
+</script>
+<!--/请在上方写此页面业务相关的脚本-->
+</body>
+</html>
