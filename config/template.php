@@ -30,8 +30,11 @@ return [
     'taglib_begin' => '{',
     // 标签库标签结束标记
     'taglib_end'   => '}',
+<<<<<<< HEAD
         'tpl_replace_string' => [
     '__URL__' => '/public/static/Admin/',
     '__AUL__' => '/public/static/Index/',
     ],
+=======
+>>>>>>> be7cd36c14974a4c3f9b3ecd6a51bff778c3824a
 ];
