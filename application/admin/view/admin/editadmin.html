@@ -4,7 +4,7 @@
 <body>
 <article class="page-container">
 	<form class="form form-horizontal" id="form-admin-add">
-		<input type="hidden" name="admin_id" value="{$afid.admin_id}">
+		<input type="hidden" name="admin_id" id="adid" value="{$afid.admin_id}">
 	<div class="row cl">
 		<label class="form-label col-xs-4 col-sm-3"><span class="c-red">*</span>管理员：</label>
 		<div class="formControls col-xs-8 col-sm-9">
@@ -59,6 +59,7 @@ $(function(){
 		var password = $('#password').val();
 		var password2 = $('#password2').val();
 		var rid = $('#rid').val();
+		var admin_id = $('#adid').val();
 		if (account=='' || password=='') {
 			layer.msg('用户名密码不能为空',{icon:1,time:1000});
 			return false;
@@ -66,11 +67,12 @@ $(function(){
 		if (password!=password2) {
 			layer.msg('2次密码不一样',{icon:1,time:1000});
 			return false;
-		}
+		}   
+		
 	        $.ajax({
 			type: 'POST',
-			url: "{:url('admin/admin/addon')}",
-			data:{account:account,password:password,rid:rid},
+			url: "{:url('admin/admin/editon')}",
+			data:{account:account,password:password,rid:rid,admin_id:admin_id},
 			success: function(data){
 				if(data==1){
 					layer.msg('成功!',{icon:1,time:2000});
@@ -78,7 +80,7 @@ $(function(){
 				     parent.$('.btn-refresh').click();
 				     parent.layer.close(index);
 				}else{
-					layer.msg('失败!',{icon:1,time:1000});
+					layer.msg(data,{icon:1,time:1000});
 				}
 			}
 		});

@@ -1,0 +1,30 @@
+{include file="public/head" /}
+<title>新增文章 - 资讯管理 - H-ui.admin v3.1</title>
+</head>
+<body>
+<article class="page-container">
+	<form class="form form-horizontal" id="form-article-add">
+<input type="file" class="inputPic_z"   onchange="filess('ns_img','2')" name="file_box" id="ns_img"/>
+	</form>
+</article>
+<!--_footer 作为公共模版分离出去-->
+{include file="public/foot" /}
+<!--请在下方写此页面业务相关的脚本-->
+<script type="text/javascript" src="__URL__lib/My97DatePicker/4.8/WdatePicker.js"></script>
+<script type="text/javascript" src="__URL__lib/jquery.validation/1.14.0/jquery.validate.js"></script> 
+<script type="text/javascript" src="__URL__lib/jquery.validation/1.14.0/validate-methods.js"></script> 
+<script type="text/javascript" src="__URL__lib/jquery.validation/1.14.0/messages_zh.js"></script>
+<script type="text/javascript" src="__URL__lib/webuploader/0.1.5/webuploader.min.js"></script> 
+<script type="text/javascript" src="__URL__lib/ueditor/1.4.3/ueditor.config.js"></script> 
+<script type="text/javascript" src="__URL__lib/ueditor/1.4.3/ueditor.all.min.js"> </script> 
+<script type="text/javascript" src="__URL__lib/ueditor/1.4.3/lang/zh-cn/zh-cn.js"></script>
+<script type="text/javascript">
+	   function filess(name,type){
+	    	alert('111');
+	
+		}
+
+</script>
+<!--/请在上方写此页面业务相关的脚本-->
+</body>
+</html>

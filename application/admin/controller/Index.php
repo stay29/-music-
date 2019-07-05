@@ -9,7 +9,6 @@ class Index  extends Comm
     public function index()
     {   
         $mup['admin_id'] = Session::get('aid');
-        //print_r($mup);exit();
         $res = Db::table('erp2_admins')->where($mup)->find();
         $mup1['rid'] = $res['rid'];
         $roleres = Db::table('erp2_admin_roles')->where($mup1)->find();
