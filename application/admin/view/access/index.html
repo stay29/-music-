@@ -1,0 +1,78 @@
+{layout name="layout:layout" /} 
+
+<table class="layui-table">
+  <colgroup>
+    <col width="150">
+    <col width="200">
+    <col>
+  </colgroup>
+  <thead>
+    <tr>
+      <th></th>
+      <th>账号</th>
+      <th>接口</th>
+      <th>状态</th>
+      <th>菜单</th>
+      <th>创建人</th>
+      <th>最近更新</th>
+      <th>操作</th>
+    </tr> 
+  </thead>
+  <tbody>
+   {volist name='accesses_list' id='item'}
+    <tr>
+      <td><button class="layui-btn layui-btn-xs"><span class="layui-icon layui-icon-down parent"></span></button></td>
+      <td>{$item.aname}</td>
+      <td>{$item.aurl}</td>
+      <td>{$item.status_text}</td>
+      <td></td>
+      <td>{$item.manager}</td>
+      <td>{:date('Y-m-d H:i:s',$item.update_time)}</td>
+      <td>
+        <a href="{:url('edit',['id'=>$item['id']])}" class="layui-btn layui-btn-xs">编辑</a>
+        <a href="{:url('del',['id'=>$item['id']])}" class="layui-btn layui-btn-xs layui-btn-danger">删除</a>
+
+      </td>
+    </tr> 
+    <div class="children">
+  
+    {volist name='item.son' id='v'}
+     <tr>
+      <td></td>
+      <td>{$v.aname}</td>
+      <td>{$v.aurl}</td>
+      <td>{$v.status_text}</td>
+      <td>
+          <select class="layui-btn layui-btn-xs layui-btn-primary" disabled="">
+            <option value="1" {if condition='$v["show"] eq 1'}selected{/if}>显示</option>
+            <option value="0" {if condition='$v["show"] eq 0'}selected{/if}>隐藏</option>
+          </select>
+      </td>
+      <td>{$v.manager}</td>
+      <td>{:date('Y-m-d H:i:s',$v.update_time)}</td>
+      <td>
+        <a href="{:url('edit',['id'=>$v['id']])}" class="layui-btn layui-btn-xs">编辑</a>
+        <a href="{:url('del',['id'=>$v['id']])}" class="layui-btn layui-btn-xs layui-btn-danger">删除</a>
+      </td>
+    </tr> 
+    {/volist}
+    {/volist}
+    </div>
+
+  </tbody>
+</table>
+<script>
+  $(function(){
+    $('.parent').click(function(){ 
+      $(this).parents('tr').next('.children').toggle();
+      if($(this).next('.children').css('display') == 'block'){
+        $(this).find('b').addClass('layui-icon-triangle-d');
+        $(this).find('b').removeClass('layui-icon-triangle-r');
+      }else{
+        $(this).find('b').removeClass('layui-icon-triangle-d');
+        $(this).find('b').addClass('layui-icon-triangle-r');
+      }
+    })
+  })
+</script>
+

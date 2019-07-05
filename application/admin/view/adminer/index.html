@@ -1,0 +1,39 @@
+{layout name="layout:layout" /} 
+
+<table class="layui-table">
+  <colgroup>
+    <col width="150">
+    <col width="200">
+    <col>
+  </colgroup>
+  <thead>
+    <tr>
+      <th>账号</th>
+      <th>昵称</th>
+      <th>状态</th>
+      <th>创建人</th>
+      <th>上次登录时间</th>
+      <th>注册时间</th>
+      <th>操作</th>
+    </tr> 
+  </thead>
+  <tbody>
+   {volist name='admins_list' id='item'}
+    <tr>
+      <td>{$item.ad_account}</td>
+      <td>{$item.ad_nickname}</td>
+      <td>{$item.ad_status_text}</td>
+      <td>{$item.ad_manager}</td>
+      <td>{:date('Y-m-d H:i:s',$item.ad_login_time)}</td>
+      <td>{:date('Y-m-d H:i:s',$item.ad_create_time)}</td>
+      <td>
+        {if condition="$item['id'] neq 1"}
+        <a href="{:url('edit',['id'=>$item['id']])}" class="layui-btn layui-btn-xs">编辑</a>
+        {/if}
+      </td>
+    </tr> 
+    {/volist} 
+  </tbody>
+</table>
+{$admins_list|raw}  
+

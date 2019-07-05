@@ -1,0 +1,40 @@
+{layout name="layout:layout" /} 
+
+<table class="layui-table">
+  <colgroup>
+    <col width="150">
+    <col width="200">
+    <col>
+  </colgroup>
+  <thead>
+    <tr>
+      <th>角色</th> 
+      <th>状态</th>
+      <th>创建人</th>
+      <th>最近更新</th>
+      <th>操作</th>
+    </tr> 
+  </thead>
+  <tbody>
+   {volist name='roles_list' id='item'}
+    <tr>
+      <td>{$item.rname}</td>
+      <td>{$item.status_text}</td>
+      <td>{$item.manager}</td>
+      <td>{:date('Y-m-d H:i:s',$item.update_time)}</td>
+      <td>
+        <a href="{:url('edit',['id'=>$item['id']])}" class="layui-btn layui-btn-xs">编辑</a>
+        <a href="{:url('del',['id'=>$item['id']])}" class="layui-btn layui-btn-xs layui-btn-danger">删除</a>
+
+      </td>
+    </tr> 
+    {/volist}
+    </div>
+  </tbody>
+</table>
+{$roles_list|raw}
+<script>
+  $(function(){ 
+  })
+</script>
+

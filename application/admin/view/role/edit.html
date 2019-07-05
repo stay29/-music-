@@ -1,0 +1,91 @@
+{layout name="layout:layout" /} 
+
+<form class="layui-form" action="">
+  <div class="layui-form-item">
+    <label class="layui-form-label">角色</label>
+    <div class="layui-input-block">
+      <input type="text" name="rname" required  lay-verify="required" placeholder="请输入角色" autocomplete="off" class="layui-input" value="{$role.rname}">
+    </div>
+  </div>  
+   <div class="layui-form-item">
+    <label class="layui-form-label">权限</label>
+    <div class="layui-input-block">
+     
+
+      <table class="layui-table layui-table-bordered">
+        <tr>
+            <th>顶级权限</th>
+            <th>子集权限</th>
+        </tr>
+       {volist name='all_accesses' id='item'}
+          <tr>
+            <td class="parent_access">
+               <input type="checkbox" name="access_ids[]" title="{$item.aname}" lay-ignore value="{$item.id}" {if condition='in_array($item["id"],$has_accesses)'}checked{/if}>
+               {$item.aname}
+            </td>
+    
+            <td class="children_access">
+                {volist name='item.son' id='v'}
+                   <input type="checkbox" name="access_ids[]" title="{$v.aname}" lay-ignore value="{$v.id}" {if condition='in_array($v["id"],$has_accesses)'}checked{/if}>
+                   {$v.aname}
+                {/volist}
+            </td>
+          </tr>
+      {/volist}
+      </table>
+    </div>
+
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">状态</label>
+    <div class="layui-input-block">
+      <select name="status" lay-verify="required">
+        <option value="1" {if condition="$role['status'] eq 1"}selected{/if}>启用</option> 
+        <option value="2" {if condition="$role['status'] eq 2"}selected{/if}>禁用</option> 
+      </select>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <input type="hidden" name="id" value="{$role.id}">
+      <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+      <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+    </div>
+  </div>
+</form>
+ 
+<script>
+//Demo
+layui.use('form', function(){
+  var form = layui.form;
+  
+  //监听提交
+  form.on('submit(formDemo)', function(data){ 
+     $.post('{:url("edit")}',data.field,function(e){
+      if(e.status){
+            layer.msg(e.sinfo);
+            window.location.href = '{:url("index")}';
+        }else{
+            layer.msg(e.emsg,{time:2000}); 
+        }
+     },'json');
+     return false;
+  });
+});
+$(function(){
+     $('.parent_access input').click(function(){
+         var status = this.checked;
+         $elem = $(this).parent().next('.children_access').find('input'); 
+         $.each($elem,function(k,v){
+            v.checked = status;
+         })
+     });
+     $('.children_access input').click(function(){
+         var status = this.checked;
+         if(status){
+             $elem = $(this).parents('tr').find('.parent_access input').attr('checked',true); 
+         }
+     })
+})
+</script>
+

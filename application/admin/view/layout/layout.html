@@ -1,0 +1,49 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>{$title}</title>
+<link rel="stylesheet" href="/static/common/layui/css/layui.css">
+<script src="/static/common/layui/layui.js"></script>
+<script src="/static/common/jquery-3.3.1.min.js"></script>
+<style>
+  .pagination{
+    float: right; 
+    height: 30px;
+  }
+
+  .pagination li{
+    float: left;
+    padding:8px;
+    font-size: 18px;
+    color:red;
+  }
+  .pagination li a{
+    font-size: 18px;
+  }
+</style>
+</head>
+<body>
+<blockquote class="layui-elem-quote">
+{$title} 
+<div class="layui-btn-group" style="float: right;">
+  <a type="button" class="layui-btn layui-btn-primary layui-btn-sm" href="">
+    <i class="layui-icon layui-icon-refresh"></i>
+  </a>
+  <a type="button" class="layui-btn layui-btn-primary layui-btn-sm" href="javascript:window.history.back();">
+    <i class="layui-icon layui-icon-return"></i>
+  </a>
+</div>
+{if condition="isset($add)"}
+<div class="layui-btn-group" style="float: right;">
+  <a type="button" class="layui-btn layui-btn-info layui-btn-sm" href="{$add??'#'}">
+    <i class="layui-icon layui-icon-add-1">新增</i>
+  </a>
+  <a type="button" class="layui-btn layui-btn-primary layui-btn-sm">
+  </a>
+</div>
+{/if}
+</blockquote>
+{__CONTENT__}
+</body>
+</html>

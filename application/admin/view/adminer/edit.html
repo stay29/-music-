@@ -1,0 +1,67 @@
+{layout name="layout:layout" /} 
+
+<form class="layui-form" action="">
+  <div class="layui-form-item">
+    <label class="layui-form-label">账号</label>
+    <div class="layui-input-block">
+      <input type="text"  required  lay-verify="required" placeholder="请输入账号" autocomplete="off" class="layui-input" value="{$admin.ad_account}" disabled="">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">昵称</label>
+    <div class="layui-input-block">
+      <input type="text" name="ad_nickname" required  lay-verify="required" placeholder="请输入昵称" autocomplete="off" class="layui-input" value="{$admin.ad_nickname}">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">密码框</label>
+    <div class="layui-input-inline">
+      <input type="password" name="ad_password"  placeholder="请输入密码" autocomplete="off" class="layui-input">
+    </div>
+    <div class="layui-form-mid layui-word-aux">辅助文字</div>
+  </div> 
+  <div class="layui-form-item">
+    <label class="layui-form-label">确认密码框</label>
+    <div class="layui-input-inline">
+      <input type="password" name="ad_password_confirm" placeholder="请输入密码" autocomplete="off" class="layui-input">
+    </div>
+    <div class="layui-form-mid layui-word-aux">辅助文字</div>
+  </div> 
+   <div class="layui-form-item">
+    <label class="layui-form-label">角色</label>
+    <div class="layui-input-block">
+     {volist name='roles' id='v'}
+         <input type="checkbox" name="role_ids[]" title="{$v.rname}" lay-ignore value="{$v.id}" {if condition="in_array($v['id'],$has_roles)"}checked{/if}>
+         {$v.rname}
+     {/volist}
+    </div>
+  </div> 
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <input type="hidden" name="id" value="{$admin.id}">
+      <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+      <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+    </div>
+  </div>
+</form>
+ 
+<script>
+//Demo
+layui.use('form', function(){
+  var form = layui.form;
+  
+  //监听提交
+  form.on('submit(formDemo)', function(data){ 
+     $.post('{:url("edit")}',data.field,function(e){
+     	if(e.status){
+            layer.msg(e.sinfo);
+            window.location.href = '{:url("index")}';
+        }else{
+            layer.msg(e.emsg,{time:2000}); 
+        }
+     },'json');
+     return false;
+  });
+});
+</script>
+
