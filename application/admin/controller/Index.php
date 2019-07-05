@@ -23,9 +23,9 @@ class Index  extends Comm
                 $list[]=$a;
             }
         }
-        foreach ($list as $k1 => &$v1) {
+        foreach ($list as $k1 => &$v1){
             $mup3['pid'] = $v1['aid'];
-            $v1['list'] = Db::table('erp2_admin_auths')->where($mup3)->select();
+            $v1['list'] = Db::table('erp2_admin_auths')->where($mup3)->where('aid', 'in',$authlist )->select();
          }
         $this->assign('alist',$list);
     	return view();
@@ -122,5 +122,34 @@ class Index  extends Comm
             echo "2";
         }
     }
-
+    public function roleedit(){
+       $data = request()->param();
+       //print_r($data);
+       $res = Db::name('erp2_admin_roles')->where($data)->find();
+       //$res['pidex'] = explode('.', $res['rpid']);
+       $authlist =  Db::table('erp2_admin_auths')->where('pid',0)->select();
+       foreach ($authlist as $k => &$v) {
+        $mup['pid'] = $v['aid'];
+        $v['list'] =     Db::table('erp2_admin_auths')->where($mup)->select();
+       }
+       $this->assign('res',$res);
+       $this->assign('list',$authlist);
+        return view();  
+    }
+   public function editroleon(){
+     $rid['rid'] = input('post.rid');
+     $data = input('post.');
+     $data['state'] = 1;
+     $res = Db::name('erp2_admin_roles')
+        ->where($rid)
+        ->data($data)
+        ->update();
+        //dump( Db::table('erp2_admin_roles')->getLastSql());
+        if($res){
+            echo "1";
+        }else{
+            echo "2";
+        } 
+   }
+  
 }
