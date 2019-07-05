@@ -1,29 +1,57 @@
 <?php
 namespace app\admin\controller;
-use think\Controller;
-use think\Db;
-use think\Request;
-use think\facade\Session;
-class Login  extends Controller
-{
-   public function index(){
-        return view();
-   }
-   public function log(){
-    $data = input('post.');
-    $data['status'] = 1;
-    $res = Db::table('erp2_admins')->where($data)->find();
-    if($res){
-      Session::set('aid',$res['admin_id']);
-      Session::set('username',$res['account']);
-      Session::set('rid',$res['rid']);
-      echo "1";
-    }else{
-      echo "2";
+
+class Login extends AdminBase
+{ 
+     protected $beforeActionList = [
+        'first',//验证有没有登录了
+        // 'second' =>  ['except'=>'hello'],
+        // 'three'  =>  ['only'=>'hello,data'],
+    ];
+
+    public function first(){
+        if(session('?admin')){
+            $this->redirect(url('admin/index/index'),302);
+        }
     }
-   } 
-   public function logout(){
-    session(null);
-   $this->redirect(url('admin/login/index'));
-   }
+
+    private function after(){
+          db('admins')
+              ->where(['id'=>session('admin.id')])
+              ->update(['ad_login_time'=>time()]);
+    }
+    public function index()
+    {
+        return $this->fetch();
+    }
+
+    public function login(){
+    	$ac = input('ac');
+    	$pwd = input('pwd');
+        $has = db('admins')
+            ->where(['ad_account'=>$ac])
+            ->field('ad_status,ad_secret')
+            ->find();
+        if(!$has['ad_secret']){
+            $this->return_data(0,'输入账号不存在');
+        }
+        if($has['ad_status'] == 2){
+             $this->return_data(0,'账号已被禁用，请联系管理员');
+        }
+        $log = db('admins')
+        ->where(['ad_account'=>$ac,'ad_password'=>sha1($pwd.$has['ad_secret'])])
+        ->field('id,ad_account,ad_login_time,ad_create_time,ad_update_time,ad_nickname')
+        ->find();
+        session('admin',$log);
+    	if($log){
+    		$info = '登录成功';
+            $status = 1;
+            $this->after();
+    	}else{
+    		$info = '验证错误';
+            $status = 0;
+    	}
+    	$this->return_data($status,$info);
+    }
+     
 }
