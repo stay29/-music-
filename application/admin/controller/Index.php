@@ -12,6 +12,8 @@ class Index extends AdminBase
     public function left(){
         if(session('admin.id') == 1){
             $this->admin_access_id = $this->all_accesses(2);
+        }else{
+            $this->admin_access_id = $this->all_accesses(3);
         }
     	$accesses = db("admin_accesses")
             ->whereIn('id',$this->admin_access_id)

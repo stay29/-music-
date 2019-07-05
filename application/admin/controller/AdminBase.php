@@ -12,7 +12,15 @@ class AdminBase extends Controller
         if($type == 1){
             return db('admin_accesses')->field('aname,id,pid')->select();
         }elseif($type == 2){
+            //全部权限
             return db('admin_accesses')->column('id');
+        }elseif($type == 3){
+            //部分权限
+            return db('admin_role_relations')
+                ->alias('arm')
+                ->where(['arm.admin_id'=>session('admin.id')])
+                ->join('erp2_admin_role_access_relations ram',' ram.role_id = arm.role_id')
+                ->column('ram.access_id');
         }
     }
     protected $beforeActionList = [
@@ -39,7 +47,7 @@ class AdminBase extends Controller
                 $this->admin_accesse_id = db('admin_role_relations')
                 ->alias('arm')
                 ->where(['arm.admin_id'=>$adminid])
-                ->join('erp2_role_access_relations ram',' ram.role_id = arm.role_id')
+                ->join('erp2_admin_role_access_relations ram',' ram.role_id = arm.role_id')
                 ->column('ram.access_id');  
                 $this->admin_accesse_aurl = db('admin_role_relations')
                 ->alias('arm')
