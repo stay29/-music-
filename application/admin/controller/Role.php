@@ -1,6 +1,8 @@
 <?php
 namespace app\admin\controller; 
 
+use think\Exception;
+
 class Role extends AdminBase
 {
     public function initialize(){
@@ -91,12 +93,22 @@ class Role extends AdminBase
         if(!$id){
             $this->error('没有id');
         }
-        $res = db('admin_roles')->where(['id'=>$id])->delete();
-        if($res){
+        try{
+            $res = db('admin_roles')->where(['id'=>$id])->delete();
+            if($res){
                 $this->success('删除角色成功');
-        }else{
+            }else{
                 $this->error('删除角色失败');
+            }
+        }catch (\Exception $e){
+            if($e->getMessage()){
+                $this->error('有用户在使用该角色，请检查');
+            }else{
+                $this->success('删除角色成功');
+            }
+
         }
+
     }
  
 }

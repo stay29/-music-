@@ -34,33 +34,37 @@ class AdminBase extends Controller
             $this->redirect(url('admin/login/index'),302);
         }else{
               //当前页的节点,用于登录管理员验证是否有此权限
-                 if(strpos($_SERVER['PATH_INFO'],'.')){
-                     $this->page_access = substr($_SERVER['PATH_INFO'],0,strpos($_SERVER['PATH_INFO'],'.'));
-                 }else{
-                    $this->page_access = $_SERVER['PATH_INFO'];
+                 $count = substr_count($_SERVER['PATH_INFO'],'/');
+                 if($count >= 3){
+                     if(strpos($_SERVER['PATH_INFO'],'.')){
+                         $this->page_access = substr($_SERVER['PATH_INFO'],0,strpos($_SERVER['PATH_INFO'],'.'));
+                     }else{
+                         $this->page_access = $_SERVER['PATH_INFO'];
+                     }
+                     $a = explode('/',$this->page_access);
+                     $b = [$a[0],$a[1],$a[2],$a[3]];
+                     $this->page_access = implode('/',$b);
+                     //获取登录管理的权限节点
+                     $adminid = session('admin.id');
+                     $this->admin_accesse_id = db('admin_role_relations')
+                         ->alias('arm')
+                         ->where(['arm.admin_id'=>$adminid])
+                         ->join('erp2_admin_role_access_relations ram',' ram.role_id = arm.role_id')
+                         ->column('ram.access_id');
+                     $this->admin_accesse_aurl = db('admin_role_relations')
+                         ->alias('arm')
+                         ->where(['arm.admin_id'=>$adminid])
+                         ->join('erp2_admin_role_access_relations ram',' ram.role_id = arm.role_id')
+                         ->join('erp2_admin_accesses ac','ac.id = ram.access_id')
+                         ->where('ac.aurl','neq','')
+                         ->column('ac.aurl');
+                     if(db('admin_accesses')->where(['aurl'=>$this->page_access])->count()){
+                         if(!in_array($this->page_access,$this->admin_accesse_aurl) && session('admin.id') != 1){
+                             $this->error('抱歉你没有该权限');
+                         }
+                     }
                  }
-                $a = explode('/',$this->page_access);
-                $b = [$a[0],$a[1],$a[2],$a[3]];
-                $this->page_access = implode('/',$b);
-                 //获取登录管理的权限节点
-                $adminid = session('admin.id');
-                $this->admin_accesse_id = db('admin_role_relations')
-                ->alias('arm')
-                ->where(['arm.admin_id'=>$adminid])
-                ->join('erp2_admin_role_access_relations ram',' ram.role_id = arm.role_id')
-                ->column('ram.access_id');  
-                $this->admin_accesse_aurl = db('admin_role_relations')
-                ->alias('arm')
-                ->where(['arm.admin_id'=>$adminid])
-                ->join('erp2_admin_role_access_relations ram',' ram.role_id = arm.role_id')
-                ->join('erp2_admin_accesses ac','ac.id = ram.access_id')
-                ->where('ac.aurl','neq','')
-                ->column('ac.aurl');  
-                if(db('admin_accesses')->where(['aurl'=>$this->page_access])->count()){
-                    if(!in_array($this->page_access,$this->admin_accesse_aurl) && session('admin.id') != 1){
-                        $this->error('抱歉你没有该权限');
-                    }
-                }
+
                 
 
 
