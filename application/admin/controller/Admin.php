@@ -39,26 +39,37 @@ class Admin  extends Comm
    } 
    public function addon(){
     $data = input('post.');
-    $admin_id = input('post.admin_id');
     $data['create_time'] = time();
     $data['status'] = 1;
-    if ($admin_id) {
-        $aid['admin_id'] = $admin_id;
-        $res =  Db::table('erp2_admins')->where($aid)->update($data);
-    }else{
-    unset($data['admin_id']);
+    //判断用户名是否注册
+    $mup1['account'] = $data['account'];
+    $accountinfo = Db::table('erp2_admins')->where($mup1)->find();
+    if(!empty($accountinfo)){
+      echo "用户名已注册";die;
+    }
     $res = Db::table('erp2_admins')
     ->data($data)
     ->insert(); 
-    }
     if($res){
         echo "1";
     }else{
-        echo "2";
+        echo "操作失败";
+    }
+   }
+   
+   public function editon(){
+    $data = input('post.');
+    $admin_id = input('post.admin_id');
+    $aid['admin_id'] = $admin_id;
+    $res =  Db::table('erp2_admins')->where($aid)->update($data);
+    if($res){
+        echo "1";
+    }else{
+        echo "操作失败";
     }
    }
 
-    public function admindel(){
+   public function admindel(){
         $data = input('post.'); 
           $res = Db::name('erp2_admins')
                 ->where($data)
