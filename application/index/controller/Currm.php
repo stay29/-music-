@@ -8,9 +8,9 @@ class Currm extends controller
     public function index()
     {
         $Curriculums = new Curriculums;
-        $res = $Curriculums->get_curriculums();
-        print_r($res);
-        //return view();
+      return  $res = $Curriculums->get_curriculums();
+        //print_r($res);
+         //return view();
     }
    
  

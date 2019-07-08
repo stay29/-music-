@@ -1,0 +1,91 @@
+{layout name="layout:layout" /} 
+
+<form class="layui-form" action="">
+  <input type="hidden" name="or_id" value="{$res.or_id}">
+  <div class="layui-form-item">
+    <label class="layui-form-label">门店名</label>
+    <div class="layui-input-block">
+      <input type="text" name="or_name" required  lay-verify="required" placeholder="请输入权限" autocomplete="off" class="layui-input" value="{$res.or_name}">
+    </div>
+  </div>  
+  
+  <div class="layui-form-item">
+    <label class="layui-form-label">logo</label>
+    <div class="layui-input-block">
+      <input type="text" name="logo" placeholder="请输入接口" autocomplete="off" class="layui-input" value="{$res.logo}">
+    </div>
+  </div>  
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">机构二维码</label>
+    <div class="layui-input-block">
+      <input type="text" name="qrcode" required  lay-verify="required" placeholder="请输入权限" autocomplete="off" class="layui-input" value="{$res.qrcode}">
+    </div>
+  </div>  
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">联系人</label>
+    <div class="layui-input-block">
+      <input type="text" name="contact_man" placeholder="请输入接口" autocomplete="off" class="layui-input" value="{$res.contact_man}">
+    </div>
+  </div>  
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">固定电话</label>
+    <div class="layui-input-block">
+      <input type="text" name="telephone" required  lay-verify="required" placeholder="请输入权限" autocomplete="off" class="layui-input" value="{$res.telephone}">
+    </div>
+  </div>  
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">移动电话</label>
+    <div class="layui-input-block">
+      <input type="text" name="mobilephone" placeholder="请输入接口" autocomplete="off" class="layui-input" value="{$res.mobilephone}">
+    </div>
+  </div>  
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">口号</label>
+    <div class="layui-input-block">
+      <input type="text" name="slogan" required  lay-verify="required" placeholder="请输入权限" autocomplete="off" class="layui-input" value="{$res.slogan}">
+    </div>
+  </div>  
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">机构描述</label>
+    <div class="layui-input-block">
+      <input type="text" name="describe" placeholder="请输入接口" autocomplete="off" class="layui-input" value="{$res.describe}">
+    </div>
+  </div>  
+    <div class="layui-form-item">
+    <label class="layui-form-label">地址</label>
+    <div class="layui-input-block">
+      <input type="text" name="address" placeholder="请输入接口" autocomplete="off" class="layui-input" value="{$res.address}">
+    </div>
+  </div>  
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+      <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+    </div>
+  </div>
+</form>
+<script>
+//Demo
+layui.use('form', function(){
+  var form = layui.form;
+  //监听提交
+  form.on('submit(formDemo)', function(data){ 
+     $.post('{:url("editon")}',data.field,function(e){
+     	if(e){
+            layer.msg('修改成功');
+            window.location.href = '{:url("index")}';
+        }else{
+            layer.msg(e,{time:2000}); 
+        }
+     },'json');
+     return false;
+  });
+});
+</script>
+
