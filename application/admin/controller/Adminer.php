@@ -110,4 +110,6 @@ class Adminer extends AdminBase
         return $this->fetch();
     }
  
+
+ 
 }
