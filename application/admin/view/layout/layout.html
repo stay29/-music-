@@ -21,6 +21,12 @@
   .pagination li a{
     font-size: 18px;
   }
+  .article_banner{
+    line-height:30px;
+    width: 90%;
+    margin:0 auto;
+    padding-bottom: 100px;
+  }
 </style>
 </head>
 <body>
@@ -34,16 +40,30 @@
     <i class="layui-icon layui-icon-return"></i>
   </a>
 </div>
+
 {if condition="isset($add)"}
-<div class="layui-btn-group" style="float: right;">
-  <a type="button" class="layui-btn layui-btn-info layui-btn-sm" href="{$add??'#'}">
-    <i class="layui-icon layui-icon-add-1">新增</i>
-  </a>
-  <a type="button" class="layui-btn layui-btn-primary layui-btn-sm">
-  </a>
-</div>
-{/if}
+  <div class="layui-btn-group" style="float: right;">
+    <a type="button" class="layui-btn layui-btn-info layui-btn-sm" href="{$add??'#'}">
+      <i class="layui-icon layui-icon-add-1">新增</i>
+    </a>
+    <a type="button" class="layui-btn layui-btn-primary layui-btn-sm">
+    </a>
+  </div>
+ {/if}
 </blockquote>
 {__CONTENT__}
 </body>
+<script>
+    layui.use(['form','layer','code'], function(){ //加载code模块
+        layui.code({
+            elem:'.layui-code',
+            title: '代码'
+            ,skin: 'notepad', //如果要默认风格，不用设定该key。
+            about: false
+        });
+        var form = layui.form;
+        var layer = layui.layer;
+    });
+
+</script>
 </html>
