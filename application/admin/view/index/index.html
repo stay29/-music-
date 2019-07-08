@@ -10,6 +10,7 @@
         }
         body{
             background: #ffe;
+            min-width: 600px;
         }
         .left{
             width: 15%;
@@ -20,14 +21,16 @@
             border:0;
         }
         #left_nav{
-            position: absolute;
-            top:60px;
+            /*position: absolute;*/
+            /*top:60px;*/
             height: 100%;
+            float: left;
         }
         #right_content{
-            position: absolute;
-            right: 20px;
-            top:60px;
+            /*position: absolute;*/
+            /*right: 10px;*/
+            /*top:60px;*/
+            float: left;
             height: 100%;
         }
     </style>
@@ -49,20 +52,23 @@
     </dl>
   </li>
 </ul>
-<iframe src="{:url('left')}" frameborder="0" width="250px" id="left_nav"></iframe> 
-<iframe src="{:url('right')}" frameborder="0" width="80%" id="right_content" name="right"></iframe> 
+<iframe src="{:url('left')}" frameborder="0" id="left_nav" width="16%"></iframe>
+<iframe src="{:url('right')}" frameborder="0" id="right_content" name="right"></iframe>
 </body>
 <script src="/static/common/jquery-3.3.1.min.js"></script>
 <script>
     //注意：导航 依赖 element 模块，否则无法进行功能性操作
     layui.use('element', function(){
       var element = layui.element;
-      
-      //…
+
     });
     $(function(){
         $('#left_nav').height($(document).height())
         $('#right_content').height($(document).height())
+        $('#right_content').width($(document).width()-$('#left_nav').width())
+        $(window).resize(function () {
+            $('#right_content').width($(document).width()-$('#left_nav').width())
+        })
     })
 </script>
 </html>

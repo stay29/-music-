@@ -106,8 +106,8 @@ class User extends AdminBase
             }elseif($v['sex'] == 2){
                 $v['sex'] = '女';
             }
-            // $v['manager'] = db('users')->where(['id'=>$v['manager']])->value('account')??'';
-            $v['manager'] = '';
+             $account = db('users')->where(['uid'=>$v['manager']])->value('account');
+             $v['manager'] = isset($account) ? $account : '';
             return $v;
         });
 
@@ -137,10 +137,41 @@ class User extends AdminBase
         $this->assign('title','编辑教师');
         return $this->fetch();
     }
+    //学生列表
     public function student(){
         $this->assign('title','学生列表');
-        $users_list   = db('students')->paginate(20);
-         $this->assign('users_list',$users_list);
+        $students_list   = db('students')->paginate(20)->each(function($v,$k){
+            if($v['status'] == 1){
+                $v['status_text'] = '就读';
+            }elseif($v['status'] == 2){
+                $v['status_text'] = '离校';
+            }
+            $account = db('users')->where(['uid'=>$v['manager']])->value('account');
+            $v['manager'] = isset($account) ? $account : '';
+            return $v;
+        });
+         $this->assign('students_list',$students_list);
         return view();
+    }
+
+    //教师编辑
+    public function student_edit(){
+        if(input('post.')){
+            $data = input('post.');
+            if(!$data['stu_id']){
+                $this->return_data(0,'没有stu_id');
+            }
+            $data['birthday'] = strtotime($data['birthday']);
+            db('students')->data($data)->update();
+            $this->return_data(1,'编辑学生成功');
+        }
+        $id = input('stu_id/d');
+        if(!$id){
+            $this->error('没有t_id');
+        }
+        $student= db('students')->where(['stu_id'=>$id])->find();
+        $this->assign('student',$student);
+        $this->assign('title','编辑学生');
+        return $this->fetch();
     }
 }
