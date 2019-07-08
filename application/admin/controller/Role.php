@@ -12,7 +12,6 @@ class Role extends AdminBase
     {
     	$this->assign('title','角色列表');
 		$this->assign('add',url('add'));
-
     	$roles = db('admin_roles')->paginate(20)->each(function($v,$k){
             if($v['status'] == 1){
                 $v['status_text'] = '正常';
@@ -22,14 +21,11 @@ class Role extends AdminBase
             $v['manager'] = db('admins')->where(['id'=>$v['manager']])->value('ad_account')??'超级角色';
             return $v;
         });
-
     	foreach ($roles as $k => $v) {
-    		
     	}
     	$this->assign('roles_list',$roles);
         return $this->fetch();
     }
-
     public function add(){
     	if(input('post.')){
     		$data = input('post.');     
@@ -57,7 +53,6 @@ class Role extends AdminBase
     	$this->assign('title','新增角色');
         return $this->fetch();
     }
-
     public function edit(){
     	if(input('post.')){
     		$data = input('post.');
@@ -72,7 +67,6 @@ class Role extends AdminBase
                 db('admin_role_access_relations')->insert(['access_id'=>$value,'role_id'=>$data['id']]);
             }
             $this->return_data(1,'编辑角色成功');
-           
     	}
     	$id = input('id/d');
     	if(!$id){
@@ -84,10 +78,8 @@ class Role extends AdminBase
         //列出角色拥有的权限
         $has_accesses = db('admin_role_access_relations')->where(['role_id'=>$id])->column('access_id');
         $this->assign('has_accesses',$has_accesses);
-
         return $this->fetch();
     }
-
      public function del(){
         $id = input('id/d');
         if(!$id){
