@@ -64,12 +64,6 @@ class AdminBase extends Controller
                          }
                      }
                  }
-
-                
-
-
-
-
         }
     }
  
