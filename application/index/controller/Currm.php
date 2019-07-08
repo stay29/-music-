@@ -7,10 +7,10 @@ class Currm extends controller
 { 
     public function index()
     {
-       
-        $res = Curriculums::select();
-        $this->assign('res',$res);
-        return view();
+        $Curriculums = new Curriculums;
+        $res = $Curriculums->get_curriculums();
+        print_r($res);
+        //return view();
     }
    
  
