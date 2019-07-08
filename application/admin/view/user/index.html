@@ -1,0 +1,41 @@
+{layout name="layout:layout" /} 
+
+<table class="layui-table">
+  <colgroup>
+    <col width="150">
+    <col width="200">
+    <col>
+  </colgroup>
+  <thead>
+    <tr>
+      <th>账号</th>
+      <th>昵称</th>
+      <th>手机号</th>
+      <th>性别</th>
+      <th>状态</th>
+      <th>创建人</th>
+      <th>上次登录时间</th>
+      <th>注册时间</th>
+      <th>操作</th>
+    </tr> 
+  </thead>
+  <tbody>
+   {volist name='users_list' id='item'}
+    <tr>
+      <td>{$item.account}</td>
+      <td>{$item.nickname}</td>
+      <td>{$item.cellphone}</td>
+      <td>{$item.sex}</td>
+      <td>{$item.status_text}</td>
+      <td>{$item.manager}</td>
+      <td>{:date('Y-m-d H:i:s',$item.login_time)}</td>
+      <td>{:date('Y-m-d H:i:s',$item.create_time)}</td>
+      <td> 
+        <a href="{:url('edit',['uid'=>$item['uid']])}" class="layui-btn layui-btn-xs">编辑</a>
+      </td>
+    </tr> 
+    {/volist} 
+  </tbody>
+</table>
+{$users_list|raw}  
+

@@ -1,0 +1,141 @@
+<?php
+namespace app\admin\controller; 
+
+class User extends AdminBase
+{
+
+    public function initialize(){
+        //教师资历
+        $seniorities = db('seniorities')->field('seniority_id,seniority_name')->select();
+        $this->assign('seniorities_list',$seniorities);
+    }
+    public function index()
+    { 
+    	$this->assign('title','用户列表');
+		$this->assign('add',url('add'));
+
+    	$users = db('users')->paginate(20)->each(function($v,$k){
+            if($v['status'] == 1){
+                $v['status_text'] = '正常';
+            }elseif($v['status'] == 2){
+                $v['status_text'] = '已拉黑';
+            }
+            if($v['sex'] == 1){
+                $v['sex'] = '男';
+            }elseif($v['sex'] == 2){
+                $v['sex'] = '女';
+            }
+                // $v['manager'] = db('users')->where(['id'=>$v['manager']])->value('account')??'';
+            $v['manager'] = '';
+            return $v;
+        });
+ 
+    	$this->assign('users_list',$users);
+        return $this->fetch();
+    }
+
+    public function add(){
+    	if(input('post.')){
+    		$data = input('post.');
+    		if($data['password'] != $data['password_confirm']){
+    			$this->return_data(0,'密码不一致');
+    		}
+    		unset($data['password_confirm']);
+    		if(db("users")->where(['account'=>$data['account']])->count()){
+    			$this->return_data(0,'该用户已存在');
+    		}
+    		$data['password'] = md5($data['password']);
+    		$data['create_time'] = $data['update_time'] = time();
+    		$data['manager'] = session('admin.id');
+          
+    		$res = db('users')->data($data)->insert();
+    		if($res){
+                 
+    			$this->return_data(1,'新增用户成功');
+    		}else{
+    			$this->return_data(0,'新增用户失败');
+    		}
+    	}
+    	$this->assign('title','新增用户');
+        return $this->fetch();
+    }
+
+    public function edit(){
+    	if(input('post.')){
+    		$data = input('post.');
+    		if(!$data['uid']){
+    			$this->return_data(0,'没有uid');
+    		}
+    		if($data['password']){
+	    		if($data['password'] != $data['password_confirm']){
+	    			$this->return_data(0,'密码不一致');
+	    		}
+	    		$data['password'] = md5($data['password']);
+    		}else{
+    			unset($data['password']);
+    		}
+    		unset($data['password_confirm']);
+            
+    		db('users')->data($data)->update();
+             
+   			$this->return_data(1,'编辑用户成功');
+    	}
+    	$id = input('uid/d');
+    	if(!$id){
+    		$this->error('没有uid');
+    	}
+    	$user = db('users')->where(['uid'=>$id])->find();
+    	$this->assign('user',$user);
+    	$this->assign('title','编辑用户');
+        return $this->fetch();
+    }
+
+    //查看教师
+    public function teacher()
+    {
+        $this->assign('title','教师列表');
+
+        $teachers = db('teachers')->paginate(20)->each(function($v,$k){
+            if($v['status'] == 1){
+                $v['status_text'] = '正常';
+            }elseif($v['status'] == 2){
+                $v['status_text'] = '已拉黑';
+            }
+            if($v['sex'] == 1){
+                $v['sex'] = '男';
+            }elseif($v['sex'] == 2){
+                $v['sex'] = '女';
+            }
+            // $v['manager'] = db('users')->where(['id'=>$v['manager']])->value('account')??'';
+            $v['manager'] = '';
+            return $v;
+        });
+
+        $this->assign('teachers_list',$teachers);
+        return $this->fetch();
+    }
+    //教师编辑
+    public function teacher_edit(){
+        if(input('post.')){
+            $data = input('post.');
+            if(!$data['t_id']){
+                $this->return_data(0,'没有t_id');
+            }
+            $data['entry_time'] = strtotime($data['entry_time']);
+            $data['birthday'] = strtotime($data['birthday']);
+            $data['resume'] = trim($data['resume']);
+            db('teachers')->data($data)->update();
+            $this->return_data(1,'编辑教师成功');
+        }
+        $id = input('t_id/d');
+        if(!$id){
+            $this->error('没有t_id');
+        }
+        $teacher = db('teachers')->where(['t_id'=>$id])->find();
+        $teacher['curriculums'] = implode(',',db('curriculums')->alias('c')->join('erp2_cur_teacher_relations ctm','ctm.cur_id = c.cur_id')->column('cur_name'));
+        $this->assign('teacher',$teacher);
+        $this->assign('title','编辑教师');
+        return $this->fetch();
+    }
+
+}

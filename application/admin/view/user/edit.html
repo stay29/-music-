@@ -1,0 +1,81 @@
+{layout name="layout:layout" /} 
+
+<form class="layui-form" action="">
+  <div class="layui-form-item">
+    <label class="layui-form-label">账号</label>
+    <div class="layui-input-block">
+      <input type="text"  required  lay-verify="required" placeholder="请输入账号" autocomplete="off" class="layui-input" value="{$user.account}" disabled="">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">昵称</label>
+    <div class="layui-input-block">
+      <input type="text" name="nickname" required  lay-verify="required" placeholder="请输入昵称" autocomplete="off" class="layui-input" value="{$user.nickname}">
+    </div>
+  </div>
+   <div class="layui-form-item">
+    <label class="layui-form-label">手机</label>
+    <div class="layui-input-block">
+      <input type="text" name="cellphone" required  lay-verify="required" placeholder="请输入手机" autocomplete="off" class="layui-input" value="{$user.cellphone}">
+    </div>
+  </div>
+   <div class="layui-form-item">
+    <label class="layui-form-label">性别</label>
+    <div class="layui-input-block">
+      <select name="sex" lay-verify="required">
+        <option value="1" {if condition="$user['sex'] eq 1"}selected{/if}>男</option> 
+        <option value="2" {if condition="$user['sex'] eq 2"}selected{/if}>女</option> 
+      </select>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">状态</label>
+    <div class="layui-input-block">
+      <select name="status" lay-verify="required">
+        <option value=""></option>
+        <option value="1"{if condition="$user['status'] eq 1"}selected{/if}>正常</option> 
+        <option value="2"{if condition="$user['status'] eq 2"}selected{/if}>去禁用</option> 
+      </select>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">密码框</label>
+    <div class="layui-input-inline">
+      <input type="password" name="password"  placeholder="请输入密码" autocomplete="off" class="layui-input">
+    </div> 
+  </div> 
+  <div class="layui-form-item">
+    <label class="layui-form-label">确认密码框</label>
+    <div class="layui-input-inline">
+      <input type="password" name="password_confirm" placeholder="请输入密码" autocomplete="off" class="layui-input">
+    </div> 
+  </div>  
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <input type="hidden" name="uid" value="{$user.uid}">
+      <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+      <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+    </div>
+  </div>
+</form>
+ 
+<script>
+//Demo
+layui.use('form', function(){
+  var form = layui.form;
+  
+  //监听提交
+  form.on('submit(formDemo)', function(data){ 
+     $.post('{:url("edit")}',data.field,function(e){
+     	if(e.status){
+            layer.msg(e.sinfo);
+            window.location.href = '{:url("index")}';
+        }else{
+            layer.msg(e.emsg,{time:2000}); 
+        }
+     },'json');
+     return false;
+  });
+});
+</script>
+

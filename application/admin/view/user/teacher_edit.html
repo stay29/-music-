@@ -1,0 +1,136 @@
+{layout name="layout:layout" /} 
+
+<form class="layui-form" action="">
+  <div class="layui-form-item">
+    <label class="layui-form-label">头像</label>
+    <div class="layui-input-block">
+      <img src="{$teacher.avator}" alt="教师头像" width="100">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">入职日期</label>
+    <div class="layui-input-block">
+      <input type="" id="entry_time" required  lay-verify="required" placeholder="请输入入职日期" autocomplete="off" class="layui-input" value="{:date('Y-m-d',$teacher.entry_time)}" name="entry_time" readonly>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">生日</label>
+    <div class="layui-input-block">
+      <input type="" id="birthday" required  lay-verify="required" placeholder="请输入生日" autocomplete="off" class="layui-input" value="{:date('Y-m-d',$teacher.birthday)}" name="birthday" readonly>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">昵称</label>
+    <div class="layui-input-block">
+      <input type="text" name="t_name" required  lay-verify="required" placeholder="请输入昵称" autocomplete="off" class="layui-input" value="{$teacher.t_name}">
+    </div>
+  </div>
+   <div class="layui-form-item">
+    <label class="layui-form-label">手机</label>
+    <div class="layui-input-block">
+      <input type="text" name="cellphone" required  lay-verify="required" placeholder="请输入手机" autocomplete="off" class="layui-input" value="{$teacher.cellphone}">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">身份证</label>
+    <div class="layui-input-block">
+      <input type="text" name="identity_card" required  lay-verify="required" placeholder="请输入身份证" autocomplete="off" class="layui-input" value="{$teacher.identity_card}">
+    </div>
+  </div>
+   <div class="layui-form-item">
+    <label class="layui-form-label">性别</label>
+    <div class="layui-input-block">
+      <select name="sex" lay-verify="required">
+        <option value="1" {if condition="$teacher['sex'] eq 1"}selected{/if}>男</option> 
+        <option value="2" {if condition="$teacher['sex'] eq 2"}selected{/if}>女</option> 
+      </select>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">简历</label>
+    <div class="layui-input-block">
+      <textarea name="resume" id="resume" cols="30" rows="10" class="layui-textarea">
+      {$teacher.resume}
+      </textarea>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">课程</label>
+    <div class="layui-input-block">
+      {$teacher.curriculums}
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">资历</label>
+    <div class="layui-input-block">
+      <select name="se_id" lay-verify="required" disabled class="layui-disabled">
+        {volist name='seniorities_list' id='item'}
+        <option value="{$item.seniority_id}" {if condition="$teacher['se_id'] eq $item['seniority_id']"}selected{/if}>{$item.seniority_name}</option>
+        {/volist}
+      </select>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">状态</label>
+    <div class="layui-input-block">
+      <select name="status" lay-verify="required">
+        <option value="1" {if condition="$teacher['status'] eq 1"}selected{/if}>就职</option>
+        <option value="2" {if condition="$teacher['status'] eq 2"}selected{/if}>离职</option>
+      </select>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <input type="hidden" name="t_id" value="{$teacher.t_id}">
+      <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+      <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+    </div>
+  </div>
+</form>
+ 
+<script>
+//Demo
+
+layui.use(['form','laydate','layedit'], function(){
+  var form = layui.form;
+  var laydate = layui.laydate;
+  var layedit = layui.layedit;
+    //执行一个laydate实例
+    laydate.render({
+        elem: '#entry_time' //指定元素
+    });
+    laydate.render({
+        elem: '#birthday' //指定元素
+    });
+    var index = layedit.build('resume', {
+        height: 180 //设置编辑器高度
+        ,tool:[
+            'strong' //加粗
+            ,'italic' //斜体
+            ,'underline' //下划线
+            ,'del' //删除线
+            ,'|' //分割线
+            ,'left' //左对齐
+            ,'center' //居中对齐
+            ,'right' //右对齐
+            ,'link' //超链接
+            ,'unlink' //清除链接
+            ,'face' //表情
+        ]
+    });
+  //监听提交
+  form.on('submit(formDemo)', function(data){
+      data.field.resume = $.trim(layedit.getContent(index));
+      $.post('{:url("teacher_edit")}',data.field,function(e){
+     	if(e.status){
+            layer.msg(e.sinfo);
+            window.location.href = '{:url("teacher")}';
+        }else{
+            layer.msg(e.emsg,{time:2000}); 
+        }
+     },'json');
+     return false;
+  });
+});
+</script>
+

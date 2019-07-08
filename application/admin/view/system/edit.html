@@ -1,0 +1,49 @@
+{layout name="layout:layout" /} 
+
+<form class="layui-form" action="">
+  <div class="layui-form-item">
+    <label class="layui-form-label">类名</label>
+    <div class="layui-input-block">
+      <input type="text" name="cate_name" required  lay-verify="required" placeholder="请输入类名" autocomplete="off" class="layui-input" value="{$cate.cate_name}">
+    </div>
+  </div>  
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">状态</label>
+    <div class="layui-input-block">
+      <select name="status" lay-verify="required">
+        <option value="1" {if condition="$cate['status'] eq 1"}selected{/if}>启用</option>
+        <option value="2" {if condition="$cate['status'] eq 2"}selected{/if}>禁用</option>
+      </select>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <input type="hidden" name="id" value="{$cate.id}">
+      <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+      <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+    </div>
+  </div>
+</form>
+ 
+<script>
+//Demo
+layui.use('form', function(){
+  var form = layui.form;
+  
+  //监听提交
+  form.on('submit(formDemo)', function(data){ 
+     $.post('{:url("edit")}',data.field,function(e){
+      if(e.status){
+            layer.msg(e.sinfo);
+            window.location.href = '{:url("index")}';
+        }else{
+            layer.msg(e.emsg,{time:2000}); 
+        }
+     },'json');
+     return false;
+  });
+});
+
+</script>
+
