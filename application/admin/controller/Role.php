@@ -18,7 +18,12 @@ class Role extends AdminBase
             }elseif($v['status'] == 2){
                 $v['status_text'] = '禁用';
             }
-            $v['manager'] = db('admins')->where(['id'=>$v['manager']])->value('ad_account')??'超级角色';
+             
+            $manager =  db('admins')->where(['id'=>$v['manager']])->value('ad_account');
+            if($manager){
+                  $v['manager'] = '超级角色';
+            }
+       
             return $v;
         });
     	foreach ($roles as $k => $v) {

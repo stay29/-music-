@@ -22,7 +22,11 @@ class Adminer extends AdminBase
             }elseif($v['ad_status'] == 2){
                 $v['ad_status_text'] = '禁用';
             }
-            $v['ad_manager'] = db('admins')->where(['id'=>$v['ad_manager']])->value('ad_account')??'超级管理员';
+           $ad_manager = db('admins')->where(['id'=>$v['ad_manager']])->value('ad_account');
+               if($ad_manager){
+                  $v['ad_manager'] = '超级管理员';
+            }
+
             return $v;
         });
  

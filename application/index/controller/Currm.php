@@ -1,28 +1,15 @@
 <?php
-namespace app\admin\controller; 
+namespace app\index\controller; 
+use think\Controller;
 use think\Exception;
-class Currm extends AdminBase
-{
-   
-
+use app\index\model\Curriculums;
+class Currm extends controller
+{ 
     public function index()
     {
        
-       $this->assign('title','课程列表');
-       //$this->assign('add',url('add'));
-       $users_list   = db('curriculums')->paginate(20)->each(function($v,&$k){
-            if($v['state'] == 1){
-                $v['state'] = '上架';
-            }elseif($v['state'] == 2){
-                $v['state'] = '下架';
-            }
-            $admins =  db('admins')->where(['id'=>$v['manager']])->value('ad_account');
-            if($admins){
-                $v['manager'] = $admins;
-            }
-            return $v;
-        });
-       $this->assign('users_list',$users_list);
+        $res = Curriculums::select();
+        $this->assign('res',$res);
         return view();
     }
    

@@ -25,7 +25,11 @@ class Access extends AdminBase
     		}elseif($v['status'] == 2){
     			$accesses[$k]['status_text'] = '禁用';
     		}
-    		$accesses[$k]['manager'] = db('admins')->where(['id'=>$v['manager']])->value('ad_account')??'超级权限';
+         $manager = db('admins')->where(['id'=>$v['manager']])->value('ad_account');
+            if($manager){
+                  $accesses[$k]['manager'] = '超级权限';
+            }
+
     	}
 
     	$this->assign('accesses_list',$this->make_tree($accesses));
