@@ -137,5 +137,10 @@ class User extends AdminBase
         $this->assign('title','编辑教师');
         return $this->fetch();
     }
-
+    public function student(){
+        $this->assign('title','学生列表');
+        $users_list   = db('students')->paginate(20);
+         $this->assign('users_list',$users_list);
+        return view();
+    }
 }
