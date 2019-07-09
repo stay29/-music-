@@ -100,6 +100,7 @@ class AdminBase extends Controller
      * $arr:编辑页内容包含图片，需要正则匹配
  	 */
     public function process_imags_problem($str,$arr=[]){
+        $editor = UPLOAD_DIR.'editor'.DIRECTORY_SEPARATOR;
         $preg = '/<img.*?src=[\"|\']?(.*?)[\"|\']?\s.*?>/i';
         preg_match_all($preg, $str, $imgArr);
 
@@ -110,10 +111,10 @@ class AdminBase extends Controller
                 foreach ($imgArr[1] as $key => $value) {
                     $v = strstr($value,'.');
                     if(file_exists($v)){
-                        $destination = str_replace('/'.$temp_dir,'',$v);
+                        $destination = str_replace(DIRECTORY_SEPARATOR.$temp_dir,'',$v);
                         preg_match('/^.*(\d{4}-\d{1,2}-\d{1,2}).*$/', $destination, $day);
-                        if(!is_dir(UPLOAD_DIR.$day[1])){
-                            mkdir(UPLOAD_DIR.$day[1]);
+                        if(!is_dir($editor.$day[1])){
+                            mkdir($editor.$day[1]);
                         }
                         if($v != $destination){
                             copy($v,$destination);
@@ -163,6 +164,7 @@ class AdminBase extends Controller
                     mkdir(UPLOAD_DIR.$dir.DIRECTORY_SEPARATOR.$day[1],0777);
                 }
             }
+
             if($temp_image != $destination){
                 copy($temp_image,$destination);
                 unlink($temp_image);

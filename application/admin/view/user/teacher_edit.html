@@ -5,7 +5,7 @@
     <label class="layui-form-label">头像</label>
     <div class="layui-input-block">
       <img src="{$teacher.avator}" alt="教师头像" width="100" id="teacher_avator">
-        <input type="hidden" name="avator" id="avator">
+      <input type="hidden" name="avator" id="avator" value="{$teacher.avator}">
       <button type="button" class="layui-btn" id="teacher_avator_button">
         <i class="layui-icon">&#xe67c;</i>上传图片
       </button>
@@ -86,6 +86,11 @@
   <div class="layui-form-item">
     <div class="layui-input-block">
       <input type="hidden" name="t_id" value="{$teacher.t_id}">
+      {if condition='$imgArr'}
+      {volist name='imgArr' id='item'}
+      <input type="hidden" name="has_imgs[]" value="{$item}">
+      {/volist}
+      {/if}
       <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
       <button type="reset" class="layui-btn layui-btn-primary">重置</button>
     </div>
@@ -108,6 +113,13 @@ layui.use(['form','laydate','layedit','upload','layer'], function(){
     laydate.render({
         elem: '#birthday' //指定元素
     });
+
+    layedit.set({
+        uploadImage: {
+            url: '{:url("admin/File/upload_file",["type"=>1,"dir"=>"editor"])}' //接口url
+            ,type: 'post' //默认post
+        }
+    });
     var index = layedit.build('resume', {
         height: 180 //设置编辑器高度
         ,tool:[
@@ -122,12 +134,13 @@ layui.use(['form','laydate','layedit','upload','layer'], function(){
             ,'link' //超链接
             ,'unlink' //清除链接
             ,'face' //表情
+            ,'image'
         ]
     });
     //执行实例
     var index2 = upload.render({
         elem: '#teacher_avator_button' //绑定元素
-        ,url: '{:url("File/upload_file",["type"=>1,"dir"=>"avator"])}' //上传接口
+        ,url: '{:url("File/upload_file",["type"=>1,"dir"=>"teacher_avator"])}' //上传接口
         ,done: function(res){
             //上传完毕回调
             if(res.code == 0){

@@ -118,7 +118,12 @@ class User extends AdminBase
     public function teacher_edit(){
         if(input('post.')){
             $data = input('post.');
-            $this->process_image_upload($data['avator'],'avator');
+            if(!isset($data['has_imgs'])){
+                $data['has_imgs'] = [];
+            }
+            $this->process_image_upload($data['avator'],'teacher_avator');
+            $this->process_imags_problem($data['resume'],$data['has_imgs']);
+            unset($data['has_imgs']);
             if(!$data['t_id']){
                 $this->return_data(0,'没有t_id');
             }
@@ -134,9 +139,13 @@ class User extends AdminBase
         }
         $teacher = db('teachers')->where(['t_id'=>$id])->find();
         $teacher['avator'] = str_replace(DIRECTORY_SEPARATOR.'temp'.DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR, $teacher['avator']);
+        $teacher['resume'] = str_replace(DIRECTORY_SEPARATOR.'temp'.DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR, $teacher['resume']);
         $teacher['curriculums'] = implode(',',db('curriculums')->alias('c')->join('erp2_cur_teacher_relations ctm','ctm.cur_id = c.cur_id')->column('cur_name'));
         $this->assign('teacher',$teacher);
         $this->assign('title','编辑教师');
+        $preg = '/<img.*?src=[\"|\']?(.*?)[\"|\']?\s.*?>/i';
+        preg_match_all($preg, $teacher['resume'], $imgArr);
+        $this->assign('imgArr',$imgArr[1]);
         return $this->fetch();
     }
     //学生列表
@@ -152,7 +161,7 @@ class User extends AdminBase
             $v['manager'] = isset($account) ? $account : '';
             return $v;
         });
-         $this->assign('students_list',$students_list);
+        $this->assign('students_list',$students_list);
         return view();
     }
 
@@ -160,6 +169,8 @@ class User extends AdminBase
     public function student_edit(){
         if(input('post.')){
             $data = input('post.');
+            $this->process_image_upload($data['avator'],'student_avator');
+
             if(!$data['stu_id']){
                 $this->return_data(0,'没有stu_id');
             }
@@ -172,6 +183,7 @@ class User extends AdminBase
             $this->error('没有t_id');
         }
         $student= db('students')->where(['stu_id'=>$id])->find();
+        $student['avator'] = str_replace(DIRECTORY_SEPARATOR.'temp'.DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR, $student['avator']);
         $this->assign('student',$student);
         $this->assign('title','编辑学生');
         return $this->fetch();
