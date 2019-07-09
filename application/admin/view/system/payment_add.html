@@ -1,0 +1,61 @@
+{layout name="layout:layout" /} 
+
+<form class="layui-form" action="">
+  <div class="layui-form-item">
+    <label class="layui-form-label">支付方式</label>
+    <div class="layui-input-block">
+      <input type="text" name="payment_method" required  lay-verify="required" placeholder="请输入支付方式" autocomplete="off" class="layui-input">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">状态</label>
+    <div class="layui-input-block">
+      <select name="status" lay-verify="required">
+        <option value="1">启用</option> 
+        <option value="2">禁用</option> 
+      </select>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+      <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+    </div>
+  </div>
+</form>
+ 
+<script>
+//Demo
+layui.use('form', function(){
+  var form = layui.form;
+  
+  //监听提交
+  form.on('submit(formDemo)', function(data){ 
+     $.post('{:url("payment_add")}',data.field,function(e){
+      if(e.status){
+            layer.msg(e.sinfo);
+            window.location.href = '{:url("payments")}';
+        }else{
+            layer.msg(e.emsg,{time:2000}); 
+        }
+     },'json');
+     return false;
+  });
+});
+$(function(){
+     $('.parent_access input').click(function(){
+         var status = this.checked;
+         $elem = $(this).parent().next('.children_access').find('input'); 
+         $.each($elem,function(k,v){
+            v.checked = status;
+         })
+     });
+     $('.children_access input').click(function(){
+         var status = this.checked;
+         if(status){
+             $elem = $(this).parents('tr').find('.parent_access input').attr('checked',true); 
+         }
+     })
+})
+</script>
+
