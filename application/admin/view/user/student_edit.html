@@ -1,0 +1,174 @@
+{layout name="layout:layout" /} 
+
+<form class="layui-form" action="">
+  <div class="layui-form-item">
+    <label class="layui-form-label">真实姓名</label>
+    <div class="layui-input-block">
+      <input type="text" name="truename" required  lay-verify="required" placeholder="请输入真实姓名" autocomplete="off" class="layui-input" value="{$student.truename}">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">头像</label>
+    <div class="layui-input-block">
+      <img src="{$student.avator}" alt="学生头像" width="100" id="student_avator">
+      <input type="hidden" name="avator" id="avator" value="{$student.avator}">
+      <button type="button" class="layui-btn" id="student_avator_button">
+        <i class="layui-icon">&#xe67c;</i>上传图片
+      </button>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">性别</label>
+    <div class="layui-input-block">
+      <select name="sex" lay-verify="required">
+        <option value="1" {if condition="$student['sex'] eq 1"}selected{/if}>男</option>
+        <option value="2" {if condition="$student['sex'] eq 2"}selected{/if}>女</option>
+      </select>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">生日</label>
+    <div class="layui-input-block">
+      <input type="" id="birthday" required  lay-verify="required" placeholder="请输入生日" autocomplete="off" class="layui-input" value="{:date('Y-m-d',$student.birthday)}" name="birthday" readonly>
+    </div>
+  </div>
+
+   <div class="layui-form-item">
+    <label class="layui-form-label">手机</label>
+    <div class="layui-input-block">
+      <input type="text" name="cellphone" required  lay-verify="required" placeholder="请输入手机" autocomplete="off" class="layui-input" value="{$student.cellphone}">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">邮箱</label>
+    <div class="layui-input-block">
+      <input type="text" name="email" required  lay-verify="required" placeholder="请输入邮箱" autocomplete="off" class="layui-input" value="{$student.email}">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">微信</label>
+    <div class="layui-input-block">
+      <input type="text" name="wechat" required  lay-verify="required" placeholder="请输入微信" autocomplete="off" class="layui-input" value="{$student.wechat}">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">学校</label>
+    <div class="layui-input-block">
+      <input type="text" name="school_name" required  lay-verify="required" placeholder="请输入学校" autocomplete="off" class="layui-input" value="{$student.school_name}">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">监护人</label>
+    <div class="layui-input-block">
+      <input type="text" name="guardian_name" required  lay-verify="required" placeholder="请输入监护人名称" autocomplete="off" class="layui-input" value="{$student.guardian_name}">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">监护人手机</label>
+    <div class="layui-input-block">
+      <input type="text" name="guardian_phone" required  lay-verify="required" placeholder="请输入监护人联系方式" autocomplete="off" class="layui-input" value="{$student.guardian_phone}">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">监护人关系</label>
+    <div class="layui-input-block">
+      <input type="text" name="guardian" required  lay-verify="required" placeholder="请输入关系" autocomplete="off" class="layui-input" value="{$student.guardian}">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">年级</label>
+    <div class="layui-input-block">
+      <input type="text" name="grade" required  lay-verify="required" placeholder="请输入年级" autocomplete="off" class="layui-input" value="{$student.grade}">
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">地址</label>
+    <div class="layui-input-block">
+      <input type="text" name="address" required  lay-verify="required" placeholder="请输入信详细地址" autocomplete="off" class="layui-input" value="{$student.address}">
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">状态</label>
+    <div class="layui-input-block">
+      <select name="status" lay-verify="required">
+        <option value="1" {if condition="$student['status'] eq 1"}selected{/if}>就读</option>
+        <option value="2" {if condition="$student['status'] eq 2"}selected{/if}>离校</option>
+      </select>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <input type="hidden" name="stu_id" value="{$student.stu_id}">
+      <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+      <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+    </div>
+  </div>
+</form>
+ 
+<script>
+//Demo
+
+layui.use(['form','laydate','layedit','upload','layer'], function(){
+    var form = layui.form;
+    var laydate = layui.laydate;
+    var layedit = layui.layedit;
+    var upload = layui.upload;
+    var layer = layui.layer;
+    //执行一个laydate实例
+    laydate.render({
+        elem: '#entry_time' //指定元素
+    });
+    laydate.render({
+        elem: '#birthday' //指定元素
+    });
+    var index = layedit.build('resume', {
+        height: 180 //设置编辑器高度
+        ,tool:[
+            'strong' //加粗
+            ,'italic' //斜体
+            ,'underline' //下划线
+            ,'del' //删除线
+            ,'|' //分割线
+            ,'left' //左对齐
+            ,'center' //居中对齐
+            ,'right' //右对齐
+            ,'link' //超链接
+            ,'unlink' //清除链接
+            ,'face' //表情
+        ]
+    });
+    //执行实例
+    var index2 = upload.render({
+        elem: '#student_avator_button' //绑定元素
+        ,url: '{:url("File/upload_file",["type"=>1,"dir"=>"student_avator"])}' //上传接口
+        ,done: function(res){
+            //上传完毕回调
+            if(res.code == 0){
+                $('#avator').val(res.data.src);
+                $('#student_avator').attr('src',res.data.src)
+            }else{
+                layer.msg(res.msg)
+            }
+        }
+        ,error: function(){
+
+        }
+    });
+  //监听提交
+  form.on('submit(formDemo)', function(data){
+      delete data.field.file;
+
+      $.post('{:url("student_edit")}',data.field,function(e){
+     	if(e.status){
+            layer.msg(e.sinfo);
+            window.location.href = '{:url("student")}';
+        }else{
+            layer.msg(e.emsg,{time:2000}); 
+        }
+     },'json');
+     return false;
+  });
+});
+</script>
+
