@@ -14,12 +14,12 @@ class Curriculums extends Validate
 		  	],
 		  	'describe|课程描述'=>[
 		  		'require',
-		  		'min'=>5,
+		  		'min'=>1,
 		  		'max'=>200,
 		  	],
 		  	'remarks|备注'=>[
 		  		'require',
-		  		'min'=>5,
+		  		'min'=>1,
 		  		'max'=>200,
 		  	],
 		  	'ctime|课时'=>[

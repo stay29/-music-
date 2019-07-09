@@ -3,7 +3,6 @@ namespace app\admin\controller;
 
 class Access extends AdminBase
 {
-
     public function initialize(){
         //获取父级权限
         $this->assign('parent_accesses',$this->parent_accesses());

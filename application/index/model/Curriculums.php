@@ -4,19 +4,10 @@ use think\Model;
 use think\Db;
 class Curriculums extends Model
 {	
-    public $db;
-    function __construct(){
-        $this->db=Db::name('curriculums');
-    }
-
-	//添加课程接口
-	public function addc($data){
-		$Curriculums->save($data);
-		return $Curriculums->id;
-	}	
 	//课程列表
 	public function get_curriculums(){
-		$list = $this->db->select();
+		$Curriculums  = new Curriculums;
+		$list = $Curriculums->select();
 		foreach ($list as $k => &$v) {
 			if($v['tmethods']=='1'){
 				$v['tmethods']='1对1';
@@ -43,12 +34,25 @@ class Curriculums extends Model
 		 }		
 		    return $list;
 	}
-
 	public function addcurrl($data){
-				
-		
-		
+		$Curriculums  = new Curriculums;
+		$Curriculums->save($data);
+		return $Curriculums->id;
 	}
-
+	public function delcurrl($data){
+		$Curriculums  = new Curriculums;
+		$res =  $Curriculums->where($data)->delete();
+		return  $res;
+	}
+	public function editcurrm($curid,$data){
+		$Curriculums  = new Curriculums;
+		$Curriculums->where($curid)->save($data);
+		return $Curriculums->id;
+	}
+	public function getcurrmone($curid){
+		$Curriculums  = new Curriculums;
+		$info = $Curriculums->where($curid)->find();
+		return $info;
+	}
 
 }
