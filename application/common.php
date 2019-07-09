@@ -9,8 +9,9 @@
 // | Author: 流年 <liu21st@gmail.com>
 // +----------------------------------------------------------------------
 
-// 应用公共文件
+// 上传文件规则，用于tp5.1的自动上传命名
 function upload_file_rule(){
+    $file_name = time();
 	if(session('?admin')){
 		$file_name = 'temp'.DIRECTORY_SEPARATOR.date('Y-m-d').DIRECTORY_SEPARATOR.uniqid();
 	}
