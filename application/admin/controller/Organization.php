@@ -11,7 +11,7 @@ class Organization extends AdminBase
        $this->assign('org_list',$org_list);
         return view();
     }
-
+        
         public function edit(){
     	$this->assign('title','机构编辑');
     	$mup['or_id'] =  $id = input('or_id/d');
@@ -19,7 +19,7 @@ class Organization extends AdminBase
         $this->assign('res',$res);
         return view();
         }
-
+        
     public function editon(){
     	$mup['or_id'] =  $id = input('or_id/d');
     	$data =input('');
@@ -30,5 +30,4 @@ class Organization extends AdminBase
     		echo '更新失败';
     	}
     }
-
 }

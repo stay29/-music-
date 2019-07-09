@@ -18,7 +18,6 @@ class File extends Controller
             mkdir(UPLOAD_DIR,0777);
         }
         $type = input('type/d',1);
-
         $user_define_dir = UPLOAD_DIR.input('dir','');
         if(!empty($user_define_dir) && !is_dir($user_define_dir)){
             mkdir($user_define_dir,0777);

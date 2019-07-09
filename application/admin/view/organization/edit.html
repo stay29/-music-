@@ -9,19 +9,29 @@
     </div>
   </div>  
   
-  <div class="layui-form-item">
+    <div class="layui-form-item">
     <label class="layui-form-label">logo</label>
     <div class="layui-input-block">
-      <input type="text" name="logo" placeholder="请输入接口" autocomplete="off" class="layui-input" value="{$res.logo}">
+      <img src="{$res.logo}" alt="logo" width="100" id="logo">
+      <input type="hidden" name="logo" id="logos" value="{$res.logo}">
+      <button type="button" class="layui-btn" id="logoal">
+        <i class="layui-icon">&#xe67c;</i>上传logo
+      </button>
     </div>
-  </div>  
+  </div>
 
-  <div class="layui-form-item">
+  
+    <div class="layui-form-item">
     <label class="layui-form-label">机构二维码</label>
     <div class="layui-input-block">
-      <input type="text" name="qrcode" required  lay-verify="required" placeholder="请输入权限" autocomplete="off" class="layui-input" value="{$res.qrcode}">
+      <img src="{$res.qrcode}" alt="qrcode" width="100" id="qrcode">
+      <input type="hidden" name="qrcode" id="qrcodes" value="{$res.qrcode}">
+      <button type="button" class="layui-btn" id="qrcodeal">
+        <i class="layui-icon">&#xe67c;</i>上传二维码
+      </button>
     </div>
-  </div>  
+  </div>
+ 
 
   <div class="layui-form-item">
     <label class="layui-form-label">联系人</label>
@@ -72,10 +82,15 @@
 </form>
 <script>
 //Demo
-layui.use('form', function(){
+layui.use(['form','laydate','layedit','upload','layer'], function(){
   var form = layui.form;
+  var laydate = layui.laydate;
+  var layedit = layui.layedit;
+  var upload = layui.upload;
+  var layer = layui.layer;
   //监听提交
   form.on('submit(formDemo)', function(data){ 
+     delete data.field.file;
      $.post('{:url("editon")}',data.field,function(e){
      	if(e){
             layer.msg('修改成功');
@@ -86,6 +101,39 @@ layui.use('form', function(){
      },'json');
      return false;
   });
+
+ var index2 = upload.render({
+        elem: '#logoal' //绑定元素
+        ,url: '{:url("File/upload_file",["type"=>1,"dir"=>"orglog"])}' //上传接口
+        //,url: '#' //上传接口
+        ,done: function(res){
+            //上传完毕回调
+            if(res.code == 0){
+                $('#logos').val(res.data.src);
+                $('#logo').attr('src',res.data.src)
+            }else{
+                layer.msg(res.msg)
+            }
+        }
+        ,error: function(){
+        }
+    });
+ var index3 = upload.render({
+        elem: '#qrcodeal' //绑定元素
+        ,url: '{:url("File/upload_file",["type"=>1,"dir"=>"qrcodes"])}' //上传接口
+        //,url: '#' //上传接口
+        ,done: function(res){
+            //上传完毕回调
+            if(res.code == 0){
+                $('#qrcodes').val(res.data.src);
+                $('#qrcode').attr('src',res.data.src)
+            }else{
+                layer.msg(res.msg)
+            }
+        }
+        ,error: function(){
+        }
+    });
 });
 </script>
 

@@ -164,7 +164,6 @@ class User extends AdminBase
         $this->assign('students_list',$students_list);
         return view();
     }
-
     //教师编辑
     public function student_edit(){
         if(input('post.')){
