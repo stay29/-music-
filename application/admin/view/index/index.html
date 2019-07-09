@@ -69,6 +69,10 @@
         $(window).resize(function () {
             $('#right_content').width($(document).width()-$('#left_nav').width())
         })
+        var h = $(document).height();
+        $(document).scroll(function () {
+            $('#left_nav').height(h)
+        })
     })
 </script>
 </html>

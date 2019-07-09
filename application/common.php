@@ -10,16 +10,42 @@
 // +----------------------------------------------------------------------
 
 // 应用公共文件
+function upload_file_rule(){
+	if(session('?admin')){
+		$file_name = 'temp'.DIRECTORY_SEPARATOR.date('Y-m-d').DIRECTORY_SEPARATOR.uniqid();
+	}
+	return $file_name;
+}
 
-
-//打印
-function dd($arr,$type=1){
-    echo '<pre>';
-    if($type == 1){
-        print_r($arr);
-    }elseif($type == 2){
-        var_dump($arr);
+/**
+ * 清空/删除 文件夹
+ * @param string $dirname 文件夹路径
+ * @param bool $self 是否删除当前文件夹
+ * @return bool
+ */
+function do_rmdir($dirname, $self = true) {
+    if (!file_exists($dirname)) {
+        return false;
     }
-    echo '</pre>';
-    die;
+    if (is_file($dirname) || is_link($dirname)) {
+        return unlink($dirname);
+    }
+    $dir = dir($dirname);
+    if ($dir) {
+        while (false !== $entry = $dir->read()) {
+            if ($entry == '.' || $entry == '..') {
+                continue;
+            }
+            do_rmdir($dirname . '/' . $entry);
+        }
+    }
+    $dir->close();
+    $self && rmdir($dirname);
+}
+//d打印
+function dd($arr){
+    echo '<pre>';
+    print_r($arr);
+    echo '</prev>';
+    exit();
 }
