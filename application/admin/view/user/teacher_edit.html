@@ -4,7 +4,11 @@
   <div class="layui-form-item">
     <label class="layui-form-label">头像</label>
     <div class="layui-input-block">
-      <img src="{$teacher.avator}" alt="教师头像" width="100">
+      <img src="{$teacher.avator}" alt="教师头像" width="100" id="teacher_avator">
+        <input type="hidden" name="avator" id="avator">
+      <button type="button" class="layui-btn" id="teacher_avator_button">
+        <i class="layui-icon">&#xe67c;</i>上传图片
+      </button>
     </div>
   </div>
   <div class="layui-form-item">
@@ -91,10 +95,12 @@
 <script>
 //Demo
 
-layui.use(['form','laydate','layedit'], function(){
+layui.use(['form','laydate','layedit','upload','layer'], function(){
   var form = layui.form;
   var laydate = layui.laydate;
   var layedit = layui.layedit;
+  var upload = layui.upload;
+  var layer = layui.layer;
     //执行一个laydate实例
     laydate.render({
         elem: '#entry_time' //指定元素
@@ -118,8 +124,27 @@ layui.use(['form','laydate','layedit'], function(){
             ,'face' //表情
         ]
     });
+    //执行实例
+    var index2 = upload.render({
+        elem: '#teacher_avator_button' //绑定元素
+        ,url: '{:url("File/upload_file",["type"=>1,"dir"=>"avator"])}' //上传接口
+        ,done: function(res){
+            //上传完毕回调
+            if(res.code == 0){
+                $('#avator').val(res.data.src);
+                $('#teacher_avator').attr('src',res.data.src)
+            }else{
+                layer.msg(res.msg)
+            }
+        }
+        ,error: function(){
+
+        }
+    });
+
   //监听提交
   form.on('submit(formDemo)', function(data){
+      delete data.field.file;
       data.field.resume = $.trim(layedit.getContent(index));
       $.post('{:url("teacher_edit")}',data.field,function(e){
      	if(e.status){

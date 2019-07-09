@@ -118,6 +118,7 @@ class User extends AdminBase
     public function teacher_edit(){
         if(input('post.')){
             $data = input('post.');
+            $this->process_image_upload($data['avator'],'avator');
             if(!$data['t_id']){
                 $this->return_data(0,'没有t_id');
             }
@@ -132,6 +133,7 @@ class User extends AdminBase
             $this->error('没有t_id');
         }
         $teacher = db('teachers')->where(['t_id'=>$id])->find();
+        $teacher['avator'] = str_replace(DIRECTORY_SEPARATOR.'temp'.DIRECTORY_SEPARATOR,DIRECTORY_SEPARATOR, $teacher['avator']);
         $teacher['curriculums'] = implode(',',db('curriculums')->alias('c')->join('erp2_cur_teacher_relations ctm','ctm.cur_id = c.cur_id')->column('cur_name'));
         $this->assign('teacher',$teacher);
         $this->assign('title','编辑教师');

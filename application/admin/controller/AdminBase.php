@@ -93,4 +93,81 @@ class AdminBase extends Controller
 		    }
     	return $return_data;
     }
+
+    /*
+     * 富文本图片上传重复公共处理器，供含有富文本的编辑操作过滤器
+ 	 * $str:富文本内容，
+     * $arr:编辑页内容包含图片，需要正则匹配
+ 	 */
+    public function process_imags_problem($str,$arr=[]){
+        $preg = '/<img.*?src=[\"|\']?(.*?)[\"|\']?\s.*?>/i';
+        preg_match_all($preg, $str, $imgArr);
+
+        if($imgArr[1]){
+            $temp_dir = 'temp';
+            if(!empty($imgArr[1])){
+                $dest = [];
+                foreach ($imgArr[1] as $key => $value) {
+                    $v = strstr($value,'.');
+                    if(file_exists($v)){
+                        $destination = str_replace('/'.$temp_dir,'',$v);
+                        preg_match('/^.*(\d{4}-\d{1,2}-\d{1,2}).*$/', $destination, $day);
+                        if(!is_dir(UPLOAD_DIR.$day[1])){
+                            mkdir(UPLOAD_DIR.$day[1]);
+                        }
+                        if($v != $destination){
+                            copy($v,$destination);
+                            unlink($v);
+                        }
+                        $dest[] = $destination;
+                    }
+                }
+
+                if($arr){
+                    foreach ($arr as $key => $value) {
+                        $value = strstr($value,'.');
+                        if(!in_array($value,$dest)){
+                            @unlink($value);
+                        }
+                    }
+                }
+                do_rmdir(UPLOAD_DIR.$temp_dir);
+            }else{
+                do_rmdir(UPLOAD_DIR.$temp_dir);
+            }
+        }else{
+            if($arr){
+                foreach ($arr as $key => $value) {
+                    $value = strstr($value,'.');
+                    if(file_exists($value)){
+                        @unlink($value);
+                    }
+                }
+            }
+        }
+    }
+
+    //图片上传防止重复公共处理器，非富文本
+    public function process_image_upload($temp_image,$dir=''){
+        $temp_dir = 'temp';
+        $temp_image = strstr($temp_image,'.');
+        if(file_exists($temp_image)){
+            $destination = str_replace(DIRECTORY_SEPARATOR.$temp_dir,'',$temp_image);
+            preg_match('/^.*(\d{4}-\d{1,2}-\d{1,2}).*$/', $destination, $day);
+            if(empty($dir)){
+                if(!is_dir(UPLOAD_DIR.$day[1])){
+                    mkdir(UPLOAD_DIR.$day[1],0777);
+                }
+            }else{
+                if(!is_dir(UPLOAD_DIR.$dir.DIRECTORY_SEPARATOR.$day[1])){
+                    mkdir(UPLOAD_DIR.$dir.DIRECTORY_SEPARATOR.$day[1],0777);
+                }
+            }
+            if($temp_image != $destination){
+                copy($temp_image,$destination);
+                unlink($temp_image);
+            }
+        }
+    }
+
 }
