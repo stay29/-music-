@@ -132,9 +132,9 @@ class AdminBase extends Controller
                         }
                     }
                 }
-                do_rmdir(UPLOAD_DIR.$temp_dir);
+                do_rmdir($editor.$temp_dir);
             }else{
-                do_rmdir(UPLOAD_DIR.$temp_dir);
+                do_rmdir($editor.$temp_dir);
             }
         }else{
             if($arr){
