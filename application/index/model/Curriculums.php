@@ -43,4 +43,12 @@ class Curriculums extends Model
 		 }		
 		    return $list;
 	}
+
+	public function addcurrl($data){
+				
+		
+		
+	}
+
+
 }
