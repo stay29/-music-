@@ -1,5 +1,4 @@
-{layout name="layout:layout" /} 
-
+{layout name="layout:layout" /}
 <table class="layui-table">
   <colgroup>
     <col width="150">
@@ -33,8 +32,8 @@
       <td>{$item.manager}</td>
       <td>{:date('Y-m-d H:i:s',$item.create_time)}</td>
       <td>
-       <!--  <a href="{:url('edit',['cur_id'=>$item['cur_id']])}" class="layui-btn layui-btn-xs">编辑</a>
-        <a href="{:url('del',['cur_id'=>$item['cur_id']])}" class="layui-btn layui-btn-xs layui-btn-danger">删除</a> -->
+      <a href="{:url('editorg',['or_id'=>$item['or_id']])}" class="layui-btn layui-btn-xs">编辑</a>
+        <a href="{:url('del',['or_id'=>$item['or_id']])}" class="layui-btn layui-btn-xs layui-btn-danger">删除</a>
       </td>
     </tr> 
     {/volist}
