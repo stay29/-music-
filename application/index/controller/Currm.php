@@ -14,21 +14,22 @@ class Currm extends controller
         }
         $limit = input('limit');
         if ($limit==null) {
-        $limit = 10;
+        $limit = 1;
         }
         $res = Curriculums::getall($limit);
+        print_r($res);
         $count = $res->total();
         $state['state'] = true;
         $state['msg'] = '';
         $state['data'] = $res;
-        echo json_encode($state);
+        //echo json_encode($state);
     }
-    
-    
+
+
     public function addcurrm(){
     	return view();
     }
-    
+
  	public function  addcurrmon(){
  		$data = input('post.');
         $validate = Validate::make([

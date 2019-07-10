@@ -2,9 +2,19 @@
 namespace app\index\model;
 use think\Model;
 use think\Db;
+use app\index\model\Users;
 class Curriculums extends Model
-{	     
+{	 
+	protected $table = 'erp2_curriculums';
+    protected $pk = 'manager';
+
+	public function profile()
+    {
+          return $this->hasOne('Users','uid');
+    }    	
+
 	public  static  function getall($limit){
+
 		$list = Curriculums::paginate($limit)->each(function($item, $key){
 		            if($item['tmethods']=='1'){
 						$item['tmethods']='1对1';
@@ -23,9 +33,10 @@ class Curriculums extends Model
 					}
 					if($item['conversion']=='1'){
 						$item['conversion']='是';
-					}elseif ($item['conversion']=="2") {
+					}elseif ($item['conversion']=="2"){
 						$item['conversion']='不是';
 					}
+					$item['manager'] = $item->profile->account;
 				});
 		return $list;
 	}
