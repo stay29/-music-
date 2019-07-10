@@ -170,6 +170,7 @@ class AdminBase extends Controller
                 unlink($temp_image);
             }
         }
+        do_rmdir(UPLOAD_DIR.$dir.DIRECTORY_SEPARATOR.$temp_dir);
     }
 
 }
