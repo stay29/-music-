@@ -3,33 +3,62 @@ namespace app\index\controller;
 use think\Controller;
 use think\Exception;
 use app\index\model\Curriculums;
-use app\index\Validate;
+use think\Validate;
 class Currm extends controller
-{ 	
-
-		
+{ 			
     public function index()
-    {
-         $Curriculums = new Curriculums;
-         $res = $Curriculums->get_curriculums();
-         return  json_encode($res);
+    {   
+        $page = input('page');
+        if($page==null){
+          $page = 1;  
+        }
+        $limit = input('limit');
+        if ($limit==null) {
+        $limit = 10;
+        }
+        $res = Curriculums::getall($limit);
+        $count = $res->total();
+        $state['state'] = true;
+        $state['msg'] = '';
+        $state['data'] = $res;
+        echo json_encode($state);
     }
-   
-
+    
+    
     public function addcurrm(){
-
-
     	return view();
     }
+    
  	public function  addcurrmon(){
  		$data = input('post.');
- 		//print_r($data);exit();
- 		$validate = new \app\validate\Curriculums;
- 		$Curriculums = new Curriculums;
- 		if (!$validate->check($data)) {
-        	return$validate->getError();
-    	}
-    	$res = $Curriculums->addcurrl($data);
+        $validate = Validate::make([
+             'cur_name|课程名称'=>[
+                'require',
+                'min'=>1,
+                'max'=>2,
+            ],
+            'subject|课程科目'=>[
+                'require',
+            ],
+            'describe|课程描述'=>[
+                'require',
+                'min'=>1,
+                'max'=>200,
+            ],
+            'remarks|备注'=>[
+                'require',
+                'min'=>1,
+                'max'=>200,
+            ],
+            'ctime|课时'=>[
+                'require',
+                'min'=>1,
+            ],
+        ]);
+        if (!$validate->check($data)) {
+            dump($validate->getError());die;
+        }
+    	$res = Curriculums::addcurrl($data);
     	if($res){
     		return json_encode('添加成功');
     	}else{
@@ -47,8 +76,34 @@ class Currm extends controller
     public function editcurrm(){
         $currid['cur_id'] =   input('post.cur_id');
         $data = input('post.');
-        $Curriculums = new Curriculums;
-        $res = $Curriculums->editcurrm($currid,$data);
+        $validate = Validate::make([
+             'cur_name|课程名称'=>[
+                'require',
+                'min'=>1,
+                'max'=>2,
+            ],
+            'subject|课程科目'=>[
+                'require',
+            ],
+            'describe|课程描述'=>[
+                'require',
+                'min'=>1,
+                'max'=>200,
+            ],
+            'remarks|备注'=>[
+                'require',
+                'min'=>1,
+                'max'=>200,
+            ],
+            'ctime|课时'=>[
+                'require',
+                'min'=>1,
+            ],
+        ]);
+        if (!$validate->check($data)) {
+            dump($validate->getError());die;
+        }
+        $res = Curriculums::editcurrm($currid,$data);
         print_r($res);
     }
 

@@ -12,17 +12,19 @@ class Organization extends AdminBase
         return view();
     }
         
-        public function edit(){
+    public function edit(){
     	$this->assign('title','机构编辑');
     	$mup['or_id'] =  $id = input('or_id/d');
     	$res = db('organizations')->where($mup)->find();
         $this->assign('res',$res);
         return view();
-        }
+    }
         
     public function editon(){
     	$mup['or_id'] =  $id = input('or_id/d');
     	$data =input('');
+        $this->process_image_upload($data['logo'],'orglog');
+         $this->process_image_upload($data['qrcode'],'qrcodes');
     	$res = db('organizations')->where($mup)->data($data)->update();
     	if ($res) {
     		echo '1';

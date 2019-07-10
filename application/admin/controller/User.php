@@ -110,7 +110,6 @@ class User extends AdminBase
              $v['manager'] = isset($account) ? $account : '';
             return $v;
         });
-
         $this->assign('teachers_list',$teachers);
         return $this->fetch();
     }

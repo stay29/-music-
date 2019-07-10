@@ -3,8 +3,6 @@ namespace app\admin\controller;
 use think\Exception;
 class Currm extends AdminBase
 {
-   
-
     public function index()
     {
        
@@ -24,6 +22,22 @@ class Currm extends AdminBase
         });
        $this->assign('users_list',$users_list);
         return view();
+    }
+    //课程编辑
+    public function edit(){
+         $cur_id['cur_id'] = input('cur_id');
+        if(input('post.')){
+            $data = input('post.');
+            $data['cur_id'] = $data['cur_id']; 
+             db('curriculums')->data($data)->update();
+                $this->return_data(1,'编辑课程成功'); 
+        }
+        $curriculums = db('curriculums')->where($cur_id)->find();
+        $subjects = db('subjects')->select();
+        $this->assign('res',$curriculums);
+        $this->assign('subjects',$subjects);
+        $this->assign('title','编辑课程');
+        return $this->fetch();
     }
 
     //课程科目
@@ -90,7 +104,6 @@ class Currm extends AdminBase
         $this->assign('title','编辑课程科目');
         return $this->fetch();
     }
-
 
     public function subject_del(){
         $id = input('id/d');

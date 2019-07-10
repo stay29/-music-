@@ -1,0 +1,115 @@
+{layout name="layout:layout" /} 
+<form class="layui-form" action="">
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">课程名称</label>
+    <div class="layui-input-block">
+      <input type="text" name="cur_name" required  lay-verify="required" placeholder="请输入课程名称" value="{$res.cur_name}" autocomplete="off" class="layui-input">
+    </div>
+  </div>  
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">课程时长</label>
+    <div class="layui-input-block">
+      <input type="text" name="ctime" required  lay-verify="required" placeholder="请输入课程时长" value="{$res.ctime}" autocomplete="off" class="layui-input">
+    </div>
+  </div>
+  
+  <div class="layui-form-item">
+    <label class="layui-form-label">科目</label>
+    <div class="layui-input-block">
+      <select name="subject" lay-verify="required">
+        <option value="">请选择</option>
+         {volist name='subjects' id='item'}
+        <option value="{$item.sid}" {if condition="$res['subject'] eq $item.sid"}selected{/if}>{$item.sname}</option>
+         {/volist}
+      </select>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">授课方式</label>
+    <div class="layui-input-block">
+      <select name="tmethods" lay-verify="required">
+        <option value="">请选择</option>
+        <option value="1" {if condition="$res['tmethods'] eq 1"}selected{/if}>1对1</option>
+        <option value="2" {if condition="$res['tmethods'] eq 2"}selected{/if}>1对多</option>
+      </select>
+    </div>
+  </div>
+
+    <div class="layui-form-item">
+    <label class="layui-form-label">是否上架</label>
+    <div class="layui-input-block">
+      <select name="state" lay-verify="required">
+        <option value="">请选择</option>
+        <option value="1" {if condition="$res['state'] eq 1"}selected{/if}>上架</option>
+        <option value="2" {if condition="$res['state'] eq 2"}selected{/if}>关闭</option>
+      </select>
+    </div>
+  </div>
+
+    <div class="layui-form-item">
+    <label class="layui-form-label">是否热门</label>
+    <div class="layui-input-block">
+      <select name="popular" lay-verify="required">
+        <option value="">请选择</option>
+        <option value="1" {if condition="$res['popular'] eq 1"}selected{/if}>是</option>
+        <option value="2" {if condition="$res['popular'] eq 2"}selected{/if}>不是</option>
+      </select>
+    </div>
+  </div>
+
+    <div class="layui-form-item">
+    <label class="layui-form-label">是否转通用课</label>
+    <div class="layui-input-block">
+      <select name="conversion" lay-verify="required">
+        <option value="">请选择</option>
+        <option value="1" {if condition="$res['conversion'] eq 1"}selected{/if}>是</option>
+        <option value="2" {if condition="$res['conversion'] eq 2"}selected{/if}>不是</option>
+      </select>
+    </div>
+  </div>
+  <div class="layui-form-item">
+    <label class="layui-form-label">课程描述</label>
+    <div class="layui-input-block">
+      <input type="text" name="describe" required  lay-verify="required" placeholder="请输入课程描述" value="{$res.describe}" autocomplete="off"  class="layui-input">
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class="layui-form-label">备注</label>
+    <div class="layui-input-block">
+      <input type="text" name="remarks" required  lay-verify="required" placeholder="请输入备注" value="{$res.remarks}" autocomplete="off" class="layui-input">
+    </div>
+  </div>
+
+  <div class="layui-form-item">
+    <div class="layui-input-block">
+      <input type="hidden" name="cur_id" value="{$res.cur_id}">
+      <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+      <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+    </div>
+  </div>
+</form>
+
+<script>
+//Demo
+layui.use('form', function(){
+  var form = layui.form;
+  
+  //监听提交
+  form.on('submit(formDemo)', function(data){ 
+     $.post('{:url("edit")}',data.field,function(e){
+      if(e.status){
+            layer.msg(e.sinfo);
+            window.location.href = '{:url("index")}';
+        }else{
+            layer.msg(e.emsg,{time:2000}); 
+        }
+     },'json');
+     return false;
+  });
+});
+
+</script>
+

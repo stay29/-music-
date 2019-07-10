@@ -3,56 +3,49 @@ namespace app\index\model;
 use think\Model;
 use think\Db;
 class Curriculums extends Model
-{	
-	//课程列表
-	public function get_curriculums(){
-		$Curriculums  = new Curriculums;
-		$list = $Curriculums->select();
-		foreach ($list as $k => &$v) {
-			if($v['tmethods']=='1'){
-				$v['tmethods']='1对1';
-			}elseif ($v['tmethods']=="2") {
-				$v['tmethods']='1对多';
-			}
-			if($v['state']=='1'){
-				$v['state']='上架';
-			}elseif ($v['state']=="2") {
-				$v['state']='下架';
-			}
-			if($v['popular']=='1'){
-				$v['popular']='是';
-			}elseif ($v['popular']=="2") {
-				$v['popular']='不是';
-			}
-			if($v['conversion']=='1'){
-				$v['conversion']='是';
-			}elseif ($v['conversion']=="2") {
-				$v['conversion']='不是';
-			}
-			$mup['sid']	= $v['subject'];
-			$v['subject'] = db('subjects')->where($mup)->find();
-		 }		
-		    return $list;
-	}
-	public function addcurrl($data){
-		$Curriculums  = new Curriculums;
-		$Curriculums->save($data);
-		return $Curriculums->id;
-	}
-	public function delcurrl($data){
-		$Curriculums  = new Curriculums;
-		$res =  $Curriculums->where($data)->delete();
-		return  $res;
-	}
-	public function editcurrm($curid,$data){
-		$Curriculums  = new Curriculums;
-		$Curriculums->where($curid)->save($data);
-		return $Curriculums->id;
-	}
-	public function getcurrmone($curid){
-		$Curriculums  = new Curriculums;
-		$info = $Curriculums->where($curid)->find();
-		return $info;
+{	     
+	public  static  function getall($limit){
+		$list = Curriculums::paginate($limit)->each(function($item, $key){
+		            if($item['tmethods']=='1'){
+						$item['tmethods']='1对1';
+					}elseif ($item['tmethods']=="2") {
+						$item['tmethods']='1对多';
+					}
+					if($item['state']=='1'){
+						$item['state']='上架';
+					}elseif ($item['state']=="2") {
+						$item['state']='下架';
+					}
+					if($item['popular']=='1'){
+						$item['popular']='是';
+					}elseif ($item['popular']=="2") {
+						$item['popular']='不是';
+					}
+					if($item['conversion']=='1'){
+						$item['conversion']='是';
+					}elseif ($item['conversion']=="2") {
+						$item['conversion']='不是';
+					}
+				});
+		return $list;
 	}
 
+	public static function addcurrl($data){
+	 	$res = Curriculums::create($data);
+		return $res;
+	}
+
+	public static function delcurrl($data){
+		$res =  Curriculums::where($data)->delete();
+		return  $res;
+	}
+	public static function editcurrm($curid,$data){
+		
+	 $res = Curriculums::where($curid)->update($data);
+		return $res;
+	}
+	public static function getcurrmone($curid){
+		$info = Curriculums::where($curid)->find();
+		return $info;
+	}
 }
