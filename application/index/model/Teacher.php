@@ -18,7 +18,12 @@ class Teacher extends BaseModel
     protected $insert = ['status'=>2];
     protected $update = [];
     protected function setManagerAttr(){
-        return 1;
+        if(!empty(session(md5(MA.'user')))){
+            return session(md5(MA.'user'))['id'];
+        }else{
+            return 0;
+        }
+
     }
     //入职日期
     protected function setEntryTimeAttr($data){
