@@ -7,7 +7,7 @@ class Curriculums extends Validate
 		  	'cur_name|课程名称'=>[
 		  		'require',
 		  		'min'=>1,
-		  		'max'=>20,
+		  		'max'=>1,
 		  	],
 		  	'subject|课程科目'=>[
 		  		'require',

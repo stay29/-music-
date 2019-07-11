@@ -3,11 +3,10 @@ namespace app\index\controller;
 use think\Controller;
 use think\Exception;
 use app\index\model\Curriculums;
-use think\Validate;
 class Currm extends controller
 { 			
     public function index()
-    {   
+    {
         $page = input('page');
         if($page==null){
           $page = 1;  
@@ -17,47 +16,23 @@ class Currm extends controller
         $limit = 1;
         }
         $res = Curriculums::getall($limit);
-        print_r($res);
         $count = $res->total();
+        //$pages = $res->render();
         $state['state'] = true;
         $state['msg'] = '';
         $state['data'] = $res;
-        //echo json_encode($state);
+        echo json_encode($state);
     }
-
-
+    
     public function addcurrm(){
-    	return view();
+        return view();
     }
 
  	public function  addcurrmon(){
  		$data = input('post.');
-        $validate = Validate::make([
-             'cur_name|课程名称'=>[
-                'require',
-                'min'=>1,
-                'max'=>2,
-            ],
-            'subject|课程科目'=>[
-                'require',
-            ],
-            'describe|课程描述'=>[
-                'require',
-                'min'=>1,
-                'max'=>200,
-            ],
-            'remarks|备注'=>[
-                'require',
-                'min'=>1,
-                'max'=>200,
-            ],
-            'ctime|课时'=>[
-                'require',
-                'min'=>1,
-            ],
-        ]);
+        $validate = new \app\validate\Curriculums;
         if (!$validate->check($data)) {
-            dump($validate->getError());die;
+            echo($validate->getError());die;
         }
     	$res = Curriculums::addcurrl($data);
     	if($res){
@@ -67,12 +42,15 @@ class Currm extends controller
     	}
  	}
 
+
+
     public function delcurrmon(){
         $data['cur_id'] = input('post.cur_id');
         $Curriculums = new Curriculums;
         $res = $Curriculums->delcurrl($data);
         print_r($res);
     }
+
 
     public function editcurrm(){
         $currid['cur_id'] =   input('post.cur_id');
@@ -107,6 +85,7 @@ class Currm extends controller
         $res = Curriculums::editcurrm($currid,$data);
         print_r($res);
     }
+
 
     public function getcurrm(){
         $currid['cur_id'] =   input('post.cur_id');

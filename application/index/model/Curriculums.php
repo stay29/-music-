@@ -7,14 +7,15 @@ class Curriculums extends Model
 {	 
 	protected $table = 'erp2_curriculums';
     protected $pk = 'manager';
-
+    protected $autoWriteTimestamp = true;
+    protected $insert = ['popular' => 1,'state'=>1,'conversion'=>1];  
+    
 	public function profile()
     {
           return $this->hasOne('Users','uid');
     }    	
 
 	public  static  function getall($limit){
-
 		$list = Curriculums::paginate($limit)->each(function($item, $key){
 		            if($item['tmethods']=='1'){
 						$item['tmethods']='1对1';
@@ -38,7 +39,7 @@ class Curriculums extends Model
 					}
 					$item['manager'] = $item->profile->account;
 				});
-		return $list;
+		     return $list;
 	}
 
 	public static function addcurrl($data){
