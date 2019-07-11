@@ -43,10 +43,20 @@ function do_rmdir($dirname, $self = true) {
     $dir->close();
     $self && rmdir($dirname);
 }
-//d打印
-function dd($arr){
+
+/**
+ * @param $arr
+ * @param int $type
+ * 打印数组
+ */
+function dd($arr,$type=1){
     echo '<pre>';
-    print_r($arr);
+    if($type ==1){
+        print_r($arr);
+    }elseif($type == 2){
+        var_dump($arr);
+    }
     echo '</prev>';
     exit();
 }
+

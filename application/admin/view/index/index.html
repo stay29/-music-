@@ -13,7 +13,7 @@
             min-width: 600px;
         }
         .left{
-            width: 15%;
+            /*width: 15%;*/
             background: #333;
             height: 300px;
         }
@@ -24,20 +24,20 @@
             /*position: absolute;*/
             /*top:60px;*/
             height: 100%;
-            float: left;
+            /*float: left;*/
         }
         #right_content{
             /*position: absolute;*/
             /*right: 10px;*/
             /*top:60px;*/
-            float: left;
+            /*float: left;*/
             height: 100%;
         }
     </style>
 <link rel="stylesheet" href="/static/common/layui/css/layui.css">
 <script src="/static/common/layui/layui.js"></script>
 </head>
-<body> 
+<body>
 <ul class="layui-nav">
   <li class="layui-nav-item">
     <a href="">ERP后台管理系统</a>
@@ -52,8 +52,16 @@
     </dl>
   </li>
 </ul>
-<iframe src="{:url('left')}" frameborder="0" id="left_nav" width="16%"></iframe>
-<iframe src="{:url('right')}" frameborder="0" id="right_content" name="right"></iframe>
+<div class="layui-row">
+    <div class="layui-col-sm2 layui-col-xs3">
+        <iframe src="{:url('left')}" frameborder="0" id="left_nav" width="100%"></iframe>
+    </div>
+    <div class="layui-col-sm10 layui-col-xs9">
+        <iframe src="{:url('right')}" frameborder="0" id="right_content" name="right" width="100%"></iframe>
+    </div>
+</div>
+
+
 </body>
 <script src="/static/common/jquery-3.3.1.min.js"></script>
 <script>
@@ -65,10 +73,10 @@
     $(function(){
         $('#left_nav').height($(document).height())
         $('#right_content').height($(document).height())
-        $('#right_content').width($(document).width()-$('#left_nav').width())
-        $(window).resize(function () {
-            $('#right_content').width($(document).width()-$('#left_nav').width())
-        })
+        // $('#right_content').width($(document).width()-$('#left_nav').width())
+        // $(window).resize(function () {
+        //     $('#right_content').width($(document).width()-$('#left_nav').width())
+        // })
         var h = $(document).height();
         $(document).scroll(function () {
             $('#left_nav').height(h)

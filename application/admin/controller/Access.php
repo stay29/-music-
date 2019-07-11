@@ -81,16 +81,22 @@ class Access extends AdminBase
     
     public function del(){
         $id = input('id/d');
+
         if(!$id){
             $this->error('没有id');
         }
+
+        $has_children = db('admin_accesses')->where(['pid'=>$id])->find();
+        if($has_children){
+            $this->error('请先删除子级');
+        }
         try{
-            $res = db('admin_accesses')->where(['id'=>$id])->delete();
-            if($res){
-                $this->success('删除权限成功');
-            }else{
-                $this->error('删除权限失败');
-            }
+                $res = db('admin_accesses')->where(['id'=>$id])->delete();
+                if($res){
+                    $this->success('删除权限成功');
+                }else{
+                    $this->error('删除权限失败');
+                }
         }catch (\Exception $e){
             if($e->getMessage()){
                 $this->error('有角色使用该权限');

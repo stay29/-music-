@@ -72,7 +72,8 @@ class AdminBase extends Controller
  	*$info,在status=1返回成功提示，0的时候返回错误提示，$data返回需要的数据
  	*/
  	public function return_data($status,$info,$data=''){
- 		if($status){
+        $status = empty($status)?false:true;
+        if($status){
  			$key = 'sinfo';
  		}else{
  			$key = 'emsg';
