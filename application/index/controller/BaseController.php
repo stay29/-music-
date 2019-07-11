@@ -10,6 +10,7 @@ namespace app\index\controller;
 
 
 use think\Controller;
+use think\facade\Request;
 
 class BaseController extends Controller
 {
@@ -17,22 +18,25 @@ class BaseController extends Controller
     public function initialize()
     {
         parent::initialize();
-//        $md5_user = md5('user');
-//        if(!session('?'.$md5_user)){
-//            $this->return_data(0,450,'请先登录');
-//        }else{
-//            $session_userid = session($md5_user);
-//            if(isset($session_userid) && !empty($session_userid)){
-//                $this->session_userid = session($md5_user['userid']);
-//            }
-//        }
+//session(md5(MA.'user'),null);die;
+        $controller =  Request::controller();;
+        $action =  Request::action();
+        if($controller == 'Login'){
+            if(session('?'.md5(MA.'user'))){
+                $this->return_data(0,20006,'无须再次登录！');
+            }
+        }else{
+            if(!session('?'.md5(MA.'user'))){
+                $this->return_data(0,20008,'请登录后再来！谢谢合作！');
+            }
+        }
     }
 
     /**
      *响应
      *$info,在status=1返回成功提示，0的时候返回错误提示，$data返回需要的数据
      */
-    public function return_data($status,$error_no=0,$info,$data=''){
+    public function return_data($status=1,$error_no=0,$info,$data=''){
         $status = empty($status)?false:true;
         if($status){
             $key = 'sinfo';
