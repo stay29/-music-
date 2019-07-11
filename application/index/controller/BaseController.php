@@ -13,7 +13,6 @@ use think\Controller;
 
 class BaseController extends Controller
 {
-
     public function initialize()
     {
         parent::initialize();

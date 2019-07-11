@@ -1,0 +1,20 @@
+<html>
+<head>
+    <title>我的第一个 HTML 页面</title>
+</head>
+<body>
+<form method="post" action="{:url('index/currm/editcurrm')}">
+    课程名称<input type="text" name="cur_name" value="{$res.cur_name}"><br>
+    科目<input type="text" name="subject" value="{$res.subject}"><br>
+    授课方式<input type="text" name="tmethods" value="{$res.tmethods}"><br>
+    课程时长<input type="text" name="ctime" value="{$res.ctime}"><br>
+    描述<input type="text" name="describe" value="{$res.describe}"><br>
+    备注<input type="text" name="remarks" value="{$res.remarks}"><br>
+    上架<input type="text" name="state" value="{$res.state}"><br>
+    是否转化通用课<input type="text" name="conversion" value="{$res.conversion}"><br>
+    是否热门<input type="text" name="popular" value="{$res.popular}"><br>
+    操作人<input type="text" name="manager" value="{$res.manager}"><br>
+    <input type="submit" value="tjiao"><br>
+</form>
+</body>
+</html>
