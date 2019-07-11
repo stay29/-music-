@@ -35,7 +35,7 @@ class Teacher extends BaseController
             $this->return_data(0,$error[1],$error[0]);
         }
         try{
-           \app\index\model\Teachers::create($data);
+           \app\index\model\Teacher::create($data);
            $this->return_data(1,0,'教师新增成功');
         }catch (\Exception $e){
             $this->return_data(0,50000,$e->getMessage());
@@ -67,7 +67,7 @@ class Teacher extends BaseController
             $this->return_data(0,$error[1],$error[0]);
         }
         try{
-            \app\index\model\Teachers::update($data,['t_id'=>$data['t_id']]);
+            \app\index\model\Teacher::update($data,['t_id'=>$data['t_id']]);
             $this->return_data(1,0,'编辑教师成功');
         }catch (\Exception $e){
             $this->return_data(0,50000,$e->getMessage());
