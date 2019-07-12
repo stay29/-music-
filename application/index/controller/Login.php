@@ -26,7 +26,7 @@ class Login extends BaseController
                 $error = explode('|',$validate->getError());//为了可以得到错误码
                 $this->return_data(0,$error[1],$error[0]);
             }else{
-                $this->return_data(1,0,'登录成功');
+                $this->return_data(1,0,'登录成功',session(md5(MA.'user')));
             }
         }catch (\Exception $e){
             $this->return_data(0,50000,$e->getMessage());
