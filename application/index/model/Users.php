@@ -8,7 +8,7 @@ class Users extends Model
     protected $pk = 'uid';
     protected $field = true;
     protected $autoWriteTimestamp = true;
-    protected $insert = ['nickname' => '校长'.,'login_time' => 1,'update_time'=>'time' ,'status'=>1,'organization'=>0,'manager'=>1 ,'creator'=>0];
+    protected $insert = ['nickname' => '校长','login_time' => 1,'update_time'=>'time' ,'status'=>1,'organization'=>0,'manager'=>1 ,'creator'=>0];
 
     public function returnUser()
     {
@@ -19,7 +19,6 @@ class Users extends Model
         //print_r($data);
         $res = Users::create($data, true);
         $uid = $res->uid;
-
         return $uid;
     }
 }

@@ -15,13 +15,11 @@ use think\Validate;
 class User extends Validate
 {
     protected $rule = [
-        'account'=>'require',
         'cellphone'=>'require|max:11|mobile|check_mobile_existed',
         'password'=>'require|length:5,15|check_user',
         'repassword'=>'require|confirm:password'
     ];
     protected $message = [
-        'account.require'=>'账号不得为空|10000',
         'password.require'=>'密码不得为空|10000',
         'password.length'=>'密码长度不得小于5超过15|10001',
         'cellphone.require'=>'手机号不得为空|10000',
@@ -35,18 +33,24 @@ class User extends Validate
     public function sceneAdd()
     {
          return $this->only(['cellphone','password','repassword'])
-             ->remove('password','check_user');
+             ->remove('password','length|check_user');
+    }
+
+    public function sceneLogin()
+    {
+         return $this->only(['cellphone','password'])
+             ->remove('cellphone','max|mobile|check_mobile_existed')
+             ->remove('password','length');
     }
 
     protected function check_user($password,$rule,$data){
         $password = md5(md5(md5(MA.$password)));
-        $user_info = Users::where(['account'=>$data['account'],'password'=>$password])->find();
+        $user_info = Users::where(['cellphone'=>$data['cellphone'],'password'=>$password])->find();
         if($user_info){
             session(md5(MA.'user'),[
                 'id'=>$user_info['uid'],
-                'user_aco'=>$user_info['account'],
+                'user_aco'=>$user_info['cellphone'],
                 'username'=>$user_info['nickname'],
-                'mobile'=>$user_info['cellphone'],
                 'sex'=>$user_info['sex'],
             ]);
             return true;
