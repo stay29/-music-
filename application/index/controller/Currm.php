@@ -16,7 +16,6 @@ class Currm extends BaseController
         $limit = 10;
         }
         $res = Curriculums::getall($limit);
-        //print_r($res);exit();
         $this->return_data(1,0,$res);
     }
 
@@ -28,56 +27,60 @@ class Currm extends BaseController
 
  	public function  addcurrmon()
     {
-
  		$data = input('post.');
         $validate = new \app\validate\Curriculums;
-        if (!$validate->check($data)) {
-            $this->return_data(0,0,$validate->getError());
+        if(!$validate->scene('add')->check($data)){
+            //为了可以得到错误码
+            $error = explode('|',$validate->getError());
+            $this->return_data(0,$error[1],$error[0]);
         }
-    	$res = Curriculums::addcurrl($data);
-        //print_r($res);exit();
-    	if($res){
-        $this->return_data(1,0,'添加成功');
-    	}else{
-    	$this->return_data(1,0,'操作失败');
-    	}
+
+        try{
+            $res = Curriculums::addcurrl($data);
+            $this->return_data(1,0,'添加成功');
+        }catch (\Exception $e){
+            $this->return_data(0,50000,$e->getMessage());
+        }
  	}
+
+    public function editcurrm()
+    {
+        $currid = input('post.cur_id');
+        $data = input('post.');
+
+        $validate = new \app\validate\Curriculums;
+        if(!$validate->scene('edit')->check($data)){
+            //为了可以得到错误码
+            $error = explode('|',$validate->getError());
+            $this->return_data(0,$error[1],$error[0]);
+        }
+        try{
+            $res = Curriculums::editcurrm($currid,$data);
+            $this->return_data(1,0,'修改成功');
+        }catch (\Exception $e){
+            $this->return_data(0,50000,$e->getMessage());
+        }
+    }
 
     public function delcurrmon()
     {
         $data['cur_id'] = input('cur_id');
         if($data==null){
-            $this->return_data(0,0,'操作失败');
+            $this->return_data(0,10000,'缺少参数');
         }
-        $Curriculums = new Curriculums;
-        $res = $Curriculums->delcurrl($data);
+        $res = Curriculums::delcurrl($data);
         if($res){
-        $this->return_data(1,0,$res);
+        $this->return_data(1,0,'删除成功');
         }else{
-        $this->return_data(0,0,'操作失败');
+        $this->return_data(0,20003,'操作失败');
         }
     }
+
     public  function  editcurrmvie(){
         $currid['cur_id'] =   input('cur_id');
         $res =  Curriculums::where($currid)->find();
         $this->assign('res',$res);
         return view();
-    }
-    public function editcurrm()
-    {
-        $currid = input('post.cur_id');
-        $data = input('post.');
-        //print_r($data);exit();
-           $validate = new \app\validate\Curriculums;
-        if (!$validate->check($data)) {
-            $this->return_data(0,0,$validate->getError());
-        }
-        $res = Curriculums::editcurrm($currid,$data);
-        if($res){
-        $this->return_data(1,0,'操作成功');
-        }else{
-        $this->return_data(0,0,'操作失败');
-        }
     }
 
     public function getcurrm()

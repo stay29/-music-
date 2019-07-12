@@ -12,6 +12,7 @@ namespace app\index\model;
 class Teacher extends BaseModel
 {
     protected $table = 'erp2_teachers';
+    protected $field = true;
     protected $autoWriteTimestamp = true;
     protected $auto = ['manager','entry_time'];//操作人id，对应users表主键
 
@@ -23,7 +24,6 @@ class Teacher extends BaseModel
         }else{
             return 0;
         }
-
     }
     //入职日期
     protected function setEntryTimeAttr($data){

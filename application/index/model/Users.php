@@ -11,4 +11,12 @@ class Users extends Model
     {
         return $this->belongsTo('Curriculums','uid');
     }
+
+
+    public  static function  addusers($data)
+    {
+        $res = Users::cache($data);
+        return $res;
+    }
+
 }

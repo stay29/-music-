@@ -16,18 +16,21 @@ class User extends Validate
 {
     protected $rule = [
         'account'=>'require',
-        'password'=>'require|check_user',
+        'cellphone'=>'require|max:11|mobile|check_mobile_existed',
+        'password'=>'require|length:5,15|check_user',
+        'repassword'=>'require|confirm:password'
     ];
-
-
     protected $message = [
         'account.require'=>'账号不得为空|10000',
         'password.require'=>'密码不得为空|10000',
+        'password.length'=>'密码长度不得小于5超过15|10001',
+        'cellphone.require'=>'手机号不得为空|10000',
+        'cellphone.mobile'=>'手机号格式不正确|10001',
+        'cellphone.max'=>'手机号位数不正确|10001',
     ];
-
     protected $scene = [
-//        'add' => ['account','password'],
-//        'edit' => ['account','password'],
+        'add' => ['cellphone','password'=>'require|length'],
+        //'edit' => ['account','password'],
         'login' => ['account','password'],
     ];
 
@@ -47,6 +50,16 @@ class User extends Validate
             return '用户名密码错误|20007';
         }
     }
+    protected function check_mobile_existed($cellphone)
+    {
+        $info = Users::where('cellphone',$cellphone)->find();
+        if($info){
+            return '手机号已被注册|20009';
+        }else{
+            return true;
+        }
+    }
+
 }
 
 

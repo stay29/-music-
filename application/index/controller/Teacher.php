@@ -34,6 +34,7 @@ class Teacher extends BaseController
             $error = explode('|',$validate->getError());
             $this->return_data(0,$error[1],$error[0]);
         }
+
         try{
            \app\index\model\Teacher::create($data);
            $this->return_data(1,0,'教师新增成功');

@@ -7,11 +7,8 @@
  */
 
 namespace app\index\controller;
-
-
 use think\Controller;
 use think\facade\Request;
-
 class BaseController extends Controller
 {
     public function initialize()
@@ -20,7 +17,7 @@ class BaseController extends Controller
 //session(md5(MA.'user'),null);die;
         $controller =  Request::controller();;
         $action =  Request::action();
-        if($controller == 'Login'){
+        if($controller == 'Login' || $controller == 'Currm'){
             if(session('?'.md5(MA.'user'))){
                 $this->return_data(0,20006,'无须再次登录！');
             }
@@ -44,4 +41,10 @@ class BaseController extends Controller
         }
         echo json_encode(['status'=>$status,'erno'=>$error_no,$key =>$info,'data'=>$data]);die;
     }
+    //返回加密后的密码
+    public  function  md5_return($password){
+        $password = md5(md5(md5(MA.$password)));
+        return $password;
+    }
+
 }
