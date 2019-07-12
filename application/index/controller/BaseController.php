@@ -41,10 +41,6 @@ class BaseController extends Controller
         }
         echo json_encode(['status'=>$status,'erno'=>$error_no,$key =>$info,'data'=>$data]);die;
     }
-    //返回加密后的密码
-    public  function  md5_return($password){
-        $password = md5(md5(md5(MA.$password)));
-        return $password;
-    }
+
 
 }

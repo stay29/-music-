@@ -8,7 +8,7 @@ class Users extends Model
     protected $pk = 'uid';
     protected $field = true;
     protected $autoWriteTimestamp = true;
-    protected $insert = ['login_time' => 2,'status'=>1,'organization'=>0,'manager'=>1 ,'creator'=>0];
+    protected $insert = ['status'=>1,'organization'=>0,'creator'=>0];
     public function returnUser()
     {
         return $this->belongsTo('Curriculums','uid');
@@ -18,8 +18,7 @@ class Users extends Model
         //print_r($data);
         $res = Users::create($data, true);
         $uid = $res->uid;
-        Users::where(['uid'=>$uid])->update(['nickname'=>'校长'.$uid,'']);
-
+        Users::where(['uid'=>$uid])->update(['nickname'=>'校长'.$uid,'update_time'=>time(),'login_time'=>time(),'manager'=>session('id')]);
         return $uid;
     }
 }

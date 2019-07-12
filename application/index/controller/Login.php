@@ -19,7 +19,6 @@ class Login extends BaseController
             'cellphone'=>input('post.user_aco'),
             'password'=>input('post.use_secret'),
         ];
-
         try{
             $validate = new \app\index\validate\User();
             if(!$validate->scene('login')->check($data)){
@@ -52,7 +51,7 @@ class Login extends BaseController
             $mup['cellphone'] = $data['cellphone'];
             $mup['password']  = md5_return($data['password']);
             $res = Users::addusers($mup);
-            $this->return_data(1,0,$res);
+            $this->return_data(1,0,'注册成功');
             }
         }catch (\Exception $e){
             $this->return_data(0,50000,$e->getMessage());
