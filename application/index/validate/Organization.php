@@ -11,11 +11,11 @@ namespace app\index\validate;
 
 use think\Validate;
 
-class Teacher extends Validate
+class Organization extends Validate
 {
     protected $rule = [
-        't_id'=>'require',
-        't_name'  => 'require|max:8',
+        'or_id'=>'require',
+        'or_name'  => 'require|max:8',
         'se_id' => 'require|integer',
         'sex' => 'integer',
         'cellphone'  => 'require|max:11|mobile|unique:Teachers',
@@ -44,17 +44,11 @@ class Teacher extends Validate
         'status.integer'=>'状态格式不正确|10001',
     ];
 
-    // add验证场景定义
-    public function sceneAdd()
-    {
-        return $this->only(['t_name','se_id','cellphone','entry_time','id_card','sex','status','birthday'])
-                ->remove('t_id','require');
-    }
-    // edit 验证场景定义
-    public function sceneEdit()
-    {
-        return $this->only(['t_id','t_name','se_id','cellphone','entry_time','id_card','sex','status','birthday']);
-    }
+    protected $scene = [
+        'add' => ['t_name','se_id','cellphone','entry_time','id_card','sex','status','birthday'],
+        'edit' => ['t_id','t_name','se_id','cellphone'=>'require|max:11|mobile|unique:Teachers,t_id','entry_time','id_card','sex','status','birthday']
+    ];
+
 
 
 }

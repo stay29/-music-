@@ -23,7 +23,7 @@ class BaseController extends Controller
             }
         }else{
             if(!session('?'.md5(MA.'user'))){
-                $this->return_data(0,20008,'请登录后再来！谢谢合作！');
+               // $this->return_data(0,20008,'请登录后再来！谢谢合作！');
             }
         }
     }
