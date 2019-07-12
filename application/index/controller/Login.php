@@ -17,7 +17,7 @@ class Login extends BaseController
     {
 
         $data = [
-            'account'=>input('post.user_aco'),
+            'cellphone'=>input('post.user_aco'),
             'password'=>input('post.use_secret'),
         ];
 
@@ -52,7 +52,7 @@ class Login extends BaseController
             }else{
                 echo  1111;
             }
-            //$res = Users::addusers($data);
+            $res = Users::addusers($data);
         }catch (\Exception $e){
             $this->return_data(0,50000,$e->getMessage());
         }
