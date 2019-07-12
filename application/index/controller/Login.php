@@ -15,7 +15,6 @@ class Login extends BaseController
 {
     public function for_login()
     {
-
         $data = [
             'cellphone'=>input('post.user_aco'),
             'password'=>input('post.use_secret'),
