@@ -60,3 +60,9 @@ function dd($arr,$type=1){
     exit();
 }
 
+
+//返回加密后的密码
+   function  md5_return($password){
+    $password = md5(md5(md5(MA.$password)));
+    return $password;
+}

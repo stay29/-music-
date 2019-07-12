@@ -24,8 +24,6 @@ class Organization extends Validate
         'id_card' => 'idCard',
         'status' => 'integer',
     ];
-
-
     protected $message = [
         't_id.require'=>'教师ID不得为空|10000',
         't_name.require'=>'教师名称不得为空|10000',

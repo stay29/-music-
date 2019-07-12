@@ -46,18 +46,15 @@ class Login extends BaseController
             $validate = new \app\index\validate\User();
             if(!$validate->scene('add')->check($data)){
                 //为了可以得到错误码
-                //dd($validate->getError());
                 $error = explode('|',$validate->getError());
                 $this->return_data(0,$error[1],$error[0]);
             }else{
-
             $mup['account']   = $data['cellphone'];
             $mup['cellphone'] = $data['cellphone'];
-            $mup['password']  = $this->md5_return($data['password']);
+            $mup['password']  = md5_return($data['password']);
             $res = Users::addusers($mup);
-            echo $res;
+            $this->return_data(1,0,$res);
             }
-            $res = Users::addusers($data);
         }catch (\Exception $e){
             $this->return_data(0,50000,$e->getMessage());
         }
