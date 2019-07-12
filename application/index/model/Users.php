@@ -6,7 +6,9 @@ class Users extends Model
 {	     
 	protected $table = 'erp2_users';
     protected $pk = 'uid';
- 
+
+    protected $field = true;
+    protected $autoWriteTimestamp = true;
     public function returnUser()
     {
         return $this->belongsTo('Curriculums','uid');
@@ -18,5 +20,4 @@ class Users extends Model
         $res = Users::cache($data);
         return $res;
     }
-
 }

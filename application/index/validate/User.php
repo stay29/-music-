@@ -27,19 +27,15 @@ class User extends Validate
         'cellphone.require'=>'手机号不得为空|10000',
         'cellphone.mobile'=>'手机号格式不正确|10001',
         'cellphone.max'=>'手机号位数不正确|10001',
+        'repassword.require'=>'确认密码不能为空|10000',
+        'repassword.confirm'=>'两次密码不一致|10002',
     ];
-    protected $scene = [
-        'add' => ['cellphone','password','repassword'],
-        //'edit' => ['account','password'],
-        'login' => ['account','password'],
-    ];
+
 
     public function sceneAdd()
     {
          return $this->only(['cellphone','password','repassword'])
-             ->append('cellphone', 'require|max:11|mobile|check_mobile_existed' )
-             ->append('repassword', 'require|confirm:password' )
-             ->append('password', 'require|length:5,15');
+             ->remove('password','check_user');
     }
 
     protected function check_user($password,$rule,$data){
