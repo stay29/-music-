@@ -50,7 +50,12 @@ class Login extends BaseController
                 $error = explode('|',$validate->getError());
                 $this->return_data(0,$error[1],$error[0]);
             }else{
-                echo  1111;
+
+            $mup['account']   = $data['cellphone'];
+            $mup['cellphone'] = $data['cellphone'];
+            $mup['password']  = $this->md5_return($data['password']);
+            $res = Users::addusers($mup);
+            echo $res;
             }
             $res = Users::addusers($data);
         }catch (\Exception $e){
