@@ -29,10 +29,18 @@ class User extends Validate
         'cellphone.max'=>'手机号位数不正确|10001',
     ];
     protected $scene = [
-        'add' => ['cellphone','password'=>'require|length'],
+        'add' => ['cellphone','password','repassword'],
         //'edit' => ['account','password'],
         'login' => ['account','password'],
     ];
+
+    public function sceneAdd()
+    {
+         return $this->only(['cellphone','password','repassword'])
+             ->append('cellphone', 'require|max:11|mobile|check_mobile_existed' )
+             ->append('repassword', 'require|confirm:password' )
+             ->append('password', 'require|length:5,15');
+    }
 
     protected function check_user($password,$rule,$data){
         $password = md5(md5(md5(MA.$password)));
@@ -50,6 +58,7 @@ class User extends Validate
             return '用户名密码错误|20007';
         }
     }
+
     protected function check_mobile_existed($cellphone)
     {
         $info = Users::where('cellphone',$cellphone)->find();
