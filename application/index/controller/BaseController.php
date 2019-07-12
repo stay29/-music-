@@ -19,7 +19,7 @@ class BaseController extends Controller
         $action =  Request::action();
         if($controller == 'Login' || $controller == 'Currm'){
             if(session('?'.md5(MA.'user'))){
-                $this->return_data(0,20006,'无须再次登录！');
+              //  $this->return_data(0,20006,'无须再次登录！');
             }
         }else{
             if(!session('?'.md5(MA.'user'))){

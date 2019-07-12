@@ -15,7 +15,7 @@ class Login extends BaseController
 {
     public function for_login()
     {
-
+        dd(md5(md5(md5('MA123'))));
         $data = [
             'cellphone'=>input('post.user_aco'),
             'password'=>input('post.use_secret'),
