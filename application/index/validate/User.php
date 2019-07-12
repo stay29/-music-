@@ -44,8 +44,7 @@ class User extends Validate
     }
 
     protected function check_user($password,$rule,$data){
-        $password = md5(md5(md5(MA.$password)));
-        $user_info = Users::where(['cellphone'=>$data['cellphone'],'password'=>$password])->find();
+        $user_info = Users::where(['cellphone'=>$data['cellphone'],'password'=>md5_return($password)])->find();
         if($user_info){
             session(md5(MA.'user'),[
                 'id'=>$user_info['uid'],

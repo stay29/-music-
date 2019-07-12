@@ -33,7 +33,7 @@ class Organization extends BaseController
         }
         try{
             \app\index\model\Organization::create($data);
-            $this->return_data(1,0,'保存成功');
+            $this->return_data(1,0,'琴行新增成功');
         }catch (\Exception $e){
             $this->return_data(0,50000,$e->getMessage());
         }
