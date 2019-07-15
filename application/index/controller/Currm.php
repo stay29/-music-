@@ -45,6 +45,7 @@ class Currm extends BaseController
         $validate = new \app\validate\Curriculums;
         if(!$validate->scene('edit')->check($data)){
             //为了可以得到错误码
+            //dd($validate->getError());
             $error = explode('|',$validate->getError());
             $this->return_data(0,$error[1],$error[0]);
         }
@@ -77,6 +78,7 @@ class Currm extends BaseController
         $this->assign('res',$res);
         return view();
     }
+
 
     public function getcurrm()
     {

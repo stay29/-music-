@@ -10,10 +10,7 @@ namespace app\index\controller;
 use app\index\model\Users;
 use app\index\validate\User;
 use think\facade\Session;
-
 class Login extends BaseController{
-
-    public function for_login(){
         $data = [
             'cellphone'=>input('post.user_aco'),
             'password'=>input('post.use_secret'),
@@ -41,6 +38,7 @@ class Login extends BaseController{
             'repassword'=>input('post.use_secret_repassword'),
         ];
         $vieryie = input('post.vieryie');
+       // print_r($vieryie);exit();
         if($vieryie !=Session::get('vieryie')){
             $this->return_data(0,0,'验证码不一致');
         }
@@ -63,23 +61,44 @@ class Login extends BaseController{
         }
     }
 
-     //验证码获取
-    public  function  get_vieryie(){
-        $len = 4;
-        $chars = array(
-            "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
-        );
-        $charsLen = count($chars) - 1;
-        shuffle($chars);
-        $output = "";
-        for ($i=0; $i<$len; $i++)
-        {
-            $output .= $chars[mt_rand(0, $charsLen)];
-        }
+    public  function  aaa()
+    {
+        $a = 'abc123';
+        $res = md5_return($a);
+        return $res;
+    }
+
+    public  function  logout()
+    {
         session(null);
-        Session::set('vieryie',$output);
-        //return $output;
-        $this->return_data(1,0,$output);
+        $this->return_data(1,0,'退出登录');
+    }
+     //验证码获取
+    public  function  get_vieryie()
+    {
+        $pione = input('user_aco');
+        if($pione){
+            $len = 4;
+            $chars = array(
+                "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
+            );
+            $charsLen = count($chars) - 1;
+            shuffle($chars);
+            $output = "";
+            for ($i=0; $i<$len; $i++)
+            {
+                $output .= $chars[mt_rand(0, $charsLen)];
+            }
+            session(null);
+            Session::init([
+                'expire'=> 10,
+            ]);
+            Session::set('vieryie',$output);
+            $this->return_data(1,0,$output);
+        }else{
+            $this->return_data(0,10000,'请输入手机号');
+        }
+
 
 
     }

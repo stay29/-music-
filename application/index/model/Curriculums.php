@@ -27,8 +27,6 @@ class Curriculums extends Model
         return $list;
 	}
 
-
-
 	public static function delcurrl($data)
     {
 		$res =  Curriculums::where($data)->delete();
@@ -36,7 +34,7 @@ class Curriculums extends Model
 	}
 	public static function editcurrm($curid,$data)
     {
-	 $res = Curriculums::where($curid)->update($data);
+	 $res = Curriculums::where('cur_id',$curid)->update($data);
 	 return $res;
 	}
 	public static function getcurrmone($curid)

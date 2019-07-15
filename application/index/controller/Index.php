@@ -42,7 +42,6 @@ class Index extends controller
             $objPHPExcel->getActiveSheet()->setCellValue('E'.($i+2),$list[$i]['ctime']);//添加电话
             $objPHPExcel->getActiveSheet()->setCellValue('F'.($i+2),$list[$i]['describe']);//添加邮箱
         }
-
         //7.设置保存的Excel表格名称
         $filename = $filename.date('ymd',time()).'.xls';
         //8.设置当前激活的sheet表格名称；
@@ -58,8 +57,6 @@ class Index extends controller
         $objWriter->save('php://output');
         exit;
     }
-
-    
 
 
 }
