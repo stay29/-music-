@@ -21,6 +21,7 @@ class Login extends BaseController{
         try{
             $validate = new \app\index\validate\User();
             if(!$validate->scene('login')->check($data)){
+                dd($validate->getError());
                 $error = explode('|',$validate->getError());//为了可以得到错误码
                 $this->return_data(0,$error[1],$error[0]);
             }else{
@@ -92,6 +93,10 @@ class Login extends BaseController{
         Session::set('vieryie',$output);
         //return $output;
         $this->return_data(1,0,$output);
+
+
     }
+
+
 
 }

@@ -32,7 +32,7 @@ class BaseController extends Controller
      *响应
      *$info,在status=1返回成功提示，0的时候返回错误提示，$data返回需要的数据
      */
-    public function return_data($status=1,$error_no=0,$info,$data=''){
+    public function return_data($status=1,$error_no=0,$info='',$data=''){
         $status = empty($status)?false:true;
         if($status){
             $key = 'sinfo';

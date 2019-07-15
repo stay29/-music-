@@ -24,8 +24,8 @@ class User extends Validate
         'password.length'=>'密码长度不得小于5超过15|10001',
         'cellphone.require'=>'手机号不得为空|10000',
         'cellphone.mobile'=>'手机号格式不正确|10001',
-        'cellphone.mobile'=>'手机号格式不正确|10001',
         'cellphone.max'=>'手机号位数不正确|10001',
+        'cellphone.unique'=>'手机号已经被注册|20000',
         'repassword.require'=>'确认密码不能为空|10000',
         'repassword.confirm'=>'两次密码不一致|10002',
         'remember.integer'=>'记住密码必须是整型（1记住0，0不记住）|10002',
@@ -41,7 +41,7 @@ class User extends Validate
     public function sceneLogin()
     {
          return $this->only(['cellphone','password','remember'])
-             ->remove('cellphone','max|mobile|check_mobile_existed')
+             ->remove('cellphone','max|mobile|unique')
              ->remove('password','length');
     }
 
@@ -60,16 +60,6 @@ class User extends Validate
         }
     }
 
-    protected function check_mobile_existed($cellphone)
-    {
-        $info = Users::where('cellphone',$cellphone)->find();
-        if($info){
-            return '手机号已被注册|20009';
-        }else{
-            return true;
-        }
-    }
-
     /**
      * @param $is_rem
      * 记住密码
@@ -82,6 +72,7 @@ class User extends Validate
             ]);
             return true;
         }else{
+            cookie(base64_encode(MA.'userinfo'),null);
             return true;
         }
     }
