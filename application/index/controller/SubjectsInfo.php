@@ -2,7 +2,7 @@
 namespace app\index\controller; 
 use think\Controller;
 use app\index\model\Subjects;
-class Subjectsinfo extends controller
+class SubjectsInfo extends controller
 { 			
     public function index()
     {
@@ -10,6 +10,6 @@ class Subjectsinfo extends controller
         $state['state'] = true;
         $state['msg'] = '';
         $state['data'] = $res;
-        echo json_encode($state);
+        return json_encode($state);
     }
 }

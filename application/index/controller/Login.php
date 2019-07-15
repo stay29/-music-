@@ -61,7 +61,6 @@ class Login extends BaseController{
         }
     }
 
-
      //验证码获取
     public  function  get_vieryie(){
         $len = 4;
