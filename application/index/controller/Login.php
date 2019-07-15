@@ -12,6 +12,7 @@ use app\index\validate\User;
 use think\facade\Session;
 
 class Login extends BaseController{
+
     public function for_login(){
         $data = [
             'cellphone'=>input('post.user_aco'),
