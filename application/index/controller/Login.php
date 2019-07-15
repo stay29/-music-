@@ -18,7 +18,7 @@ class Login extends BaseController
             'cellphone'=>input('post.user_aco'),
             'password'=>input('post.use_secret'),
         ];
-        print_r($data);
+     
         try{
             $validate = new \app\index\validate\User();
             if(!$validate->scene('login')->check($data)){
@@ -61,7 +61,6 @@ class Login extends BaseController
             $this->return_data(0,50000,$e->getMessage());
         }
     }
-
 
      //验证码获取
     public  function  get_vieryie(){
