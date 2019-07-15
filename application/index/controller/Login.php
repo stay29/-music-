@@ -72,7 +72,7 @@ class Login extends BaseController{
         session(null);
         $this->return_data(1,0,'退出登录');
     }
-    
+
      //验证码获取
     public  function  get_vieryie(){
         $len = 4;
