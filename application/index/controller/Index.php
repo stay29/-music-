@@ -58,7 +58,5 @@ class Index extends controller
         exit;
     }
 
-    
-
 
 }
