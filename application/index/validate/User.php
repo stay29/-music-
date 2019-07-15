@@ -10,6 +10,7 @@ namespace app\index\validate;
 
 
 use app\index\model\Users;
+use think\facade\Cookie;
 use think\Validate;
 
 class User extends Validate
@@ -17,7 +18,8 @@ class User extends Validate
     protected $rule = [
         'cellphone'=>'require|max:11|mobile|check_mobile_existed',
         'password'=>'require|length:5,15|check_user',
-        'repassword'=>'require|confirm:password'
+        'repassword'=>'require|confirm:password',
+        'remember'=>'integer|rem_password'
     ];
     protected $message = [
         'password.require'=>'密码不得为空|10000',
@@ -27,6 +29,7 @@ class User extends Validate
         'cellphone.max'=>'手机号位数不正确|10001',
         'repassword.require'=>'确认密码不能为空|10000',
         'repassword.confirm'=>'两次密码不一致|10002',
+        'remember.integer'=>'记住密码必须是整型（1记住0，0不记住）|10002',
     ];
 
 
@@ -38,7 +41,7 @@ class User extends Validate
 
     public function sceneLogin()
     {
-         return $this->only(['cellphone','password'])
+         return $this->only(['cellphone','password','remember'])
              ->remove('cellphone','max|mobile|check_mobile_existed')
              ->remove('password','length');
     }
@@ -68,6 +71,21 @@ class User extends Validate
         }
     }
 
+    /**
+     * @param $is_rem
+     * 记住密码
+     */
+    protected function rem_password($is_rem,$rule,$data){
+        if($is_rem == 1){
+            cookie(base64_encode(MA.'userinfo'),[
+                'account'=>base64_encode(MA.trim($data['cellphone'])),
+                'pwd'=>base64_encode(MA.trim($data['password'])),
+            ]);
+            return true;
+        }else{
+            return true;
+        }
+    }
 }
 
 

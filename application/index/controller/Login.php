@@ -10,6 +10,7 @@ namespace app\index\controller;
 
 use app\index\model\Users;
 use app\index\validate\User;
+use think\facade\Cookie;
 
 class Login extends BaseController
 {
@@ -18,6 +19,7 @@ class Login extends BaseController
         $data = [
             'cellphone'=>input('post.user_aco'),
             'password'=>input('post.use_secret'),
+            'remember'=>input('post.remember')
         ];
         try{
             $validate = new \app\index\validate\User();
