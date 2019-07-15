@@ -2,6 +2,7 @@
 namespace app\index\controller; 
 use think\Controller;
 use think\Exception;
+
 use app\index\model\Curriculums;
 class Currm extends BaseController
 { 			
@@ -19,22 +20,16 @@ class Currm extends BaseController
         $this->return_data(1,0,$res);
     }
 
-
-    public function addcurrm()
-    {
-        return view();
-    }
-
  	public function  addcurrmon()
     {
  		$data = input('post.');
+ 		$data['manager'] = session(md5(MA.'user'))['id'];
         $validate = new \app\validate\Curriculums;
         if(!$validate->scene('add')->check($data)){
             //为了可以得到错误码
             $error = explode('|',$validate->getError());
             $this->return_data(0,$error[1],$error[0]);
         }
-
         try{
             $res = Curriculums::addcurrl($data);
             $this->return_data(1,0,'添加成功');
@@ -47,7 +42,6 @@ class Currm extends BaseController
     {
         $currid = input('post.cur_id');
         $data = input('post.');
-
         $validate = new \app\validate\Curriculums;
         if(!$validate->scene('edit')->check($data)){
             //为了可以得到错误码
@@ -76,6 +70,7 @@ class Currm extends BaseController
         }
     }
 
+
     public  function  editcurrmvie(){
         $currid['cur_id'] =   input('cur_id');
         $res =  Curriculums::where($currid)->find();
@@ -90,4 +85,23 @@ class Currm extends BaseController
         $this->return_data(1,0,$res);
     }
 
+
+    public function get_img_update()
+    {
+      $res =  $this->get_ret_img_update('img','./upload/currm/');
+      return $res;
+    }
+
+
+    public  function  get_img_del()
+    {
+        $oldig = input('oldimg');
+        $res = file_exists($oldig);
+            if($res){
+                unlink($oldig);
+                return true;
+            }else{
+                return false;
+            }
+    }
 }
