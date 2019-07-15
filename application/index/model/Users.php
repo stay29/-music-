@@ -15,10 +15,10 @@ class Users extends Model
     }
     public  static function  addusers($data)
     {
-        //print_r($data);
         $res = Users::create($data, true);
-        $uid = $res->uid;
-        Users::where(['uid'=>$uid])->update(['nickname'=>'校长'.$uid,'update_time'=>time(),'login_time'=>time(),'manager'=>session('id')]);
-        return $uid;
+        $suid = session(md5(MA.'user'))['id'];
+        Users::where(['uid'=>$res->uid])
+        ->update(['nickname'=>'校长'.$res->uid,'update_time'=>time(),'login_time'=>time(),'creator'=>$suid]);
+        return $res->uid;
     }
 }

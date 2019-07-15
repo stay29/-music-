@@ -7,8 +7,6 @@
  */
 
 namespace app\index\validate;
-
-
 use app\index\model\Users;
 use think\facade\Cookie;
 use think\Validate;
@@ -16,7 +14,7 @@ use think\Validate;
 class User extends Validate
 {
     protected $rule = [
-        'cellphone'=>'require|max:11|mobile|check_mobile_existed',
+        'cellphone'=>'require|max:11|mobile|unique:Users',
         'password'=>'require|length:5,15|check_user',
         'repassword'=>'require|confirm:password',
         'remember'=>'integer|rem_password'
@@ -25,6 +23,7 @@ class User extends Validate
         'password.require'=>'密码不得为空|10000',
         'password.length'=>'密码长度不得小于5超过15|10001',
         'cellphone.require'=>'手机号不得为空|10000',
+        'cellphone.mobile'=>'手机号格式不正确|10001',
         'cellphone.mobile'=>'手机号格式不正确|10001',
         'cellphone.max'=>'手机号位数不正确|10001',
         'repassword.require'=>'确认密码不能为空|10000',

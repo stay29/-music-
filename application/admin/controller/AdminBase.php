@@ -124,7 +124,6 @@ class AdminBase extends Controller
                         $dest[] = $destination;
                     }
                 }
-
                 if($arr){
                     foreach ($arr as $key => $value) {
                         $value = strstr($value,'.');

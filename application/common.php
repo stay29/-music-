@@ -66,3 +66,6 @@ function dd($arr,$type=1){
     $password = md5(md5(md5(MA.$password)));
     return $password;
 }
+//验证码发送
+
+
