@@ -9,6 +9,8 @@
 namespace app\index\controller;
 use app\index\model\Users;
 use app\index\validate\User;
+use think\facade\Session;
+
 class Login extends BaseController{
     public function for_login(){
         $data = [
