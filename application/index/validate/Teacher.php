@@ -16,9 +16,9 @@ class Teacher extends Validate
     protected $rule = [
         't_id'=>'require',
         't_name'  => 'require|max:8',
+        'cellphone'  => 'require|max:11|mobile|unique:Teachers',
         'se_id' => 'require|integer',
         'sex' => 'integer',
-        'cellphone'  => 'require|max:11|mobile|unique:Teachers',
         'entry_time' => 'require',
         'birthday' => 'date',
         'id_card' => 'idCard',
