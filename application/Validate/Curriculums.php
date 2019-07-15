@@ -21,7 +21,7 @@ class Curriculums extends Validate
 
     protected $message = [
         'cur_name.require'=>'课程名称不能为空|10000',
-        'cur_name.max'=>    '名称最多不能超过12个字符|10000',
+        'cur_name.max'=>    '名称最多不能超过12个字符|10001',
 
         'subject.require'=>'科目不能选择空|10000',
         'subject.number'=> '科目必须为数字|10001',
@@ -41,13 +41,13 @@ class Curriculums extends Validate
         'conversion.number'=> '通用课必须为数字|10001',
 
         'describe.require'=>'课程描述不能为空|10000',
-        'describe.max'=>'课程描述不能超过500字|10000',
+        'describe.max'=>'课程描述不能超过500字|10001',
 
         'remarks.require'=>'备注不能为空|10000',
         'remarks.max'=> '备注不能超过500字|10001',
 
-        'listimg.require'=> '列表图片不能为空|10001',
-        'infoimg.require'=> '详情图片不能为空|10001',
+        'listimg.require'=> '列表图片不能为空|10000',
+        'infoimg.require'=> '详情图片不能为空|10000',
 
     ];
 

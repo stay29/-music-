@@ -10,9 +10,9 @@ namespace app\index\controller;
 use app\index\model\Users;
 use app\index\validate\User;
 use think\facade\Session;
-
 class Login extends BaseController{
-    public function for_login(){
+    public function for_login()
+    {
         $data = [
             'cellphone'=>input('post.user_aco'),
             'password'=>input('post.use_secret'),
@@ -61,7 +61,8 @@ class Login extends BaseController{
         }
     }
 
-    public  function  aaa(){
+    public  function  aaa()
+    {
         $a = 'abc123';
         $res = md5_return($a);
         return $res;
@@ -74,7 +75,8 @@ class Login extends BaseController{
     }
 
      //验证码获取
-    public  function  get_vieryie(){
+    public  function  get_vieryie()
+    {
         $len = 4;
         $chars = array(
             "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
