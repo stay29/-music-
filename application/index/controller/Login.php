@@ -10,15 +10,14 @@ namespace app\index\controller;
 use app\index\model\Users;
 use app\index\validate\User;
 use think\facade\Session;
-class Login extends BaseController
-{
-    public function for_login()
-    {
+
+class Login extends BaseController{
+    public function for_login(){
         $data = [
             'cellphone'=>input('post.user_aco'),
             'password'=>input('post.use_secret'),
+            'remember'=>input('post.remember')
         ];
-     
         try{
             $validate = new \app\index\validate\User();
             if(!$validate->scene('login')->check($data)){
