@@ -1,7 +1,7 @@
 <?php
 /**
  * 教师
- * User: antoyn
+ * User: antony
  * Date: 2019/7/11
  * Time: 10:23
  */
@@ -23,6 +23,8 @@ class Teacher extends Validate
         'birthday' => 'date',
         'id_card' => 'idCard',
         'status' => 'integer',
+        'field'=>'require',
+        'action'=>'require'
     ];
 
 
@@ -42,6 +44,8 @@ class Teacher extends Validate
         'se_id.integer'=>'资历格式不正确|10001',
         'sex.integer'=>'性别格式不正确|10001',
         'status.integer'=>'状态格式不正确|10001',
+        'field.require'=>'操作类型不得为空|10000',
+        'action.require'=>'操作目的不得为空|10000',
     ];
 
     // add验证场景定义
@@ -54,6 +58,11 @@ class Teacher extends Validate
     public function sceneEdit()
     {
         return $this->only(['t_id','t_name','se_id','cellphone','entry_time','id_card','sex','status','birthday']);
+    }
+    // 修改字段验证场景定义
+    public function sceneField()
+    {
+        return $this->only(['t_id','action','field']);
     }
 
 
