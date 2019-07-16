@@ -16,7 +16,6 @@ class Teacher extends BaseModel
     protected $autoWriteTimestamp = true;
     protected $auto = ['manager','entry_time'];//操作人id，对应users表主键
     protected $append = ['seniority_name'];
-    protected $insert = ['status'=>2];
     protected $update = [];
     protected function setManagerAttr(){
         if(!empty(session(md5(MA.'user')))){
