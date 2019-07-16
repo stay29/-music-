@@ -31,7 +31,6 @@ class Login extends BaseController{
             $this->return_data(0,50000,$e->getMessage());
         }
     }
-
     public function register_users()
     {
         $data = [
@@ -40,7 +39,7 @@ class Login extends BaseController{
             'repassword'=>input('post.use_secret_repassword'),
         ];
         $vieryie = input('post.vieryie');
-       // print_r($vieryie);exit();
+
         if($vieryie !=Session::get('vieryie')){
             $this->return_data(0,0,'验证码不一致');
         }
@@ -62,14 +61,12 @@ class Login extends BaseController{
             $this->return_data(0,50000,$e->getMessage());
         }
     }
-
     public  function  aaa()
     {
         $a = 'abc123';
         $res = md5_return($a);
         return $res;
     }
-
     public  function  logout()
     {
         session(null);
