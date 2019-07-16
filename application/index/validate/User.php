@@ -31,12 +31,19 @@ class User extends Validate
         'remember.integer'=>'记住密码必须是整型（1记住0，0不记住）|10002',
     ];
 
-
     public function sceneAdd()
     {
          return $this->only(['cellphone','password','repassword'])
              ->remove('password','length|check_user');
     }
+
+    public function sceneEdit()
+    {
+        return $this->only(['cellphone','password','repassword'])
+            ->remove('cellphone','unique')
+            ->remove('password','length|check_user');
+    }
+
 
     public function sceneLogin()
     {
@@ -45,7 +52,8 @@ class User extends Validate
              ->remove('password','length');
     }
 
-    protected function check_user($password,$rule,$data){
+    protected function check_user($password,$rule,$data)
+    {
         $user_info = Users::where(['cellphone'=>$data['cellphone'],'password'=>md5_return($password)])->find();
         if($user_info){
             session(md5(MA.'user'),[
@@ -59,12 +67,12 @@ class User extends Validate
             return '用户名密码错误|20007';
         }
     }
-
     /**
      * @param $is_rem
      * 记住密码
      */
-    protected function rem_password($is_rem,$rule,$data){
+    protected function rem_password($is_rem,$rule,$data)
+    {
         if($is_rem == 1){
             cookie(base64_encode(MA.'userinfo'),[
                 'account'=>base64_encode(MA.trim($data['cellphone'])),
@@ -76,6 +84,8 @@ class User extends Validate
             return true;
         }
     }
+
+
 }
 
 

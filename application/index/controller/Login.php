@@ -11,6 +11,8 @@ use app\index\model\Users;
 use app\index\validate\User;
 use think\facade\Session;
 class Login extends BaseController{
+    public function for_login()
+    {
         $data = [
             'cellphone'=>input('post.user_aco'),
             'password'=>input('post.use_secret'),
@@ -19,7 +21,6 @@ class Login extends BaseController{
         try{
             $validate = new \app\index\validate\User();
             if(!$validate->scene('login')->check($data)){
-                dd($validate->getError());
                 $error = explode('|',$validate->getError());//为了可以得到错误码
                 $this->return_data(0,$error[1],$error[0]);
             }else{
@@ -37,7 +38,6 @@ class Login extends BaseController{
             'repassword'=>input('post.use_secret_repassword'),
         ];
         $vieryie = input('post.vieryie');
-
         if($vieryie !=Session::get('vieryie')){
             $this->return_data(0,0,'验证码不一致');
         }
@@ -95,11 +95,42 @@ class Login extends BaseController{
         }else{
             $this->return_data(0,10000,'请输入手机号');
         }
-
-
-
     }
 
-
-
+    //忘记密码
+    public  function  editpassword(){
+        $data = [
+            'cellphone'=>input('post.user_aco'),
+            'password'=>input('post.use_secret'),
+            'repassword'=>input('post.use_secret_repassword'),
+        ];
+        $vieryie = input('post.vieryie');
+        if($vieryie !=Session::get('vieryie')){
+            $this->return_data(0,0,'验证码不一致');
+        }
+        try{
+            $validate = new \app\index\validate\User();
+            if(!$validate->scene('edit')->check($data)){
+                //为了可以得到错误码
+                $error = explode('|',$validate->getError());
+                $this->return_data(0,$error[1],$error[0]);
+            }else{
+                $mup['account']   = $data['cellphone'];
+                $oldinfo =Users::get_one_info($mup);
+                if($oldinfo)
+                {
+                    $mup['uid'] = $oldinfo['uid'];
+                }else{
+                    $this->return_data(0,10000,'用户不存在请先注册');
+                }
+                $mup['cellphone'] = $data['cellphone'];
+                $mup['password']  = md5_return($data['password']);
+                $res = Users::edit_one_info($mup['uid'],$mup);
+                session(null);
+                $this->return_data(1,0,'修改成功');
+            }
+        }catch (\Exception $e){
+            $this->return_data(0,50000,$e->getMessage());
+        }
+    }
 }
