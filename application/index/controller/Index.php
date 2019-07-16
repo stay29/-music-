@@ -10,9 +10,65 @@ class Index extends controller
 
         return view();
     }
+    public  function  daoru(){
+
+      $res = $this->import($datass);
+      foreach ($res as $k=>$v){
+          foreach ($v as $k1=>$v1){
+                $v[$k1] = 'sss';
+          }
+      }
+      print_r($res);exit();
+    }
+    //公共导入方法返回数组
+    public function import()
+    {
+        //获取表单上传文件
+        $file = request()->file('excel');
+        $info = $file->validate(['ext' => 'xlsx,xls'])->move('./upload/file/');
+        //数据为空返回错误
+        if(empty($info)){
+            $output['status'] = false;
+            $output['info'] = '导入数据失败~';
+            $this->ajaxReturn($output);
+        }
+        //获取文件名
+        $exclePath = $info->getSaveName();
+        //上传文件的地址
+        $filename = './upload/file/'. $exclePath;
+        //判断截取文件
+        $extension = strtolower( pathinfo($filename, PATHINFO_EXTENSION) );
+        //区分上传文件格式
+        if($extension == 'xlsx') {
+            $objReader =\PHPExcel_IOFactory::createReader('Excel2007');
+            $objPHPExcel = $objReader->load($filename, $encode = 'utf-8');
+        }else if($extension == 'xls'){
+            $objReader =\PHPExcel_IOFactory::createReader('Excel5');
+            $objPHPExcel = $objReader->load($filename, $encode = 'utf-8');
+        }
+        $excel_array = $objPHPExcel->getsheet(0)->toArray();   //转换为数组格式
+        array_shift($excel_array);
+        return $excel_array;
+    }
 
 
-    public function export($filename,$data,$dataname){
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //通用导出方法
+    public function export($filename,$expCellName,$expTableData){
         //1.从数据库中取出数据
         $list = Curriculums::getall(10); 
         //3.实例化PHPExcel类
@@ -20,28 +76,29 @@ class Index extends controller
         //4.激活当前的sheet表
         $objPHPExcel->setActiveSheetIndex(0);
         //5.设置表格头（即excel表格的第一行）
-        $objPHPExcel->setActiveSheetIndex(0)
-                ->setCellValue('A1', 'ID')                      
-                ->setCellValue('B1', '姓名')
-                ->setCellValue('C1', '年龄')
-                ->setCellValue('D1', '班级')
-                ->setCellValue('E1', '电话')
-                ->setCellValue('F1', '邮箱');
-        //设置F列水平居中
-        $objPHPExcel->setActiveSheetIndex(0)->getStyle('F')->getAlignment()
-                    ->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-        //设置单元格宽度
-        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('E')->setWidth(15);
-        $objPHPExcel->setActiveSheetIndex(0)->getColumnDimension('F')->setWidth(30); 
-        //6.循环刚取出来的数组，将数据逐一添加到excel表格。
-        for($i=0;$i<count($list);$i++){
-            $objPHPExcel->getActiveSheet()->setCellValue('A'.($i+2),$list[$i]['cur_id']);//添加ID
-            $objPHPExcel->getActiveSheet()->setCellValue('B'.($i+2),$list[$i]['cur_name']);//添加姓名
-            $objPHPExcel->getActiveSheet()->setCellValue('C'.($i+2),$list[$i]['subject']);//添加年龄
-            $objPHPExcel->getActiveSheet()->setCellValue('D'.($i+2),$list[$i]['tmethods']);//添加班级
-            $objPHPExcel->getActiveSheet()->setCellValue('E'.($i+2),$list[$i]['ctime']);//添加电话
-            $objPHPExcel->getActiveSheet()->setCellValue('F'.($i+2),$list[$i]['describe']);//添加邮箱
+        $cellName = array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI','AJ','AK','AL','AM','AN','AO','AP','AQ','AR','AS','AT','AU','AV','AW','AX','AY','AZ');
+//        $expCellName  = array(
+//            array('cur_name','商品id'),
+//            array('subject','上下架'),
+//            array('tmethods','商品名称'),
+//            array('ctime','品牌名称'),
+//            array('describe','分类名称'),
+//            array('remarks','供应商'),
+//        );
+        //$expTableData  = db('curriculums')->select();
+        $cellNum = count($expCellName);
+        $dataNum = count($expTableData);
+        for($i=0;$i<$cellNum;$i++){
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue($cellName[$i].'2', $expCellName[$i][1]);
         }
+
+        //6.循环刚取出来的数组，将数据逐一添加到excel表格。
+        for($i=0;$i<$dataNum;$i++) {
+            for ($j = 0; $j < $cellNum; $j++) {
+                $objPHPExcel->getActiveSheet(0)->setCellValue($cellName[$j] . ($i + 3), $expTableData[$i][$expCellName[$j][0]]);
+            }
+        }
+
         //7.设置保存的Excel表格名称
         $filename = $filename.date('ymd',time()).'.xls';
         //8.设置当前激活的sheet表格名称；
