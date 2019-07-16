@@ -11,7 +11,7 @@ class Subjects extends Model
     	$where['pid'] = 0;
     	$res = Subjects::where($where)->select()->each(function($item, $key){
     		$where1['pid'] = $item['sid'];
-    		$item['pids'] = Subjects::where($where1)->find();
+    		$item['pids'] = Subjects::where($where1)->select();
     	});
     	return $res;
     }

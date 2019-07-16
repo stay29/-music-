@@ -79,6 +79,13 @@ function dd($arr,$type=1){
     $password = md5(md5(md5(MA.$password)));
     return $password;
 }
-//验证码发送
+    //二维数组下表替换
+ function  array_serch($key,$array) {
+    $new_array = array();
+    foreach($array as $k=>$v) {
+        $new_array[$k] = array_combine($key,$v);
+    }
+    return $new_array;
+}
 
 

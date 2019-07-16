@@ -2,26 +2,44 @@
 namespace app\index\controller;
 use think\Controller;
 use PHPExcel;
+use think\Db;
 use app\index\model\Curriculums;
-class Index extends controller
+class Index extends BaseController
 {
     public function index()
     {   
 
         return view();
     }
-    public  function  daoru(){
-
-      $res = $this->import($datass);
-      foreach ($res as $k=>$v){
-          foreach ($v as $k1=>$v1){
-                $v[$k1] = 'sss';
-          }
-      }
-      print_r($res);exit();
+    //导入
+    public  function  daochu(){
+        $kname = ['cur_name', 'subject', 'tmethods', 'ctime', 'describe', 'remarks'];
+        $res = $this->import($kname);
+       foreach ($res as $k=>$v){
+           $info =  Curriculums::create($v);
+       }
+       if($info){
+           $this->return_data(1,0,'导入成功');
+       }else{
+           $this->return_data(0,50000,'导入失败');
+       }
     }
+    //到出
+    public  function  daoru(){
+    $kname = array(
+            array('cur_name','课程名称'),
+            array('subject','科目分类'),
+            array('tmethods','授课方式'),
+            array('ctime','课时'),
+            array('describe','备注'),
+            array('remarks','描述'),
+        );
+    $list =  db('curriculums')->select();
+    $this->export('课程列表',$kname,$list);
+    }
+
     //公共导入方法返回数组
-    public function import()
+    public function import($kname)
     {
         //获取表单上传文件
         $file = request()->file('excel');
@@ -47,30 +65,19 @@ class Index extends controller
             $objPHPExcel = $objReader->load($filename, $encode = 'utf-8');
         }
         $excel_array = $objPHPExcel->getsheet(0)->toArray();   //转换为数组格式
-        array_shift($excel_array);
-        return $excel_array;
+         //array_shift($excel_array);
+       // $res = array_serch($kname,$excel_array);
+        foreach ($excel_array as $k=>$v){
+            unset($excel_array[0]);
+            unset($excel_array[1]);
+        }
+        $fils = array_serch($kname,$excel_array);
+        return $fils;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     //通用导出方法
     public function export($filename,$expCellName,$expTableData){
         //1.从数据库中取出数据
-        $list = Curriculums::getall(10); 
         //3.实例化PHPExcel类
         $objPHPExcel = new PHPExcel();
         //4.激活当前的sheet表
@@ -89,16 +96,14 @@ class Index extends controller
         $cellNum = count($expCellName);
         $dataNum = count($expTableData);
         for($i=0;$i<$cellNum;$i++){
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue($cellName[$i].'2', $expCellName[$i][1]);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue($cellName[$i].'1', $expCellName[$i][1]);
         }
-
         //6.循环刚取出来的数组，将数据逐一添加到excel表格。
         for($i=0;$i<$dataNum;$i++) {
             for ($j = 0; $j < $cellNum; $j++) {
-                $objPHPExcel->getActiveSheet(0)->setCellValue($cellName[$j] . ($i + 3), $expTableData[$i][$expCellName[$j][0]]);
+                $objPHPExcel->getActiveSheet(0)->setCellValue($cellName[$j] . ($i + 2), $expTableData[$i][$expCellName[$j][0]]);
             }
         }
-
         //7.设置保存的Excel表格名称
         $filename = $filename.date('ymd',time()).'.xls';
         //8.设置当前激活的sheet表格名称；
