@@ -5,10 +5,10 @@
  * Date: 2019/7/11
  * Time: 15:43
  */
-
 namespace app\index\controller;
 use app\index\model\Users;
 use app\index\validate\User;
+use think\Db;
 use think\facade\Session;
 class Login extends BaseController{
     public function for_login()
@@ -30,41 +30,51 @@ class Login extends BaseController{
             $this->return_data(0,50000,$e->getMessage());
         }
     }
+
+
     public function register_users()
     {
         $data = [
             'cellphone'=>input('post.user_aco'),
             'password'=>input('post.use_secret'),
             'repassword'=>input('post.use_secret_repassword'),
+            'senfen' => input('post.senfen'),
         ];
         $vieryie = input('post.vieryie');
         if($vieryie !=Session::get('vieryie')){
             $this->return_data(0,0,'验证码不一致');
         }
+        // 启动事务
+        Db::startTrans();
         try{
             $validate = new \app\index\validate\User();
             if(!$validate->scene('add')->check($data)){
                 //为了可以得到错误码
                 $error = explode('|',$validate->getError());
                 $this->return_data(0,$error[1],$error[0]);
+                exit();
             }else{
             $mup['account']   = $data['cellphone'];
             $mup['cellphone'] = $data['cellphone'];
             $mup['password']  = md5_return($data['password']);
             $res = Users::addusers($mup);
+            Db::commit();
             session(null);
             $this->return_data(1,0,'注册成功');
             }
         }catch (\Exception $e){
+            Db::rollback();
             $this->return_data(0,50000,$e->getMessage());
         }
     }
+
     public  function  aaa()
     {
         $a = 'abc123';
         $res = md5_return($a);
         return $res;
     }
+
     public  function  logout()
     {
         session(null);

@@ -45,11 +45,16 @@ class Currm extends AdminBase
     {
         $this->assign('title','课程科目列表');
         $this->assign('add',url('subject_add'));
-        $data = db('subjects')->field('sname,sid,status,manager,create_time,update_time')->paginate(20,false,['query'=>request()->param()])->each(function($v,$k){
+        $data = db('subjects')->field('sname,sid,status,manager,create_time,update_time,pid')->paginate(20,false,['query'=>request()->param()])->each(function($v,$k){
             if($v['status'] == 1){
                 $v['status_text'] = '正常';
             }elseif($v['status'] == 2){
                 $v['status_text'] = '已禁用';
+            }
+            if($v['pid']==0){
+                $v['pid'] = '顶级分类';
+            }else{
+                $v['pid'] =  db('subjects')->where(['sid'=>$v['pid']])->value('sname');
             }
             $account = db('admins')->where(['id'=>$v['manager']])->value('ad_account');
             $v['manager'] = isset($account) ? $account : '未知';
@@ -66,7 +71,6 @@ class Currm extends AdminBase
                 $this->return_data(0,'该课程科目已存在');
             }
             $data['create_time'] = $data['update_time'] = time(); $data['manager'] = session('admin.id');
-
             $res = db('subjects')->insertGetId($data);
             if($res){
                 $this->return_data(1,'新增课程科目成功');
@@ -74,6 +78,8 @@ class Currm extends AdminBase
                 $this->return_data(0,'新增课程科目失败');
             }
         }
+        $sublist = db('subjects')->where('pid',0)->select();
+        $this->assign('sublist',$sublist);
         $this->assign('title','新增课程科目');
         return $this->fetch();
     }
@@ -98,6 +104,8 @@ class Currm extends AdminBase
         if(!$id){
             $this->error('没有id');
         }
+        $sublist = db('subjects')->where('pid',0)->select();
+        $this->assign('sublist',$sublist);
         $subject = db('subjects')->where(['sid'=>$id])->find();
         $this->assign('subject',$subject);
         $this->assign('title','编辑课程科目');

@@ -39,7 +39,8 @@ class BaseController extends Controller
         }else{
             $key = 'emsg';
         }
-        echo json_encode(['status'=>$status,'erno'=>$error_no,$key =>$info,'data'=>$data]);die;
+        echo json_encode(['status'=>$status,'erno'=>$error_no,$key =>$info,'data'=>$data]);
+        exit();
     }
 
 

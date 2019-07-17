@@ -17,7 +17,8 @@ class User extends Validate
         'cellphone'=>'require|max:11|mobile|unique:Users',
         'password'=>'require|length:5,15|check_user',
         'repassword'=>'require|confirm:password',
-        'remember'=>'integer|rem_password'
+        'remember'=>'integer|rem_password',
+        'senfen'=>'require|number'
     ];
     protected $message = [
         'password.require'=>'密码不得为空|10000',
@@ -29,6 +30,8 @@ class User extends Validate
         'repassword.require'=>'确认密码不能为空|10000',
         'repassword.confirm'=>'两次密码不一致|10002',
         'remember.integer'=>'记住密码必须是整型（1记住0，0不记住）|10002',
+        'senfen.require'=>'身份不能为空|10002',
+        'senfen.number'=>'身份必须为数字|10001',
     ];
 
     public function sceneAdd()
@@ -61,6 +64,7 @@ class User extends Validate
                 'user_aco'=>$user_info['cellphone'],
                 'username'=>$user_info['nickname'],
                 'sex'=>$user_info['sex'],
+                'orgid'=>$user_info['organization'],
             ]);
             return true;
         }else{

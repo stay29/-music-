@@ -5,10 +5,7 @@
  * Date: 2019/7/10
  * Time: 14:56
  */
-
 namespace app\index\model;
-
-
 class Organization extends BaseModel
 {
     protected $table = 'erp2_organizations';

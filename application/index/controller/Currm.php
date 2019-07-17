@@ -2,7 +2,6 @@
 namespace app\index\controller; 
 use think\Controller;
 use think\Exception;
-
 use app\index\model\Curriculums;
 class Currm extends BaseController
 { 			
@@ -38,6 +37,7 @@ class Currm extends BaseController
         }
  	}
 
+
     public function editcurrm()
     {
         $currid = input('post.cur_id');
@@ -45,7 +45,6 @@ class Currm extends BaseController
         $validate = new \app\validate\Curriculums;
         if(!$validate->scene('edit')->check($data)){
             //为了可以得到错误码
-            //dd($validate->getError());
             $error = explode('|',$validate->getError());
             $this->return_data(0,$error[1],$error[0]);
         }
@@ -56,6 +55,7 @@ class Currm extends BaseController
             $this->return_data(0,50000,$e->getMessage());
         }
     }
+
 
     public function delcurrmon()
     {
@@ -86,12 +86,14 @@ class Currm extends BaseController
         $this->return_data(1,0,$res);
     }
 
+
     public function get_img_update()
     {
       $res =  $this->get_ret_img_update('img','./upload/currm/');
       $imgpath = './upload/currm/'.$res;
       $this->return_data(1,0,$imgpath);
     }
+
 
     public  function  get_img_del()
     {
@@ -104,4 +106,6 @@ class Currm extends BaseController
                 $this->return_data(0,50000,'删除失败');
             }
     }
+
+
 }
