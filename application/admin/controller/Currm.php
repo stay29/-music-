@@ -51,7 +51,6 @@ class Currm extends AdminBase
             }elseif($v['status'] == 2){
                 $v['status_text'] = '已禁用';
             }
-
             $account = db('admins')->where(['id'=>$v['manager']])->value('ad_account');
             $v['manager'] = isset($account) ? $account : '未知';
             return $v;

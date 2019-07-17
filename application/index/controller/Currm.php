@@ -79,7 +79,6 @@ class Currm extends BaseController
         return view();
     }
 
-
     public function getcurrm()
     {
         $currid['cur_id'] =   input('cur_id');
@@ -87,13 +86,12 @@ class Currm extends BaseController
         $this->return_data(1,0,$res);
     }
 
-
     public function get_img_update()
     {
       $res =  $this->get_ret_img_update('img','./upload/currm/');
-      return $res;
+      $imgpath = './upload/currm/'.$res;
+      $this->return_data(1,0,$imgpath);
     }
-
 
     public  function  get_img_del()
     {
@@ -101,9 +99,9 @@ class Currm extends BaseController
         $res = file_exists($oldig);
             if($res){
                 unlink($oldig);
-                return true;
+                $this->return_data(1,0,'删除成功');
             }else{
-                return false;
+                $this->return_data(0,50000,'删除失败');
             }
     }
 }
