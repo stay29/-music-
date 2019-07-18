@@ -88,4 +88,31 @@ function dd($arr,$type=1){
     return $new_array;
 }
 
+//返回uid 或机构idsession
+function ret_session_name($name=''){
+    if($name==null){
+        $uid =  session(md5(MA.'user'));
+    }elseif($name=='uid'){
+        $uid =  session(md5(MA.'user'))['id'];
+    }elseif ($name=='orgid'){
+        $uid =  session(md5(MA.'user'))['orgid'];
+    }
+    return $uid;
+}
+//刷新session
+function shua_session(){
+    $uid = ret_session_name('uid');
+    $user_info = db('users')->where('uid',$uid)->find();
+    session(md5(MA.'user'),[
+        'id'=>$user_info['uid'],
+        'user_aco'=>$user_info['cellphone'],
+        'username'=>$user_info['nickname'],
+        'sex'=>$user_info['sex'],
+        'orgid'=>$user_info['organization'],
+    ]);
+}
+
+
+
+
 

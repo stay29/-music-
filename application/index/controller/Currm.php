@@ -4,7 +4,8 @@ use think\Controller;
 use think\Exception;
 use app\index\model\Curriculums;
 class Currm extends BaseController
-{ 			
+{
+    //课程列表
     public function index()
     {
         $page = input('page');
@@ -18,7 +19,7 @@ class Currm extends BaseController
         $res = Curriculums::getall($limit);
         $this->return_data(1,0,$res);
     }
-
+    //添加课程
  	public function  addcurrmon()
     {
  		$data = input('post.');
@@ -37,7 +38,7 @@ class Currm extends BaseController
         }
  	}
 
-
+    //修改课程
     public function editcurrm()
     {
         $currid = input('post.cur_id');
@@ -56,7 +57,7 @@ class Currm extends BaseController
         }
     }
 
-
+    //删除课程
     public function delcurrmon()
     {
         $data['cur_id'] = input('cur_id');
@@ -72,13 +73,8 @@ class Currm extends BaseController
     }
 
 
-    public  function  editcurrmvie(){
-        $currid['cur_id'] =   input('cur_id');
-        $res =  Curriculums::where($currid)->find();
-        $this->assign('res',$res);
-        return view();
-    }
 
+    //获取单个课程
     public function getcurrm()
     {
         $currid['cur_id'] =   input('cur_id');
@@ -86,7 +82,7 @@ class Currm extends BaseController
         $this->return_data(1,0,$res);
     }
 
-
+    //上传图片
     public function get_img_update()
     {
       $res =  $this->get_ret_img_update('img','./upload/currm/');
@@ -95,6 +91,7 @@ class Currm extends BaseController
     }
 
 
+    //删除图片
     public  function  get_img_del()
     {
         $oldig = input('oldimg');

@@ -10,8 +10,9 @@ use think\Model;
 use think\Db;
 class Meals extends Model
 {
-    public static  function  addmeals()
+    public static  function  addmeals($data)
     {
-            echo 11;
+        $res = Meals::create($data);
+        return $res;
     }
 }

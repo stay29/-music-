@@ -31,7 +31,6 @@ class Login extends BaseController{
         }
     }
 
-
     public function register_users()
     {
         $data = [

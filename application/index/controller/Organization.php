@@ -39,6 +39,7 @@ class Organization extends BaseController
             $res = Organ::create($data);
             $where['organization'] = $res->or_id;
             Users::where('uid',$uid)->update($where);
+            shua_session();//刷新session
             $this->return_data(1,0,'琴行新增成功');
         }catch (\Exception $e){
             $this->return_data(0,50000,$e->getMessage());
@@ -50,6 +51,7 @@ class Organization extends BaseController
       $list = Organ::where('status',1)->select();
       $this->return_data(1,0,$list);
     }
+
 
 
 
