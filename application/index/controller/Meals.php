@@ -43,7 +43,7 @@ class Meals extends BaseController
             $this->return_data(0,50000,$e->getMessage());
         }
     }
-    
+
      //添加套餐课程返回套餐课程id
      public  function addmealcur(){
         $data  = [
