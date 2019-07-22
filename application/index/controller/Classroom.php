@@ -5,11 +5,7 @@
  * Date: 2019/7/10
  * Time: 15:03
  */
-
 namespace app\index\controller;
-
-
-
 class Classroom extends BaseController
 {
     /**
@@ -23,7 +19,6 @@ class Classroom extends BaseController
         $status = input('get.status/d');
         $status?$model->where('status',$status):'';
         $room_name?$model->whereLike('room_name','%'.$room_name.'%'):'';
-
         return $model;
     }
     /**
@@ -31,8 +26,7 @@ class Classroom extends BaseController
      */
     public function get(){
        $model = \app\index\model\Classroom
-            ::withTrashed()
-            ->field('room_id as id,room_name as name,status,room_count as total')
+           ::field('room_id as id,room_name as name,status,room_count as total')
             ->order('create_time desc');
        $res = $this->_where($model)->paginate(20);
        $this->return_data(1,0,'',$res);
@@ -61,8 +55,6 @@ class Classroom extends BaseController
             $this->return_data(0,50000,$e->getMessage());
         }
     }
-
-
     /**
      * 编辑教室
      */
@@ -91,15 +83,14 @@ class Classroom extends BaseController
 
 
     /**
-     * 删除教室
+     * 删除教室 硬删除
      */
     public function del(){
         $id = input('id/d');
         if(empty($id)){
             $this->return_data(0,10000,'缺少教室主键');
         }
-//        $res = \app\index\model\Classroom::withTrashed()->where(['room_id'=>$id])->find();
-        $res = \app\index\model\Classroom::destroy($id);
+        $res = \app\index\model\Classroom::where('room_id',$id)->delete();
         if($res){
             $this->return_data(1,0,'删除教室成功');
         }else{

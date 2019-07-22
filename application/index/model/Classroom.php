@@ -4,13 +4,11 @@
  * User: antony
  * Date: 2019/7/16
  */
-
 namespace app\index\model;
-use think\model\concern\SoftDelete;
-
+use think\Model;
+use think\Db;
 class Classroom extends BaseModel
 {
-    use SoftDelete;
     protected $pk = 'room_id';
     protected $deleteTime = 'delete_time';
     protected $table = 'erp2_classrooms';
@@ -25,9 +23,6 @@ class Classroom extends BaseModel
             return 0;
         }
     }
-
-
-
 
 
 }

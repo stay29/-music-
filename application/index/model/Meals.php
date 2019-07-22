@@ -12,6 +12,8 @@ class Meals extends Model
 {
     public static  function  addmeals($data)
     {
+
+        $data['orgid'] =ret_session_name('orgid');
         $res = Meals::create($data);
         return $res;
     }

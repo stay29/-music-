@@ -5,17 +5,17 @@
  * Date: 2019/7/11
  * Time: 10:23
  */
-
 namespace app\index\validate;
 use app\index\model\Users;
 use think\facade\Cookie;
 use think\Validate;
-
+use think\Db;
+use app\index\model\Organization;
 class User extends Validate
 {
     protected $rule = [
         'cellphone'=>'require|max:11|mobile|unique:Users',
-        'password'=>'require|length:5,15|check_user',
+        'password'=>'require|length:5,15',
         'repassword'=>'require|confirm:password',
         'remember'=>'integer|rem_password',
         'senfen'=>'require|number'
@@ -33,20 +33,18 @@ class User extends Validate
         'senfen.require'=>'身份不能为空|10002',
         'senfen.number'=>'身份必须为数字|10001',
     ];
-
     public function sceneAdd()
     {
          return $this->only(['cellphone','password','repassword'])
-             ->remove('password','length|check_user');
+             ->remove('password','length');
     }
 
     public function sceneEdit()
     {
         return $this->only(['cellphone','password','repassword'])
             ->remove('cellphone','unique')
-            ->remove('password','length|check_user');
+            ->remove('password','length');
     }
-
 
     public function sceneLogin()
     {
@@ -55,22 +53,36 @@ class User extends Validate
              ->remove('password','length');
     }
 
-    protected function check_user($password,$rule,$data)
-    {
-        $user_info = Users::where(['cellphone'=>$data['cellphone'],'password'=>md5_return($password)])->find();
-        if($user_info){
-            session(md5(MA.'user'),[
-                'id'=>$user_info['uid'],
-                'user_aco'=>$user_info['cellphone'],
-                'username'=>$user_info['nickname'],
-                'sex'=>$user_info['sex'],
-                'orgid'=>$user_info['organization'],
-            ]);
-            return true;
-        }else{
-            return '用户名密码错误|20007';
-        }
-    }
+
+//    protected function check_user($password,$rule,$data)
+//    {
+//        $user_info = Users::where(['cellphone'=>$data['cellphone'],'password'=>md5_return($password)])->find();
+//        if($user_info){
+//            $orginfo =  Organization::where('or_id',$user_info['organization'])->find();
+//            session(md5(MA.'user'),[
+//                'id'=>$user_info['uid'],
+//                'user_aco'=>$user_info['cellphone'],
+//                'username'=>$user_info['nickname'],
+//                'sex'=>$user_info['sex'],
+//                'orgid'=>$user_info['organization'],
+//                'config'=> [
+//                    'or_id'      => $orginfo['or_id'],
+//                    'name'       => $orginfo['or_name'],
+//                    'logo'       => $orginfo['logo'],
+//                    'contacts'   => $orginfo['contact_man'],
+//                    'phone'      => $orginfo['telephone'],
+//                    'wechat'     => $orginfo['wechat'],
+//                    'intro'      => $orginfo['describe'],
+//                    'map'        => $orginfo['address'],
+//                    'remarks'    => $orginfo['remarks'],
+//                ]
+//            ]);
+//            return true;
+//        }else{
+//        //return '用户名密码错误|20007';
+//        $user_lits_info = Db::query("select * from user_list where status=1");
+//        }
+//    }
     /**
      * @param $is_rem
      * 记住密码

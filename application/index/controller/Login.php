@@ -6,11 +6,16 @@
  * Time: 15:43
  */
 namespace app\index\controller;
+use think\Controller;
+use think\Exception;
 use app\index\model\Users;
 use app\index\validate\User;
 use think\Db;
 use think\facade\Session;
-class Login extends BaseController{
+use think\facade\Cookie;
+use app\index\model\Organization as Organ;
+class Login extends Basess{
+
     public function for_login()
     {
         $data = [
@@ -24,7 +29,44 @@ class Login extends BaseController{
                 $error = explode('|',$validate->getError());//为了可以得到错误码
                 $this->return_data(0,$error[1],$error[0]);
             }else{
-                $this->return_data(1,0,'登录成功',session(md5(MA.'user')));
+                 //查询判断新用户还是爱琴家用
+                 $mup['cellphone'] = $data['cellphone'];
+                 $mup['password'] =md5_return($data['password']);
+                 $user_login_info =    Users::where($mup)->find();
+                 //判断是不是重复登陆
+                $arr_sess = Session::get($user_login_info['uid']);
+                    if($arr_sess!=null){
+                        $this->return_data(0,10000,'请不要重复登陆');
+                    }
+                 if($user_login_info){
+                     $arr = Users::loginsession($user_login_info['uid']);
+                     $this->return_data(1,0,'登录成功',$arr);
+                 }else{
+                        //如果不是erp用户则查询爱琴家用户
+                     $account= $data['cellphone'];
+                     $accountpassword =  md5_return_aqj($data['password']);
+$aqj_user_info = Db::query("select * from user_list where account=? AND password=?  AND role=?", [$account,$accountpassword,3]);
+                     if($aqj_user_info){
+                            //生成erp用户和机构  1添加用户 2添加机构
+                        //生成机构
+                       $data2['or_name'] = $aqj_user_info[0]['nickname'];
+                       $data2['contact_man'] = $aqj_user_info[0]['nickname'];
+                       $data2['telephone'] = $aqj_user_info[0]['account'];
+                       $data2['mobilephone'] = $aqj_user_info[0]['account'];
+                       $data2['status'] = 2;
+                       $orginfo = Organ::create($data2);
+                       $data1['cellphone'] = $aqj_user_info[0]['account'];
+                       $data1['password'] = md5_return($data['password']);
+                       $data1['nickname'] = $aqj_user_info[0]['nickname'];
+                       $data1['account'] = $aqj_user_info[0]['account'];
+                       $data1['organization'] = $orginfo['id'];
+                       $ol_user_info = Users::adduser_info($data1);
+                       $arr = Users::loginsession($ol_user_info['uid']);
+                       $this->return_data(1,0,'登陆成功',$arr);
+                     }else{
+                         $this->return_data(0,20007,'用户名密码错误');
+                     }
+                 }
             }
         }catch (\Exception $e){
             $this->return_data(0,50000,$e->getMessage());
@@ -66,19 +108,13 @@ class Login extends BaseController{
             $this->return_data(0,50000,$e->getMessage());
         }
     }
-
-    public  function  aaa()
-    {
-        $a = 'abc123';
-        $res = md5_return($a);
-        return $res;
-    }
-
+    //退出登录
     public  function  logout()
     {
-        session(null);
+        Session::clear();
         $this->return_data(1,0,'退出登录');
     }
+
      //验证码获取
     public  function  get_vieryie()
     {

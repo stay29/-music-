@@ -21,17 +21,19 @@ class Curriculums extends Model
         return $res;
     }
 
-	public  static  function getall($limit)
+	public  static  function getall($limit,$where)
     {
-            $where['orgid'] = session(md5(MA.'user'))['orgid'];
-            $list = Curriculums::where($where)->field('cur_id,cur_name,subject,tmethods,ctime,state,status')
+            //$where['orgid'] = session(md5(MA.'user'))['orgid'];
+            $list = Curriculums::where($where)
             ->paginate($limit)->each(function($item, $key){
             $where1['sid'] = $item['subject'];
             $item['subject'] = db('subjects')->field('sid,sname,pid')->where($where1)->find();
+            $tqualific = explode('/',$item['tqualific']);
+            $item['ordinary_tqualific'] = $tqualific[0];
+            $item['senior_tqualific'] = $tqualific[1];
         });
         return $list;
 	}
-
 	public static function delcurrl($data)
     {
 		$res =  Curriculums::where($data)->delete();

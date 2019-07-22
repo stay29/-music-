@@ -12,7 +12,6 @@ class Organization extends BaseModel
     protected $field = true;
     protected $autoWriteTimestamp = true;
     protected $auto = ['manager'];//操作人id，对应users表主键
-
     protected $update = [];
     protected function setManagerAttr(){
         if(!empty(session(md5(MA.'user')))){

@@ -10,16 +10,63 @@ class Currm extends BaseController
     {
         $page = input('page');
         if($page==null){
-          $page = 1;  
+          $page = 1;
         }
         $limit = input('limit');
         if ($limit==null) {
         $limit = 10;
         }
-        $res = Curriculums::getall($limit);
+        $cur_name = input('cur_name');
+        $subject = input('subject');
+        $tmethods = input('tmethods');
+        $status = input('status');
+        $orgid  = session(md5(MA.'user'))['orgid'];
+        $where = null;
+        if($cur_name){
+            $where[]=['cur_name','like','%'.$cur_name.'%'];
+        }
+        if($subject){
+            $where[]=['subject','=',$subject];
+        }
+        if($tmethods){
+            $where[]=['tmethods','=',$tmethods];
+        }
+        if($status){
+            $where[]=['status','=', $status];
+        }
+        if($orgid){
+            $where[]=['orgid','=', $orgid];
+        }
+
+        $res = Curriculums::getall($limit,$where);
         $this->return_data(1,0,$res);
     }
-    //添加课程
+
+    public  function  seachindex(){
+        $cur_name = input('cur_name');
+        $subject = input('subject');
+        $tmethods = input('tmethods');
+        $status = input('status');
+        $orgid  = session(md5(MA.'user'))['orgid'];
+        if($cur_name){
+            $where[]=['cur_name','like','%'.$cur_name.'%'];
+        }
+        if($subject){
+            $where[]=['subject','=',$subject];
+        }
+        if($tmethods){
+            $where[]=['tmethods','=',$tmethods];
+        }
+        if($status){
+            $where[]=['status','=', $status];
+        }
+        if($orgid){
+            $where[]=['orgid','=', $orgid];
+        }
+        $res = Curriculums::where($where)->order('create_time desc')->select();
+        return $this->return_data(1,0,$res);
+    }
+
  	public function  addcurrmon()
     {
  		$data = input('post.');
@@ -57,7 +104,7 @@ class Currm extends BaseController
         }
     }
 
-    //删除课程
+
     public function delcurrmon()
     {
         $data['cur_id'] = input('cur_id');
@@ -73,8 +120,6 @@ class Currm extends BaseController
     }
 
 
-
-    //获取单个课程
     public function getcurrm()
     {
         $currid['cur_id'] =   input('cur_id');
@@ -82,15 +127,25 @@ class Currm extends BaseController
         $this->return_data(1,0,$res);
     }
 
-    //上传图片
+
+    //设置热门
+    public function  edit_popular(){
+        $currid['cur_id'] =   input('cur_id');
+        $data['popular'] = 1;
+        $res = Curriculums::where($currid)->update($data);
+        if($res){
+            $this->return_data(1,0,'设置成功');
+        }else{
+            $this->return_data(0,50000,'设置失败');
+        }
+    }
+
     public function get_img_update()
     {
       $res =  $this->get_ret_img_update('img','./upload/currm/');
       $imgpath = './upload/currm/'.$res;
       $this->return_data(1,0,$imgpath);
     }
-
-
     //删除图片
     public  function  get_img_del()
     {

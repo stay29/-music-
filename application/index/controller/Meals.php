@@ -58,9 +58,4 @@ class Meals extends BaseController
         $res = MealCurRelations::create($data);
         return $res->meal_cur_id;
      }
-
-
-
-
-
 }

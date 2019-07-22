@@ -8,7 +8,6 @@
 // +----------------------------------------------------------------------
 // | Author: 流年 <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-
 //获取https的内容
 function curl_https($url) {
     $ch = curl_init();
@@ -73,12 +72,17 @@ function dd($arr,$type=1){
     exit();
 }
 
-
-//返回加密后的密码
-   function  md5_return($password){
+//返回加密后的密码 erp加密
+function  md5_return($password){
     $password = md5(md5(md5(MA.$password)));
     return $password;
 }
+//返回加密后的密码 爱情家加密
+function  md5_return_aqj($password){
+    $password = md5(MB.md5($password));
+    return $password;
+}
+
     //二维数组下表替换
  function  array_serch($key,$array) {
     $new_array = array();
@@ -103,16 +107,43 @@ function ret_session_name($name=''){
 function shua_session(){
     $uid = ret_session_name('uid');
     $user_info = db('users')->where('uid',$uid)->find();
+<<<<<<< HEAD
+=======
+    $orginfo =  Organization::where('or_id',$user_info['organization'])->find();
+>>>>>>> qiujian-dev
     session(md5(MA.'user'),[
         'id'=>$user_info['uid'],
         'user_aco'=>$user_info['cellphone'],
         'username'=>$user_info['nickname'],
         'sex'=>$user_info['sex'],
         'orgid'=>$user_info['organization'],
+<<<<<<< HEAD
+=======
+        'config'=> [
+            'or_id'      => $orginfo['or_id'],
+            'name'       => $orginfo['or_name'],
+            'logo'       => $orginfo['logo'],
+            'contacts'   => $orginfo['contact_man'],
+            'phone'      => $orginfo['telephone'],
+            'wechat'     => $orginfo['wechat'],
+            'intro'      => $orginfo['describe'],
+            'map'        => $orginfo['address'],
+            'remarks'    => $orginfo['remarks'],
+        ]
+>>>>>>> qiujian-dev
     ]);
 }
 
 
 
+<<<<<<< HEAD
+=======
+//删除数组元素一维数组一个或者多个
+    function del_array_info($array,$info){
+        $res= array_diff_key($array, $info);
+        return $res;
+    }
+
+>>>>>>> qiujian-dev
 
 

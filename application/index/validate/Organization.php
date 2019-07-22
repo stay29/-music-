@@ -16,7 +16,7 @@ class Organization extends Validate
     protected $rule = [
         'or_id'=>'require',
         'or_name'  => 'require|max:8|unique:Organizations',
-        'telephone'  => 'require|max:11|mobile|unique:Organizations',
+        'telephone'  => 'require|max:11|mobile',
         'wechat'  => 'require|max:15|unique:Organizations',
         'describe' => 'require|max:500',
         'remarks' => 'max:500',
@@ -30,7 +30,7 @@ class Organization extends Validate
         'telephone.require'=>'请填写手机号|10000',
         'telephone.max'=>'手机号不得大于11位|10001',
         'telephone.mobile'=>'手机号格式不正确|10001',
-        'telephone.unique'=>'手机号已存在|20000',
+//        'telephone.unique'=>'手机号已存在|20000',
         'wechat.require'=>'微信不得为空|10000',
         'wechat.max'=>'微信长度不得大于15|10001' ,
         'wechat.unique'=>'微信号已存在|20000',
