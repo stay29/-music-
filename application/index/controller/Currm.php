@@ -42,6 +42,7 @@ class Currm extends BaseController
         $this->return_data(1,0,$res);
     }
 
+    //搜索课程 废弃
     public  function  seachindex(){
         $cur_name = input('cur_name');
         $subject = input('subject');
@@ -67,6 +68,8 @@ class Currm extends BaseController
         return $this->return_data(1,0,$res);
     }
 
+
+    //添加课程
  	public function  addcurrmon()
     {
  		$data = input('post.');
@@ -84,7 +87,6 @@ class Currm extends BaseController
             $this->return_data(0,50000,$e->getMessage());
         }
  	}
-
     //修改课程
     public function editcurrm()
     {
@@ -105,6 +107,8 @@ class Currm extends BaseController
     }
 
 
+
+    //删除课程
     public function delcurrmon()
     {
         $data['cur_id'] = input('cur_id');
@@ -120,6 +124,7 @@ class Currm extends BaseController
     }
 
 
+    //获取单个课程
     public function getcurrm()
     {
         $currid['cur_id'] =   input('cur_id');
@@ -127,25 +132,28 @@ class Currm extends BaseController
         $this->return_data(1,0,$res);
     }
 
-
     //设置热门
     public function  edit_popular(){
-        $currid['cur_id'] =   input('cur_id');
+        $currid  =   input('cur_id');
         $data['popular'] = 1;
-        $res = Curriculums::where($currid)->update($data);
+        foreach ($currid as $k=>&$v){
+            $cid = $v['cur_id'];
+            $res = Curriculums::where('cur_id',$cid)->update($data);
+        }
         if($res){
             $this->return_data(1,0,'设置成功');
         }else{
             $this->return_data(0,50000,'设置失败');
         }
     }
-
+    //上传图片
     public function get_img_update()
     {
       $res =  $this->get_ret_img_update('img','./upload/currm/');
       $imgpath = './upload/currm/'.$res;
       $this->return_data(1,0,$imgpath);
     }
+
     //删除图片
     public  function  get_img_del()
     {

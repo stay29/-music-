@@ -128,9 +128,13 @@ function shua_session(){
     ]);
 }
 
+
+
+//删除数组元素一维数组一个或者多个
     function del_array_info($array,$info){
         $res= array_diff_key($array, $info);
         return $res;
     }
+
 
 

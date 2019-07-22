@@ -9,7 +9,6 @@ namespace app\index\controller;
 use think\Controller;
 use think\facade\Request;
 use think\facade\Session;
-
 class BaseController extends Controller
 {
     public function initialize()
@@ -17,7 +16,7 @@ class BaseController extends Controller
         parent::initialize();
          $user_sess_info =Session::get(md5(MA.'user'));
          if($user_sess_info==null){
-                return $this->return_data(0,10000,'sss');
+                return $this->return_data(0,10000,'请登录后再来！');
          }
     }
     /**
@@ -29,9 +28,9 @@ class BaseController extends Controller
         if($status){
             $key = 'sinfo';
         }else{
-            $key = 'emsg';
+            $key = 'error_msg';
         }
-        echo json_encode(['status'=>$status,'erno'=>$error_no,$key =>$info,'data'=>$data]);
+        echo json_encode(['status'=>$status,'error_code'=>$error_no,$key =>$info,'data'=>$data]);
         exit();
     }
 
@@ -81,8 +80,5 @@ class BaseController extends Controller
             return $file->getError();
         }
     }
-
-
-
 }
 

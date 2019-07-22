@@ -30,6 +30,7 @@ class Organization extends BaseController
             'status' =>2,
         ];
         $uid = input('uid');
+
         $validate = new \app\index\validate\Organization();
         if(!$validate->scene('add')->check($data)){
             //为了可以得到错误码
@@ -42,13 +43,10 @@ class Organization extends BaseController
             Db::commit();
             $where['organization'] = $res['id'];
             $where['update_time'] = time();
-            $where['manager'] = ret_session_name('uid');
+            //$where['manager'] = ret_session_name('uid');
             Users::where('uid',$uid)->update($where);
 
-            shua_session();//刷新session
-            $this->return_data(1,0,'琴行新增成功');
-            shua_session();
-            $userinfo =  ret_session_name();
+            $userinfo = Users::loginsession($uid);
             $this->return_data(1,0,$userinfo);
         }catch (\Exception $e){
             Db::rollback();
@@ -60,7 +58,6 @@ class Organization extends BaseController
       $list = Organ::where('status',1)->select();
       $this->return_data(1,0,$list);
     }
-
 
 
 
