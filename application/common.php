@@ -107,18 +107,13 @@ function ret_session_name($name=''){
 function shua_session(){
     $uid = ret_session_name('uid');
     $user_info = db('users')->where('uid',$uid)->find();
-<<<<<<< HEAD
-=======
     $orginfo =  Organization::where('or_id',$user_info['organization'])->find();
->>>>>>> qiujian-dev
     session(md5(MA.'user'),[
         'id'=>$user_info['uid'],
         'user_aco'=>$user_info['cellphone'],
         'username'=>$user_info['nickname'],
         'sex'=>$user_info['sex'],
         'orgid'=>$user_info['organization'],
-<<<<<<< HEAD
-=======
         'config'=> [
             'or_id'      => $orginfo['or_id'],
             'name'       => $orginfo['or_name'],
@@ -130,20 +125,12 @@ function shua_session(){
             'map'        => $orginfo['address'],
             'remarks'    => $orginfo['remarks'],
         ]
->>>>>>> qiujian-dev
     ]);
 }
 
-
-
-<<<<<<< HEAD
-=======
-//删除数组元素一维数组一个或者多个
     function del_array_info($array,$info){
         $res= array_diff_key($array, $info);
         return $res;
     }
-
->>>>>>> qiujian-dev
 
 
