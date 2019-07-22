@@ -19,9 +19,9 @@ return [
     // 应用地址
     'app_host'               => '127.0.0.1',
     // 应用调试模式
-    'app_debug'              => 1,
+    'app_debug'              => true,
     // 应用Trace
-    'app_trace'              => 0,
+    'app_trace'              => true,
     // 是否支持多模块
     'app_multi_module'       => true,
     // 入口自动绑定模块

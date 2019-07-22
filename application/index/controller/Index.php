@@ -3,12 +3,15 @@ namespace app\index\controller;
 use think\Controller;
 use PHPExcel;
 use think\Db;
+use think\facade\Session;
 use app\index\model\Curriculums;
 class Index extends BaseController
 {
     public function index()
-    {   
-
+    {
+        $userinfo =Session::get(md5(MA.'user'));
+        $arr = Session::get($userinfo['id']);
+        print_r($arr);exit();
         return view();
     }
     //导入

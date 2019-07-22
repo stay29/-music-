@@ -5,29 +5,20 @@
  * Date: 2019/7/10
  * Time: 15:03
  */
-
 namespace app\index\controller;
 use think\Controller;
 use think\facade\Request;
+use think\facade\Session;
 class BaseController extends Controller
 {
     public function initialize()
     {
         parent::initialize();
-//session(md5(MA.'user'),null);die;
-        $controller =  Request::controller();;
-        $action =  Request::action();
-        if($controller == 'Login' || $controller == 'Currm'){
-            if(session('?'.md5(MA.'user'))){
-              //  $this->return_data(0,20006,'无须再次登录！');
-            }
-        }else{
-            if(!session('?'.md5(MA.'user'))){
-               // $this->return_data(0,20008,'请登录后再来！谢谢合作！');
-            }
-        }
+         $user_sess_info =Session::get(md5(MA.'user'));
+         if($user_sess_info==null){
+                return $this->return_data(0,10000,'sss');
+         }
     }
-
     /**
      *响应
      *$info,在status=1返回成功提示，0的时候返回错误提示，$data返回需要的数据
@@ -75,12 +66,13 @@ class BaseController extends Controller
      * $str:富文本内容，
     * $arr:编辑页内容包含图片，需要正则匹配
      */
+
    //图片上传
     public  function  get_ret_img_update($name,$path){
         // 获取表单上传文件 例如上传了001.jpg
         $file = request()->file($name);
         // 移动到框架应用根目录/uploads/ 目录下
-        $info = $file->move($path);
+        $info = $file->rule('uniqid')->move($path);
         if($info){
             return $info->getSaveName();
         }else{
