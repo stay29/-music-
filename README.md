@@ -10,6 +10,7 @@
 ```
 ├── application
 │   ├── admin   # 后台模块
+|   ├── common  # 公用模块
 │   ├── command.php
 │   ├── common.php
 │   ├── index   # 前台接口模块
