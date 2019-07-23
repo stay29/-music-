@@ -41,6 +41,12 @@ class Index extends BaseController
     $this->export('课程列表',$kname,$list);
     }
 
+
+
+
+
+
+
     //公共导入方法返回数组
     public function import($kname)
     {

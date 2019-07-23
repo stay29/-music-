@@ -87,6 +87,7 @@ class Currm extends BaseController
             $this->return_data(0,50000,$e->getMessage());
         }
  	}
+
     //修改课程
     public function editcurrm()
     {
@@ -132,12 +133,15 @@ class Currm extends BaseController
         $this->return_data(1,0,$res);
     }
 
-    //设置热门
+    //设置热门 1为热门 2为取消热门
     public function  edit_popular(){
         $currid  =   input('cur_id');
-        $data['popular'] = 1;
+        $where['orgid'] = session(md5(MA.'user'))['orgid'];
+        $data2['popular'] = 2;
+        $res =  Curriculums::where($where)->update($data2);
         foreach ($currid as $k=>&$v){
-            $cid = $v['cur_id'];
+            $cid = $v;
+            $data['popular'] = 1;
             $res = Curriculums::where('cur_id',$cid)->update($data);
         }
         if($res){
