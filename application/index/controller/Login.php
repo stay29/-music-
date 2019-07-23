@@ -14,6 +14,7 @@ use think\Db;
 use think\facade\Session;
 use think\facade\Cookie;
 use app\index\model\Organization as Organ;
+
 class Login extends Basess{
 
     public function for_login()
@@ -177,5 +178,56 @@ $aqj_user_info = Db::query("select * from user_list where account=? AND password
         }catch (\Exception $e){
             $this->return_data(0,50000,$e->getMessage());
         }
+    }
+}
+
+class LoginBak
+{
+    public function index()
+    {
+        $data = input('post.');
+        $username = input('username');
+        $password = input('password');
+
+        $user = db('user')->where('username', $username)->find();
+
+        if (!empty($user)) {
+            if ($username === $user['username'] && $password === $user['password']) {
+                $msg = [
+                    'status' => 1,
+                    'error_code' => 0,
+                    'error_msg' => '',
+                    'data' => ['token'=>self::createJwt($user['id'])]
+                ];
+                return $msg;
+            } else {
+                return [
+                    'status' => 10002,
+                    'msg' => '账号密码错误'
+                ];
+            }
+        } else {
+            return [
+                'status' => 10000,
+                'msg' => '请输入账号密码'
+            ];
+        }
+    }
+
+    public function createJwt($userId)
+    {
+        $key = md5('nobita'); //jwt的签发密钥，验证token的时候需要用到
+        $time = time(); //签发时间
+        $expire = $time + 14400; //过期时间
+        $token = array(
+            "user_id" => $userId,
+            "iss" => "https://199508.com",//签发组织
+            "aud" => "https://199508.com", //签发作者
+            "iat" => $time,
+            "nbf" => $time,
+            "exp" => $expire
+        );
+        $jwt = JWT::encode($token, $key);
+        return $jwt;
     }
 }

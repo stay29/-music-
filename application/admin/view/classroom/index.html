@@ -1,0 +1,45 @@
+{layout name="layout:layout" /}
+<table class="layui-table">
+    <colgroup>
+        <col width="150">
+        <col width="200">
+        <col>
+    </colgroup>
+    <thead>
+    <tr>
+        <th>id</th>
+        <th>教室名称</th>
+        <th>教室人数</th>
+        <th>教室状态</th>
+        <th>操作者</th>
+
+        <th>创建时间</th>
+        <th>更新时间</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    {volist name='room_list' id='item'}
+    <tr>
+        <td>{$item.room_id}</td>
+        <td>{$item.room_name}</td>
+        <td>{$item.room_count}</td>
+        <td>{$item.status}</td>
+        <td>{$item.manager}</td>
+        <td>{:date('Y-m-d H:i:s',$item.create_time)}</td>
+        <td>{:date('Y-m-d H:i:s',$item.update_time)}</td>
+        <td>
+            <a href="{:url('edit',[ 'room_id' => $item['room_id']])}" class="layui-btn layui-btn-xs">编辑</a>
+<!--            <a href="{:url('del',['or_id'=>$item['room_id']])}" class="layui-btn layui-btn-danger">删除</a>-->
+            <!--  <a href="{:url('del',['or_id'=>$item['room_id']])}" class="layui-btn layui-btn-xs layui-btn-danger">删除</a> -->
+        </td>
+    </tr>
+    {/volist}
+    </div>
+    </tbody>
+</table>
+{$room_list|raw}
+<script>
+    $(function(){
+    })
+</script>
