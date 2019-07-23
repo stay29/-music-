@@ -4,6 +4,7 @@ use think\Model;
 use think\Db;
 use app\index\model\Organization as Organ;
 use think\facade\Session;
+use app\index\controller\Jwttoken;
 class Users extends Model
 {
 	protected $table = 'erp2_users';
@@ -15,6 +16,29 @@ class Users extends Model
     {
         return $this->belongsTo('Curriculums','uid');
     }
+    public  static  function  login_token($arr,$uid)
+    {
+        $Jwttoken =  new Jwttoken;
+        $token = $Jwttoken->createJwt($arr);
+        //查询token表
+        $tokeninfo = db('Token_user')->where('uid',$uid)->find();
+        $mup['token'] = $token;
+        if($tokeninfo){
+            $mup['create_time'] = time();
+            $token_db =db('Token_user')->where('uid',$uid)->update($mup);
+            session('token',$token);
+        }else{
+            $mup['uid'] = $uid;
+            $mup['create_time'] = time();
+            $token_db =db('Token_user')->insert($mup);
+            session('token',$token);
+        }
+        return $token;
+    }
+
+
+
+
     public  static  function  loginsession($uid){
         $user_info = Users::where('uid',$uid)->find();
         $orginfo = Organ::where('or_id',$user_info['organization'])->find();
@@ -40,6 +64,8 @@ class Users extends Model
         Session::set($arr['id'],$arr);
         return $arr;
     }
+
+
 
     public  static function  addusers($data)
     {

@@ -21,6 +21,5 @@ class Basess extends Controller
         echo json_encode(['status'=>$status,'error_code'=>$error_no,$key =>$info,'data'=>$data]);
         exit();
     }
-
 }
 

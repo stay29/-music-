@@ -8,18 +8,19 @@
 namespace app\index\controller;
 use think\Controller;
 use think\facade\Request;
+use think\Db;
 use think\facade\Session;
-
+use Firebase\JWT\JWT;//引入验证类
 class BaseController extends Controller
 {
     public function initialize()
     {
         parent::initialize();
-
-        $this->checkToken();
-//         $user_sess_info =Session::get(md5(MA.'user'));
-//         if($user_sess_info==null){
-//                return $this->return_data(0,10000,'sss');
+        $tokenall =  $this->checkToken();
+        $token = db('Token_user')->where('uid',$tokenall['uid'])->find();
+        if ($token['token'] != $tokenall['token']) {
+            return $this->return_data(0, 10005, '请重新登录');
+        }
     }
     /**
      *响应
@@ -35,7 +36,6 @@ class BaseController extends Controller
         echo json_encode(['status'=>$status,'error_code'=>$error_no,$key =>$info,'data'=>$data]);
         exit();
     }
-
 
     public function sendMessage($phone,$msg,$sendtime='',$port='', $needstatus=''){
         $username = "zihao2"; //在这里配置你们的发送帐号
@@ -68,7 +68,6 @@ class BaseController extends Controller
      * $str:富文本内容，
     * $arr:编辑页内容包含图片，需要正则匹配
      */
-
    //图片上传
     public  function  get_ret_img_update($name,$path){
         // 获取表单上传文件 例如上传了001.jpg
@@ -86,12 +85,15 @@ class BaseController extends Controller
     public function checkToken()
     {
         $header = Request::instance()->header();
-        if ($header['authorization'] == 'null'){
+        if ($header['x-token'] == 'null'){
             $this->return_data('0', '10000', 'Token不存在，拒绝访问');
         }else{
-            $checkJwtToken = $this->verifyJwt($header['authorization']);
+
+            $checkJwtToken = $this->verifyJwt($header['x-token']);
             if ($checkJwtToken['status'] == 1) {
-                return true;
+                $data['token'] = $header['x-token'];
+                $data['uid'] = $header['x-uid'];
+                return $data;
             }
         }
     }
@@ -104,8 +106,9 @@ class BaseController extends Controller
         try {
             $jwtAuth = json_encode(JWT::decode($jwt, $key, array('HS256')));
             $authInfo = json_decode($jwtAuth, true);
+           // print_r($authInfo);exit();
             $msg = [];
-            if (!empty($authInfo['user_id'])) {
+            if (!empty($authInfo['data']['id'])) {
                 $msg = [
                     'status' => 1,
                     'msg' => 'Token验证通过'

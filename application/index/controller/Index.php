@@ -14,6 +14,7 @@ class Index extends BaseController
         print_r($arr);exit();
         return view();
     }
+
     //导入
     public  function  daochu(){
         $kname = ['cur_name', 'subject', 'tmethods', 'ctime', 'describe', 'remarks'];
@@ -27,6 +28,7 @@ class Index extends BaseController
            $this->return_data(0,50000,'导入失败');
        }
     }
+
     //到出
     public  function  daoru(){
     $kname = array(
@@ -43,8 +45,40 @@ class Index extends BaseController
 
 
 
-
-
+    //导出excil
+    public  function  currm_export(){
+        $kname = array(
+            array('cur_name','课程名称'),
+            array('subject','科目分类'),
+            array('tmethods','授课方式'),
+            array('ctime','课时'),
+            array('describe','备注'),
+            array('remarks','描述'),
+        );
+        $cur_name = input('cur_name');
+        $subject = input('subject');
+        $tmethods = input('tmethods');
+        $status = input('status');
+        $orgid  = session(md5(MA.'user'))['orgid'];
+        $where = null;
+        if($cur_name){
+            $where[]=['cur_name','like','%'.$cur_name.'%'];
+        }
+        if($subject){
+            $where[]=['subject','=',$subject];
+        }
+        if($tmethods){
+            $where[]=['tmethods','=',$tmethods];
+        }
+        if($status){
+            $where[]=['status','=', $status];
+        }
+        if($orgid){
+            $where[]=['orgid','=', $orgid];
+        }
+        $list =  db('curriculums')->where($where)->select();
+        $this->export('课程列表',$kname,$list);
+    }
 
 
     //公共导入方法返回数组

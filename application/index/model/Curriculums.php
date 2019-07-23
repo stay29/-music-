@@ -23,7 +23,6 @@ class Curriculums extends Model
 
 	public  static  function getall($limit,$where)
     {
-            //$where['orgid'] = session(md5(MA.'user'))['orgid'];
             $list = Curriculums::where($where)
             ->paginate($limit)->each(function($item, $key){
             $where1['sid'] = $item['subject'];
@@ -32,6 +31,7 @@ class Curriculums extends Model
             $item['ordinary_tqualific'] = $tqualific[0];
             $item['senior_tqualific'] = $tqualific[1];
         });
+
         return $list;
 	}
 	public static function delcurrl($data)

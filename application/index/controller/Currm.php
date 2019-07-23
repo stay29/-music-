@@ -42,31 +42,7 @@ class Currm extends BaseController
         $this->return_data(1,0,$res);
     }
 
-    //搜索课程 废弃
-    public  function  seachindex(){
-        $cur_name = input('cur_name');
-        $subject = input('subject');
-        $tmethods = input('tmethods');
-        $status = input('status');
-        $orgid  = session(md5(MA.'user'))['orgid'];
-        if($cur_name){
-            $where[]=['cur_name','like','%'.$cur_name.'%'];
-        }
-        if($subject){
-            $where[]=['subject','=',$subject];
-        }
-        if($tmethods){
-            $where[]=['tmethods','=',$tmethods];
-        }
-        if($status){
-            $where[]=['status','=', $status];
-        }
-        if($orgid){
-            $where[]=['orgid','=', $orgid];
-        }
-        $res = Curriculums::where($where)->order('create_time desc')->select();
-        return $this->return_data(1,0,$res);
-    }
+
 
 
     //添加课程
