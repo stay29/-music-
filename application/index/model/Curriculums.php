@@ -42,7 +42,6 @@ class Curriculums extends Model
 
 	public static function editcurrm($curid,$data)
     {
-     $data['orgid'] = session(md5(MA.'user'))['orgid'];
 	 $res = Curriculums::where('cur_id',$curid)->update($data);
 	 return $res;
 	}

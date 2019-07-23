@@ -35,10 +35,10 @@ class Login extends Basess{
                  $mup['password'] =md5_return($data['password']);
                  $user_login_info =    Users::where($mup)->find();
                  //判断是不是重复登陆
-                $arr_sess = Session::get($user_login_info['uid']);
-                    if($arr_sess!=null){
+                 $arr_sess = Session::get($user_login_info['uid']);
+                if($arr_sess!=null){
                         $this->return_data(0,10000,'请不要重复登陆');
-                    }
+                }
                  if($user_login_info){
                      $arr = Users::loginsession($user_login_info['uid']);
                      $this->return_data(1,0,'登录成功',$arr);
@@ -101,8 +101,8 @@ $aqj_user_info = Db::query("select * from user_list where account=? AND password
             $mup['password']  = md5_return($data['password']);
             $res = Users::addusers($mup);
             Db::commit();
-            session(null);
-            $this->return_data(1,0,'注册成功');
+            $userinfo = Users::loginsession($res);
+            $this->return_data(1,0,$userinfo);
             }
         }catch (\Exception $e){
             Db::rollback();
@@ -112,7 +112,7 @@ $aqj_user_info = Db::query("select * from user_list where account=? AND password
     //退出登录
     public  function  logout()
     {
-        Session::clear();
+        session(null);
         $this->return_data(1,0,'退出登录');
     }
 

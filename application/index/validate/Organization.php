@@ -45,7 +45,7 @@ class Organization extends Validate
     // add验证场景定义
     public function sceneAdd()
     {
-        return $this->only(['or_name','wechat','telephone','describe','remarks','address']);
+        return $this->only(['or_name','wechat','telephone','describe','remarks','address','logo']);
     }
 
 

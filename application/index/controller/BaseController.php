@@ -15,11 +15,11 @@ class BaseController extends Controller
     public function initialize()
     {
         parent::initialize();
+
         $this->checkToken();
 //         $user_sess_info =Session::get(md5(MA.'user'));
 //         if($user_sess_info==null){
 //                return $this->return_data(0,10000,'sss');
-//         }
     }
     /**
      *响应
@@ -30,9 +30,9 @@ class BaseController extends Controller
         if($status){
             $key = 'sinfo';
         }else{
-            $key = 'emsg';
+            $key = 'error_msg';
         }
-        echo json_encode(['status'=>$status,'erno'=>$error_no,$key =>$info,'data'=>$data]);
+        echo json_encode(['status'=>$status,'error_code'=>$error_no,$key =>$info,'data'=>$data]);
         exit();
     }
 
@@ -122,6 +122,5 @@ class BaseController extends Controller
             $this->return_data(0, '50000', '未知错误，请检查');
         }
     }
-
 }
 

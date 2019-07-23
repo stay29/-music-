@@ -2,11 +2,10 @@
 namespace app\admin\controller; 
 
 use app\admin\controller\Tool;
-
 class System extends AdminBase
 {
     public function initialize(){
-    }
+    } 
     public function teacher_seniory()
     {
          $this->assign('title','资历列表');

@@ -11,15 +11,14 @@ use think\facade\Request;
 use think\facade\Session;
 class Basess extends Controller
 {
-
     public function return_data($status=1,$error_no=0,$info='',$data=''){
         $status = empty($status)?false:true;
         if($status){
             $key = 'sinfo';
         }else{
-            $key = 'emsg';
+            $key = 'error_msg';
         }
-        echo json_encode(['status'=>$status,'erno'=>$error_no,$key =>$info,'data'=>$data]);
+        echo json_encode(['status'=>$status,'error_code'=>$error_no,$key =>$info,'data'=>$data]);
         exit();
     }
 

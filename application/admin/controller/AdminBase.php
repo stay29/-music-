@@ -34,13 +34,8 @@ class AdminBase extends Controller
             $this->redirect(url('admin/login/index'),302);
         }else{
               //当前页的节点,用于登录管理员验证是否有此权限
-                if (!isset($_SERVER['PATH_INFO']))
-                {
-                    return $this->error('无权访问!');
-                }
-                $count = substr_count($_SERVER['PATH_INFO'],'/');
-                if($count >= 3)
-                {
+                 $count = substr_count($_SERVER['PATH_INFO'],'/');
+                 if($count >= 3){
                      if(strpos($_SERVER['PATH_INFO'],'.')){
                          $this->page_access = substr($_SERVER['PATH_INFO'],0,strpos($_SERVER['PATH_INFO'],'.'));
                      }else{
