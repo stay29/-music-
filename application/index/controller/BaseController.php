@@ -9,15 +9,17 @@ namespace app\index\controller;
 use think\Controller;
 use think\facade\Request;
 use think\facade\Session;
+
 class BaseController extends Controller
 {
     public function initialize()
     {
         parent::initialize();
-         $user_sess_info =Session::get(md5(MA.'user'));
-         if($user_sess_info==null){
-                return $this->return_data(0,10000,'请登录后再来！');
-         }
+
+        $this->checkToken();
+//         $user_sess_info =Session::get(md5(MA.'user'));
+//         if($user_sess_info==null){
+//                return $this->return_data(0,10000,'sss');
     }
     /**
      *响应
@@ -78,6 +80,46 @@ class BaseController extends Controller
         }else{
             // 上传失败获取错误信息
             return $file->getError();
+        }
+    }
+
+    public function checkToken()
+    {
+        $header = Request::instance()->header();
+        if ($header['authorization'] == 'null'){
+            $this->return_data('0', '10000', 'Token不存在，拒绝访问');
+        }else{
+            $checkJwtToken = $this->verifyJwt($header['authorization']);
+            if ($checkJwtToken['status'] == 1) {
+                return true;
+            }
+        }
+    }
+
+    //校验jwt权限API
+    protected function verifyJwt($jwt)
+    {
+        $key = md5('nobita');
+        // JWT::$leeway = 3;
+        try {
+            $jwtAuth = json_encode(JWT::decode($jwt, $key, array('HS256')));
+            $authInfo = json_decode($jwtAuth, true);
+            $msg = [];
+            if (!empty($authInfo['user_id'])) {
+                $msg = [
+                    'status' => 1,
+                    'msg' => 'Token验证通过'
+                ];
+            } else {
+                $this->return_data('0', '10003', 'Token验证不通过,用户不存在');
+            }
+            return $msg;
+        } catch (\Firebase\JWT\SignatureInvalidException $e) {
+            $this->return_data(0, '10004', 'Token无效');
+        } catch (\Firebase\JWT\ExpiredException $e) {
+            $this->return_data(0, '10005', 'token过期');
+        } catch (Exception $e) {
+            $this->return_data(0, '50000', '未知错误，请检查');
         }
     }
 }
