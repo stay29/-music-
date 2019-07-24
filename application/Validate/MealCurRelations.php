@@ -2,12 +2,12 @@
 /**
  * Created by PhpStorm.
  * User: Administrator
- * Date: 2019/7/17
- * Time: 14:18
+ * Date: 2019/7/24
+ * Time: 16:21
  */
 namespace app\validate;
 use think\Validate;
-class Meals  extends Validate
+class MealCurRelations  extends Validate
 {
     protected  $rule = [
         'meal_name'  =>  'require|max:12',
@@ -20,7 +20,6 @@ class Meals  extends Validate
         'bg_img' =>      'require',
         'orgid' =>'require'
     ];
-
 
     protected $message = [
         'meal_name.require'=>'套餐名称不能为空|10000',

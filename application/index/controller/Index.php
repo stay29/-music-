@@ -5,23 +5,56 @@ use PHPExcel;
 use think\Db;
 use think\facade\Session;
 use app\index\model\Curriculums;
-class Index extends BaseController
+class Index extends Basess
 {
+
     public function index()
     {
-        $userinfo =Session::get(md5(MA.'user'));
-        $arr = Session::get($userinfo['id']);
-        print_r($arr);exit();
+
         return view();
     }
 
-    //导入
-    public  function  daochu(){
+    //导入模板
+    public  function  Import_currm(){
         $kname = ['cur_name', 'subject', 'tmethods', 'ctime', 'describe', 'remarks'];
+        $uid = input('uid');
+        $orgid = input('orgid');
         $res = $this->import($kname);
-       foreach ($res as $k=>$v){
-           $info =  Curriculums::create($v);
-       }
+        $infos = array();
+        foreach ($res as $ks=>&$vs) {
+            if($vs['cur_name']!=null){
+                $infos[] = $vs;
+            }
+        }
+        //数据处理
+        foreach ($infos as $k=>&$v){
+            $where['sname'] = $v['subject'];
+            $subinfe = db('subjects')->where($where)->find();
+            if($subinfe){
+                $v['subject'] = $subinfe['sid'];
+            }else{
+                $this->return_data(0,10000,'缺少重要参数');
+            }
+            $v['orgid'] = $orgid;
+            $v['manager'] = $uid;
+            $v['create_time'] = time();
+            $v['status'] = 1;
+            $v['conversion'] = 1;
+            $v['state'] = 2;
+            $v['popular'] = 2;
+            $v['tqualific'] = '0/0';
+        }
+        Db::startTrans();
+        try {
+        foreach ($infos as $k=>$vs){
+           $info =  Curriculums::create($vs);
+        }
+            Db::commit();
+        }catch(\Exception $e){
+            // 回滚事务
+            Db::rollback();
+            $this->return_data(0,50000,$e->getMessage());
+        }
        if($info){
            $this->return_data(1,0,'导入成功');
        }else{
@@ -29,29 +62,18 @@ class Index extends BaseController
        }
     }
 
-    //到出
-    public  function  daoru(){
-    $kname = array(
-            array('cur_name','课程名称'),
-            array('subject','科目分类'),
-            array('tmethods','授课方式'),
-            array('ctime','课时'),
-            array('describe','备注'),
-            array('remarks','描述'),
-        );
-    $list =  db('curriculums')->select();
-    $this->export('课程列表',$kname,$list);
-    }
-
-
-
     //导出excil
     public  function  currm_export(){
+        $suball = db('subjects')->select();
+        foreach ($suball as $kll=>&$vll){
+            $subjectinfo_list[] = $vll['sname'];
+        }
+        $subjectinfo_list  = implode(',',$subjectinfo_list);
         $kname = array(
             array('cur_name','课程名称'),
-            array('subject','科目分类'),
-            array('tmethods','授课方式'),
-            array('ctime','课时'),
+            array('subject','科目分类 有'.$subjectinfo_list),
+            array('tmethods','授课方式 1 :1对1 ,2:一对多'),
+            array('ctime','课时 如 60分钟 填写60'),
             array('describe','备注'),
             array('remarks','描述'),
         );
@@ -59,7 +81,8 @@ class Index extends BaseController
         $subject = input('subject');
         $tmethods = input('tmethods');
         $status = input('status');
-        $orgid  = session(md5(MA.'user'))['orgid'];
+        $orgid  = input('orgid');
+        $moban = input('moban');
         $where = null;
         if($cur_name){
             $where[]=['cur_name','like','%'.$cur_name.'%'];
@@ -76,8 +99,23 @@ class Index extends BaseController
         if($orgid){
             $where[]=['orgid','=', $orgid];
         }
-        $list =  db('curriculums')->where($where)->select();
-        $this->export('课程列表',$kname,$list);
+        if($moban==1){
+            $list = array();
+        }else{
+            $list =  db('curriculums')->where($where)->select();
+            foreach ($list as $k=>&$v)
+            {
+                 $where1['sid'] = $v['subject'];
+                 $subjectinfo = db('subjects')->where($where1)->find();
+                 $v['subject'] = $subjectinfo['sname'];
+                 if($v['tmethods']=='1'){
+                    $v['tmethods'] = '1对1';
+                 }else{
+                    $v['tmethods'] = '一对多';
+                 }
+            }
+        }
+            $this->export('课程列表',$kname,$list);
     }
 
 
@@ -107,14 +145,16 @@ class Index extends BaseController
             $objReader =\PHPExcel_IOFactory::createReader('Excel5');
             $objPHPExcel = $objReader->load($filename, $encode = 'utf-8');
         }
-        $excel_array = $objPHPExcel->getsheet(0)->toArray();   //转换为数组格式
-         //array_shift($excel_array);
-       // $res = array_serch($kname,$excel_array);
-        foreach ($excel_array as $k=>$v){
-            unset($excel_array[0]);
-            unset($excel_array[1]);
-        }
+        $sheet = $objPHPExcel -> getSheet(0);
+        $highestRow = $sheet -> getHighestRow(); // 取得总行数
+       // print_r($objPHPExcel);exit();
+        $excel_array = $sheet->toArray();//转换为数组格式
         $fils = array_serch($kname,$excel_array);
+        foreach ($fils as $kl=>&$vl){
+            if($kl==0 or $kl==1){
+                unset($fils[$kl]);
+            }
+        }
         return $fils;
     }
 
@@ -127,26 +167,28 @@ class Index extends BaseController
         $objPHPExcel->setActiveSheetIndex(0);
         //5.设置表格头（即excel表格的第一行）
         $cellName = array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI','AJ','AK','AL','AM','AN','AO','AP','AQ','AR','AS','AT','AU','AV','AW','AX','AY','AZ');
-//        $expCellName  = array(
-//            array('cur_name','商品id'),
-//            array('subject','上下架'),
-//            array('tmethods','商品名称'),
-//            array('ctime','品牌名称'),
-//            array('describe','分类名称'),
-//            array('remarks','供应商'),
-//        );
-        //$expTableData  = db('curriculums')->select();
+
         $cellNum = count($expCellName);
         $dataNum = count($expTableData);
         for($i=0;$i<$cellNum;$i++){
             $objPHPExcel->setActiveSheetIndex(0)->setCellValue($cellName[$i].'1', $expCellName[$i][1]);
         }
-        //6.循环刚取出来的数组，将数据逐一添加到excel表格。
+        //设置宽高
+        for($i=0;$i<$cellNum;$i++){
+            $objPHPExcel->getActiveSheet()->getRowDimension($i)->setRowHeight(20);
+            $objPHPExcel->getActiveSheet()->getColumnDimension($cellName[$i])->setWidth(30);
+        }
+        //设置第二行内容
+        for($i=0;$i<$cellNum;$i++){
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue($cellName[$i].'2', $expCellName[$i][0]);
+        }
+        //循环刚取出来的数组，将数据逐一添加到excel表格。
         for($i=0;$i<$dataNum;$i++) {
             for ($j = 0; $j < $cellNum; $j++) {
-                $objPHPExcel->getActiveSheet(0)->setCellValue($cellName[$j] . ($i + 2), $expTableData[$i][$expCellName[$j][0]]);
+                $objPHPExcel->getActiveSheet(0)->setCellValue($cellName[$j] . ($i + 3), $expTableData[$i][$expCellName[$j][0]]);
             }
         }
+
         //7.设置保存的Excel表格名称
         $filename = $filename.date('ymd',time()).'.xls';
         //8.设置当前激活的sheet表格名称；
@@ -163,5 +205,18 @@ class Index extends BaseController
         exit;
     }
 
+    //到出模板
+    public  function  daoru_(){
+        $kname = array(
+            array('cur_name','课程名称'),
+            array('subject','科目分类'),
+            array('tmethods','授课方式'),
+            array('ctime','课时'),
+            array('describe','备注'),
+            array('remarks','描述'),
+        );
+        $list =  db('curriculums')->select();
+        $this->export('课程列表',$kname,$list);
+    }
 
 }

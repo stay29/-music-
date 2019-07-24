@@ -16,11 +16,11 @@ class BaseController extends Controller
     public function initialize()
     {
         parent::initialize();
-        $tokenall =  $this->checkToken();
-        $token = db('Token_user')->where('uid',$tokenall['uid'])->find();
-        if ($token['token'] != $tokenall['token']) {
-            return $this->return_data(0, 10005, '请重新登录');
-        }
+//        $tokenall =  $this->checkToken();
+//        $token = db('Token_user')->where('uid',$tokenall['uid'])->find();
+//        if ($token['token'] != $tokenall['token']) {
+//            return $this->return_data(0, 10005, '请重新登录');
+//        }
     }
     /**
      *响应
@@ -36,7 +36,6 @@ class BaseController extends Controller
         echo json_encode(['status'=>$status,'error_code'=>$error_no,$key =>$info,'data'=>$data]);
         exit();
     }
-
     public function sendMessage($phone,$msg,$sendtime='',$port='', $needstatus=''){
         $username = "zihao2"; //在这里配置你们的发送帐号
         $passwd = "JBZ992888";    //在这里配置你们的发送密码
@@ -85,10 +84,10 @@ class BaseController extends Controller
     public function checkToken()
     {
         $header = Request::instance()->header();
+        //print_r($header);
         if ($header['x-token'] == 'null'){
             $this->return_data('0', '10000', 'Token不存在，拒绝访问');
         }else{
-
             $checkJwtToken = $this->verifyJwt($header['x-token']);
             if ($checkJwtToken['status'] == 1) {
                 $data['token'] = $header['x-token'];
@@ -97,7 +96,6 @@ class BaseController extends Controller
             }
         }
     }
-
     //校验jwt权限API
     protected function verifyJwt($jwt)
     {
@@ -106,7 +104,6 @@ class BaseController extends Controller
         try {
             $jwtAuth = json_encode(JWT::decode($jwt, $key, array('HS256')));
             $authInfo = json_decode($jwtAuth, true);
-           // print_r($authInfo);exit();
             $msg = [];
             if (!empty($authInfo['data']['id'])) {
                 $msg = [

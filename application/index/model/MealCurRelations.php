@@ -10,5 +10,5 @@ use think\Model;
 use think\Db;
 class MealCurRelations extends Model
 {
-
+    
 }

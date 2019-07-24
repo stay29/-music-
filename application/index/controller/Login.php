@@ -41,7 +41,13 @@ class Login extends Basess{
                      $arr['token'] = $token;
                      $this->return_data(1,0,'登录成功',$arr);
                  }else{
-                         $this->return_data(0,20007,'用户名密码错误');
+                         $mup1['cellphone'] = $data['cellphone'];
+                          $user_login_info1 =    Users::where($mup1)->find();
+                          if($user_login_info1){
+                              $this->return_data(0,20007,'密码错误请重新登录');
+                          }else{
+                              $this->return_data(0,20007,'用户还没有注册 请注册后登陆');
+                          }
                       }
                  }
              }catch (\Exception $e){

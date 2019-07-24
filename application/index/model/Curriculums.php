@@ -13,6 +13,7 @@ class Curriculums extends Model
     {
           return $this->hasOne('Users','uid');
     }
+
     //添加课程
     public static function addcurrl($data)
     {
@@ -24,6 +25,7 @@ class Curriculums extends Model
 	public  static  function getall($limit,$where)
     {
             $list = Curriculums::where($where)
+            //->field('cur_id,cur_name,subject,tmethods,ctime,state,orgid,manager,create_time,tqualific,popular')
             ->paginate($limit)->each(function($item, $key){
             $where1['sid'] = $item['subject'];
             $item['subject'] = db('subjects')->field('sid,sname,pid')->where($where1)->find();
@@ -31,7 +33,6 @@ class Curriculums extends Model
             $item['ordinary_tqualific'] = $tqualific[0];
             $item['senior_tqualific'] = $tqualific[1];
         });
-
         return $list;
 	}
 	public static function delcurrl($data)
