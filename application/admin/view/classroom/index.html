@@ -30,6 +30,7 @@
         <td>{:date('Y-m-d H:i:s',$item.update_time)}</td>
         <td>
             <a href="{:url('edit',[ 'room_id' => $item['room_id']])}" class="layui-btn layui-btn-xs">编辑</a>
+            <a href="{:url('del',[ 'room_id' => $item['room_id']])}" class="layui-btn layui-btn-xs layui-btn-danger">删除</a>
 <!--            <a href="{:url('del',['or_id'=>$item['room_id']])}" class="layui-btn layui-btn-danger">删除</a>-->
             <!--  <a href="{:url('del',['or_id'=>$item['room_id']])}" class="layui-btn layui-btn-xs layui-btn-danger">删除</a> -->
         </td>

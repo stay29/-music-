@@ -12,6 +12,7 @@ use think\Db;
 use think\facade\Session;
 use app\index\model\Organization as Organ;
 use app\index\model\Users;
+
 class Organization extends BaseController
 {
     /**
@@ -58,7 +59,5 @@ class Organization extends BaseController
       $list = Organ::where('status',1)->select();
       $this->return_data(1,0,$list);
     }
-
-
 
 }

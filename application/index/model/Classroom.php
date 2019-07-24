@@ -7,6 +7,8 @@
 namespace app\index\model;
 use think\Model;
 use think\Db;
+
+
 class Classroom extends BaseModel
 {
     protected $pk = 'room_id';
@@ -16,6 +18,7 @@ class Classroom extends BaseModel
     protected $autoWriteTimestamp = true;
     protected $auto = ['manager'];//操作人id，对应users表主键
     protected $update = [];
+
     protected function setManagerAttr(){
         if(!empty(session(md5(MA.'user')))){
             return session(md5(MA.'user'))['id'];

@@ -9,11 +9,14 @@
 namespace app\admin\controller;
 
 
+use think\Exception;
+
 class Classroom extends AdminBase
 {
     public function index()
     {
         $title = '教室列表';
+        $this->assign('add',url('add'));
         $room_list = db('classrooms')->
                     field('room_id, room_name, room_count, status, create_time, 
                      update_time, manager')->paginate(20, false, ['query'=>request()->param()])->each(function($v, $k){
@@ -64,7 +67,33 @@ class Classroom extends AdminBase
      */
     public function add()
     {
-
+        $title = '添加教室';
+        if($this->request->isPost())
+        {
+            $room_name = input('room_name');
+            $room_count = input('room_count');
+            $status = input('status');
+            $manager = session('admin.id');
+            $data = [
+                'room_name' => $room_name,
+                'room_count' => $room_count,
+                'status' => $status,
+                'create_time' => time(),
+                'update_time' => time(),
+                'manager' => $manager
+            ];
+            $res = db('classrooms')->insertGetId($data);
+            if($res)
+            {
+                $this->return_data(1, '添加教室成功');
+            }
+            else
+            {
+                $this->return_data(0, '添加教室失败');
+            }
+        }
+        $this->assign('title', $title);
+        return $this->fetch();
     }
 
     /**
@@ -72,7 +101,15 @@ class Classroom extends AdminBase
      */
     public function del()
     {
-
+        $room_id = input('room_id');
+        try{
+            $res = db('classrooms')->where('room_id', $room_id)->delete();
+            $this->success('删除教室成功');
+        }
+        catch (Exception $e)
+        {
+            $this->error('删除教室失败');
+        }
     }
 
 
