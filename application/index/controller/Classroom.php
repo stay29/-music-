@@ -13,8 +13,12 @@ use think\Controller;
 class Classroom extends BaseController
 {
 
+    /*
+     * 获取教室列表
+     */
     public function index()
     {
+        // 机构ID
         $oid = $this->user['organizations'];
         $status = input('status/d', null);
         $where = [
@@ -34,6 +38,9 @@ class Classroom extends BaseController
         $this->return_data(1, 0, '', $res);
     }
 
+    /*
+     * 添加教室
+     */
     public function add(){
         $oid = $this->user['organizations'];
         $data = [
@@ -57,6 +64,9 @@ class Classroom extends BaseController
         }
     }
 
+    /**
+     * 修改教室
+     */
     public function edit(){
         $oid = $this->user['organizations'];
         $data = [
@@ -83,6 +93,9 @@ class Classroom extends BaseController
         }
     }
 
+    /*
+     * 删除教室
+     */
     public function del(){
         $id = input('id/d');
         $oid = $this->user['organizations'];
