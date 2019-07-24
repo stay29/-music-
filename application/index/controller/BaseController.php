@@ -91,6 +91,10 @@ class BaseController extends Controller
     public function checkToken()
     {
         $header = Request::instance()->header();
+        if (!isset($header['x-token']))
+        {
+            $this->return_data('0', '10000', 'Token不存在，拒绝访问');
+        }
         if ($header['x-token'] == 'null'){
             $this->return_data('0', '10000', 'Token不存在，拒绝访问');
         }else{
