@@ -11,8 +11,10 @@ use think\facade\Request;
 use think\Db;
 use think\facade\Session;
 use Firebase\JWT\JWT;//引入验证类
+
 class BaseController extends Controller
 {
+
     public $user = null;
 
     public function initialize()
@@ -41,7 +43,6 @@ class BaseController extends Controller
         echo json_encode(['status'=>$status,'error_code'=>$error_no,$key =>$info,'data'=>$data]);
         exit();
     }
-
     public function sendMessage($phone,$msg,$sendtime='',$port='', $needstatus=''){
         $username = "zihao2"; //在这里配置你们的发送帐号
         $passwd = "JBZ992888";    //在这里配置你们的发送密码
@@ -90,10 +91,7 @@ class BaseController extends Controller
     public function checkToken()
     {
         $header = Request::instance()->header();
-        if (!isset($header['x-token']))
-        {
-            $this->return_data('0', '10000', 'Token不存在，拒绝访问');
-        }
+        //print_r($header);
         if ($header['x-token'] == 'null'){
             $this->return_data('0', '10000', 'Token不存在，拒绝访问');
         }else{
@@ -105,7 +103,6 @@ class BaseController extends Controller
             }
         }
     }
-
     //校验jwt权限API
     protected function verifyJwt($jwt)
     {
@@ -114,7 +111,6 @@ class BaseController extends Controller
         try {
             $jwtAuth = json_encode(JWT::decode($jwt, $key, array('HS256')));
             $authInfo = json_decode($jwtAuth, true);
-           // print_r($authInfo);exit();
             $msg = [];
             if (!empty($authInfo['data']['id'])) {
                 $msg = [

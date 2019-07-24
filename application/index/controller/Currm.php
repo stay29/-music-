@@ -14,7 +14,7 @@ class Currm extends BaseController
         }
         $limit = input('limit');
         if ($limit==null) {
-        $limit = 10;
+        $limit = 6;
         }
         $cur_name = input('cur_name');
         $subject = input('subject');
@@ -37,14 +37,13 @@ class Currm extends BaseController
         if($orgid){
             $where[]=['orgid','=', $orgid];
         }
-
+        try{
         $res = Curriculums::getall($limit,$where);
         $this->return_data(1,0,$res);
+        }catch (\Exception $e){
+            $this->return_data(0,50000,$e->getMessage());
+        }
     }
-
-
-
-
     //添加课程
  	public function  addcurrmon()
     {
@@ -63,7 +62,6 @@ class Currm extends BaseController
             $this->return_data(0,50000,$e->getMessage());
         }
  	}
-
     //修改课程
     public function editcurrm()
     {
@@ -126,6 +124,7 @@ class Currm extends BaseController
             $this->return_data(0,50000,'设置失败');
         }
     }
+
     //上传图片
     public function get_img_update()
     {

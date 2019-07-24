@@ -18,7 +18,7 @@ class Jwttoken  extends Basess
     {
         $key = md5('nobita'); //jwt的签发密钥，验证token的时候需要用到
         $time = time(); //签发时间
-        $expire = $time + 3600; //过期时间
+        $expire = $time + 72000; //过期时间
         $token = array(
             //"iss" => "https://199508.com",//签发组织
             //"aud" => "https://199508.com", //签发作者
