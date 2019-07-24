@@ -10,6 +10,7 @@ namespace app\index\controller;
 use think\Request;
 use Firebase\JWT\JWT;//引入验证类
 use think\Controller;
+
 class Jwttoken  extends Basess
 {
     //获取token
