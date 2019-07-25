@@ -12,6 +12,7 @@ use think\Db;
 use think\facade\Session;
 use Firebase\JWT\JWT;//引入验证类
 
+
 class BaseController extends Controller
 {
 
@@ -25,6 +26,7 @@ class BaseController extends Controller
         if ($token['token'] != $tokenall['token']) {
             return $this->return_data(0, 10005, '请重新登录');
         }
+
         $this->user = db('users')
             ->field('uid, nickname, organization, senfen')
             ->where('uid', $tokenall['uid'])->find();

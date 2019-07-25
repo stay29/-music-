@@ -12,19 +12,21 @@ use think\Controller;
 
 class Classroom extends BaseController
 {
-
     /*
      * 获取教室列表
      */
     public function index()
     {
-        // 机构ID
-        $oid = $this->user['organizations'];
+        $oid = ret_session_name('orgid');
+
         $status = input('status/d', null);
+
         $where = [
             'or_id' => $oid,
         ];
+
         $room_name = input('name', null);
+
         if(isset($status))
         {
             $where['status'] = $status;
@@ -42,7 +44,7 @@ class Classroom extends BaseController
      * 添加教室
      */
     public function add(){
-        $oid = $this->user['organizations'];
+        $oid = ret_session_name('orgid');
         $data = [
             'room_name' => input('post.name'),
             'status' => input('post.status'),
@@ -68,7 +70,7 @@ class Classroom extends BaseController
      * 修改教室
      */
     public function edit(){
-        $oid = $this->user['organizations'];
+        $oid = ret_session_name('orgid');
         $data = [
             'room_id'=>input('post.id'),
             'room_name' => input('post.name'),
@@ -98,7 +100,7 @@ class Classroom extends BaseController
      */
     public function del(){
         $id = input('id/d');
-        $oid = $this->user['organizations'];
+        $oid = ret_session_name('orgid');
 
         if(empty($id)){
             $this->return_data(0,10000,'缺少教室主键');

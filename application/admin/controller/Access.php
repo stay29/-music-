@@ -1,6 +1,7 @@
 <?php
 namespace app\admin\controller; 
 
+
 class Access extends AdminBase
 {
     public function initialize(){
