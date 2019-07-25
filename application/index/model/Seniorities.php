@@ -29,5 +29,4 @@ class Seniorities extends BaseModel
         return $this->hasOne('Teacher','se_id','seniority_id');
     }
 
-
 }

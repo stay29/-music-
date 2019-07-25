@@ -6,30 +6,35 @@
  * Time: 15:03
  */
 namespace app\index\controller;
+
 use app\index\model\Classroom as ClsModel;
 use think\Controller;
+use PHPExcel;
+
+
 class Classroom extends BaseController
 {
-
     /*
      * 获取教室列表
      */
     public function index()
     {
-        // 机构ID
-        $oid = $this->user['organizations'];
+        $oid = ret_session_name('orgid');
+
         $status = input('status/d', null);
+        $room_name = input('name', null);
+
         $where = [
             'or_id' => $oid,
         ];
-        $room_name = input('name', null);
-        if(isset($status))
+
+        if(!empty($status))
         {
-            $where['status'] = $status;
+            $where[] = ['status', '=', $status];
         }
-        if(isset($room_name))
+        if(!empty($room_name))
         {
-            $where['room_name'] = $room_name;
+            $where[] = ['room_name', '=', $room_name];
         }
         $res = ClsModel::field('room_id as id,room_name as name,status,room_count as total')
             ->order('create_time desc')->where($where)->paginate(20);
@@ -40,7 +45,7 @@ class Classroom extends BaseController
      * 添加教室
      */
     public function add(){
-        $oid = $this->user['organizations'];
+        $oid = ret_session_name('orgid');
         $data = [
             'room_name' => input('post.name'),
             'status' => input('post.status'),
@@ -66,7 +71,7 @@ class Classroom extends BaseController
      * 修改教室
      */
     public function edit(){
-        $oid = $this->user['organizations'];
+        $oid = ret_session_name('orgid');
         $data = [
             'room_id'=>input('post.id'),
             'room_name' => input('post.name'),
@@ -96,7 +101,7 @@ class Classroom extends BaseController
      */
     public function del(){
         $id = input('id/d');
-        $oid = $this->user['organizations'];
+        $oid = ret_session_name('orgid');
 
         if(empty($id)){
             $this->return_data(0,10000,'缺少教室主键');
@@ -111,6 +116,21 @@ class Classroom extends BaseController
         }else{
             $this->return_data(0,20003,'删除失败');
         }
+    }
+
+
+    /*
+     * 教室数据导出
+     */
+    public function export()
+    {
+    }
+
+    /*
+     * 教室数据导入
+     */
+    public function import()
+    {
     }
 
 }

@@ -11,6 +11,7 @@
         <th>教室名称</th>
         <th>教室人数</th>
         <th>教室状态</th>
+        <th>所属机构</th>
         <th>操作者</th>
 
         <th>创建时间</th>
@@ -24,6 +25,9 @@
         <td>{$item.room_id}</td>
         <td>{$item.room_name}</td>
         <td>{$item.room_count}</td>
+
+        <td>{$item.org_name}</td>
+
         <td>{$item.status}</td>
         <td>{$item.manager}</td>
         <td>{:date('Y-m-d H:i:s',$item.create_time)}</td>

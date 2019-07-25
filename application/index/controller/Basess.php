@@ -12,8 +12,6 @@ use think\facade\Session;
 class Basess extends Controller
 {
 
-
-
     public function return_data($status=1,$error_no=0,$info='',$data=''){
         $status = empty($status)?false:true;
         if($status){

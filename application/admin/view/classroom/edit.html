@@ -16,6 +16,17 @@
     </div>
 
     <div class="layui-form-item">
+        <label class="layui-form-label">机构</label>
+        <div class="layui-input-block">
+            <select name="or_id" lay-verify="required">
+                {volist name="org_list" id="vo"}
+                <option value="{$vo.or_id}">{$vo.or_name}</option>
+                {/volist}
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
         <label class="layui-form-label">状态</label>
         <div class="layui-input-block">
             <select name="status" lay-verify="required">

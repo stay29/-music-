@@ -46,7 +46,4 @@ class File extends Controller
         }
         echo json_encode(['code'=>$code,'msg'=>$msg,'data'=>$data]);die;
     }
-
-
-   
 }

@@ -36,9 +36,6 @@ class Users extends Model
         return $token;
     }
 
-
-
-
     public  static  function  loginsession($uid){
         $user_info = Users::where('uid',$uid)->find();
         $orginfo = Organ::where('or_id',$user_info['organization'])->find();
@@ -60,7 +57,7 @@ class Users extends Model
                 'remarks'    => $orginfo['remarks'],
             ]
         ];
-        session(md5(MA.'user'),$arr);
+        session(md5(MA.'user'), $arr);
         Session::set($arr['id'],$arr);
         return $arr;
     }
