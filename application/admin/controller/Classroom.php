@@ -19,7 +19,7 @@ class Classroom extends AdminBase
         $this->assign('add', url('add'));
         $room_list = db('classrooms')->
         field('room_id, room_name, room_count, status, create_time, 
-                     update_time, manager')->paginate(20, false, ['query' => request()->param()])->each(function ($v, $k) {
+                     update_time, manager, or_id')->paginate(20, false, ['query' => request()->param()])->each(function ($v, $k) {
             if ($v['status'] == 1) {
                 $v['status'] = '正常';
             } elseif ($v['status'] == 2) {
@@ -27,6 +27,7 @@ class Classroom extends AdminBase
             }
             $account = db('users')->where(['uid' => $v['manager']])->value('account');
             $v['manager'] = isset($account) ? $account : '系统';
+            $v['org_name'] = db('organizations')->where('or_id', $v['or_id'])->value('or_name');
             return $v;
         });
         $this->assign('title', $title);
@@ -40,7 +41,9 @@ class Classroom extends AdminBase
         if ($this->request->isGet()) {
             $map['room_id'] = input('room_id');
             $res = db('classrooms')->where($map)->field('room_id, room_name, 
-                    room_count, status')->find();
+                    room_count, or_id,status')->find();
+            $org_list = db('organizations')->field('or_id, or_name')->select();
+            $this->assign('org_list', $org_list);
             $this->assign('title', $title);
             $this->assign('res', $res);
             return $this->fetch();
@@ -66,8 +69,8 @@ class Classroom extends AdminBase
 
             $room_name = input('room_name');
             $room_count = input('room_count');
-            $organizations = input('organizations');
             $status = input('status');
+            $org_id = input('org_id');
             $manager = session('admin.id');
             $data = [
                 'room_name' => $room_name,
@@ -76,7 +79,7 @@ class Classroom extends AdminBase
                 'create_time' => time(),
                 'update_time' => time(),
                 'manager' => $manager,
-                'organizations' => $organizations
+                'or_id' => $org_id,
             ];
             $res = db('classrooms')->insertGetId($data);
             if ($res) {
@@ -86,6 +89,8 @@ class Classroom extends AdminBase
             }
         }
         $this->assign('title', $title);
+        $org_list = db('organizations')->field('or_id, or_name')->select();
+        $this->assign('org_list', $org_list);
         return $this->fetch();
     }
 

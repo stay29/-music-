@@ -3,7 +3,6 @@ namespace app\admin\controller;
 
 class Index extends AdminBase
 {
-
     public function index()
     {
         return $this->fetch();
@@ -47,5 +46,5 @@ class Index extends AdminBase
               $this->redirect(url('admin/login/index'),302);
         }
     }
-
+    
 }
