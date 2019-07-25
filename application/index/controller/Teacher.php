@@ -10,6 +10,7 @@ namespace app\index\controller;
 use app\admin\controller\AdminBase;
 use app\index\model\Teacher as TeacherModel;
 use think\Controller;
+use think\Exception;
 
 class Teacher extends BaseController
 {
@@ -19,7 +20,7 @@ class Teacher extends BaseController
     public function index()
     {
         $t_name = input('t_name/s', null); // 教师名称
-        $se_id = input('se_id/s', null); // 机构名称
+        $se_id = input('se_id/s', null); // 机构ID
         $status = input('status/d', null);  // 离职状态
         $where = array();
         if(!empty($t_name))
@@ -35,7 +36,7 @@ class Teacher extends BaseController
             $where = ['se_id', '=', $se_id];
         }
         $teacher = TeacherModel::where($where)->field('t_id as id,t_name as name,
-                sex,cellphone,birthday,entry_time,status, se_id, resume')->select();
+                sex,cellphone,birthday,entry_time,status, se_id, resume')->paginate(20);
         $this->return_data(1, '','', $teacher);
     }
 
@@ -52,22 +53,84 @@ class Teacher extends BaseController
      */
     public function del()
     {
+        $t_id = input('t_id/d', null);
+        if(empty($t_id))
+        {
+            $this->return_data(0, '10000', '缺少t_id');
+        }
+        try {
 
+            $res = db('teachers')->where('t_id', '=', $t_id)->delete();
+            if($res)
+            {
+                $this->return_data(1, '', '', '删除教师成功');
+            }
+            else
+            {
+                $this->return_data(0, '20003', '删除教师失败');
+            }
+        }catch (Exception $e)
+        {
+            $this->return_data(0, '20003', '删除教师失败');
+        }
     }
 
-    /*
-     * 添加教师
-     */
-    public function add()
-    {
+    public function add(){
 
+        $data = [
+            't_name' => input('post.name'),
+            'avator' => input('post.avator'),
+            'sex' => input('post.sex',1),
+            'se_id' => input('post.se_id'),
+            'cellphone' => input('post.cellphone'),
+            'birthday' => input('post.birthday'),
+            'entry_time' => input('post.entry_day'),
+            'resume' => input('post.resume'),
+            'identity_card' => input('post.id_card'),
+        ];
+
+        $validate = new \app\index\validate\Teacher();
+        if(!$validate->scene('add')->check($data)){
+            //为了可以得到错误码
+            $error = explode('|',$validate->getError());
+            $this->return_data(0,$error[1],$error[0]);
+        }
+
+        try{
+            TeacherModel::create($data);
+            $this->return_data(1,0,'教师新增成功');
+        }catch (\Exception $e){
+            $this->return_data(0,50000,$e->getMessage());
+        }
     }
 
+
     /*
-     * 教师离职
+     * 教师离职或者复职。 1离职, 2复职。
      */
-    public function leave()
+    public function jobStatus()
     {
+        $t_id = input('post.id');
+        $status = input('post.status', null);
+        if(empty($status) || empty($t_id))
+        {
+            $this->return_data(0, '10000', '缺少必填参数');
+        }
+        try
+        {
+            $res = TeacherModel::where('t_id', '=', $t_id)->update(['status'=>$status]);
+            if($res)
+            {
+                $this->return_data(1, '', '操作成功');
+            }
+            else
+            {
+                $this->return_data(0, '', '操作失败');
+            }
+        }catch (Exception $e)
+        {
+                $this->return_data(0, '50000', '服务器错误');
+        }
 
     }
 
@@ -113,33 +176,7 @@ class Teacher extends BaseController
 //    /**
 //     * 新增教师
 //     */
-//    public function add(){
-//        $data = [
-//            't_name' => input('post.name'),
-//            'avator' => input('post.avator'),
-//            'sex' => input('post.sex',1),
-//            'se_id' => input('post.se_id'),
-//            'cellphone' => input('post.cellphone'),
-//            'birthday' => input('post.birthday'),
-//            'entry_time' => input('post.entry_day'),
-//            'resume' => input('post.resume'),
-//            'identity_card' => input('post.id_card'),
-//        ];
-//
-//        $validate = new \app\index\validate\Teacher();
-//        if(!$validate->scene('add')->check($data)){
-//            //为了可以得到错误码
-//            $error = explode('|',$validate->getError());
-//            $this->return_data(0,$error[1],$error[0]);
-//        }
-//
-//        try{
-//           \app\index\model\Teacher::create($data);
-//           $this->return_data(1,0,'教师新增成功');
-//        }catch (\Exception $e){
-//            $this->return_data(0,50000,$e->getMessage());
-//        }
-//    }
+
 //
 //
 //    /**
