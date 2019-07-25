@@ -24,5 +24,16 @@ class Basess extends Controller
         echo json_encode(['status'=>$status,'error_code'=>$error_no,$key =>$info,'data'=>$data]);
         exit();
     }
+
+    public static function return_data_sta($status=1,$error_no=0,$info='',$data=''){
+        $status = empty($status)?false:true;
+        if($status){
+            $key = 'sinfo';
+        }else{
+            $key = 'error_msg';
+        }
+        echo json_encode(['status'=>$status,'error_code'=>$error_no,$key =>$info,'data'=>$data]);
+        exit();
+    }
 }
 

@@ -6,10 +6,8 @@
  * Time: 15:03
  */
 namespace app\index\controller;
-
 use app\index\model\Classroom as ClsModel;
 use think\Controller;
-
 class Classroom extends BaseController
 {
 

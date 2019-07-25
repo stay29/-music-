@@ -16,11 +16,11 @@ class BaseController extends Controller
     public function initialize()
     {
         parent::initialize();
-//        $tokenall =  $this->checkToken();
-//        $token = db('Token_user')->where('uid',$tokenall['uid'])->find();
-//        if ($token['token'] != $tokenall['token']) {
-//            return $this->return_data(0, 10005, '请重新登录');
-//        }
+        $tokenall =  $this->checkToken();
+        $token = db('Token_user')->where('uid',$tokenall['uid'])->find();
+        if ($token['token'] != $tokenall['token']) {
+            return $this->return_data(0, 10005, '请重新登录');
+        }
     }
     /**
      *响应
@@ -85,8 +85,9 @@ class BaseController extends Controller
     {
         $header = Request::instance()->header();
         //print_r($header);
+        if(array_key_exists('x-token',$header)){
         if ($header['x-token'] == 'null'){
-            $this->return_data('0', '10000', 'Token不存在，拒绝访问');
+            $this->return_data('0', '10006', 'Token不存在，拒绝访问');
         }else{
             $checkJwtToken = $this->verifyJwt($header['x-token']);
             if ($checkJwtToken['status'] == 1) {
@@ -94,6 +95,9 @@ class BaseController extends Controller
                 $data['uid'] = $header['x-uid'];
                 return $data;
             }
+        }
+        }else{
+            $this->return_data('0', '10006', 'Token不存在，拒绝访问');
         }
     }
     //校验jwt权限API
@@ -111,7 +115,7 @@ class BaseController extends Controller
                     'msg' => 'Token验证通过'
                 ];
             } else {
-                $this->return_data('0', '10003', 'Token验证不通过,用户不存在');
+                $this->return_data('0', '10004', 'Token验证不通过,用户不存在');
             }
             return $msg;
         } catch (\Firebase\JWT\SignatureInvalidException $e) {

@@ -5,21 +5,168 @@ use PHPExcel;
 use think\Db;
 use think\facade\Session;
 use app\index\model\Curriculums;
+use app\index\controller\Phpexcil;
+use app\index\model\Meals as Mealss;
+use app\index\model\MealCurRelations as Mclmodel;
 class Index extends Basess
 {
+    protected $beforeActionList = [
+        'first',
+    ];
 
-    public function index()
+    protected function first()
     {
-
+       new Phpexcil();
+    }
+    public  function  index(){
         return view();
     }
 
-    //导入模板
+    public  function  sss(){
+        $suball = db('subjects')->select();
+        foreach ($suball as $kll=>&$vll){
+            $subjectinfo_list[] = $vll['sname'];
+        }
+        $subjectinfo_list  = implode(',',$subjectinfo_list);
+        $kname = array(
+            array('meal_name','套餐名称'),
+            array('course_model','课程模式1课次2包时'),
+            array('meals_cur','课程名称'),
+            array('cur_num','课程节数'),
+            array('cur_value','课程价值'),
+            array('actual_price','实现价值'),
+            array('price','套餐价格'),
+            array('cur_state','套餐状态 1启动 2不启动'),
+            array('value','套餐价值'),
+        );
+        Phpexcil::export_tow_aaa('课程列表',$kname,array(),$subjectinfo_list);
+    }
+
+    public  function  inp_list_name()
+    {
+        $orgid = ret_session_name('orgid');
+        $list = Curriculums::where('orgid',$orgid)->select();
+        $arr  = array();
+        foreach ($list as $k=>&$v){
+            $arr[] = $v['cur_name'];
+        }
+        $arr = implode(',',$arr);
+        return $arr;
+    }
+    //导出套餐模板
+    public  function  setmeal_export()
+    {
+        $arr = $this->inp_list_name();
+        $moban = input('moban');
+        $kname = array(
+            array('meal_name','套餐名称'),
+            array('meals_cur','课程名称'),
+            array('cur_num','课程节数'),
+            array('cur_value','课程价值'),
+            array('actual_price','实现价值'),
+            array('price','套餐价格'),
+            array('cur_state','套餐状态 1启动 2不启动'),
+            array('course_model','课程模式1课次2包时'),
+            array('value','套餐价值'),
+        );
+        $meal_name = input('meal_name');
+        $cur_state = input('cur_state');
+        $orgid  =input('orgid');
+        if($meal_name){
+            $where[]=['meal_name','like','%'.$meal_name.'%'];
+        }
+        if($cur_state){
+            $where[]=['cur_state','=',$cur_state];
+        }
+        $where[] = ['orgid','=',$orgid];
+        if($moban=='1'){
+            $list = array();
+            Phpexcil::export_tow_aaa('课程列表',$kname,$list,$arr);
+        }else{
+            $list = Mealss::getall($limit,$where);
+            Phpexcil::export_tow_aaa('课程列表',$kname,$list,$arr);
+        }
+     }
+        //套餐导入
+        public  function  setmeal_Import()
+        {
+            $kname = ['meal_name','course_model', 'meals_cur', 'cur_num', 'cur_value','actual_price','price','cur_state','value'];
+            $uid = input('uid');
+            $orgid = input('orgid');
+            $res = Phpexcil::import($kname);
+            $infos = array();
+            //去除空数组
+            foreach ($res as $ks=>&$vs) {
+                if($vs['meal_name']!=null){
+                    $infos[] = $vs;
+                }
+            }
+            //处理数据 筛选数据
+            $arr1 = array();
+            $arr2 = array();
+            $arr3 = array();
+            $arr4 = array();
+            Db::startTrans();
+            try {
+            foreach ($infos as $k=>&$v) {
+                $arr2['actual_price'] = $v['actual_price'];
+                $arr2['cur_name'] = $v['meals_cur'];
+                $arr2['cur_num'] = $v['cur_num'];
+                $arr2['actual_price'] = $v['actual_price'];
+                $arr2['course_model'] = $v['course_model'];
+                $arr2['cur_value'] = $v['cur_value'];
+                $validate = new \app\validate\Meals;
+                if(!$validate->scene('add')->check($arr2)) {
+                    $error = explode('|',$validate->getError());
+                    $this->return_data(0,$error[1],$error[0]);
+                    exit();
+
+                }else{
+                    $mea_info = Mclmodel::create($arr2);
+                }
+                //print_r($mea_info);exit();
+                $arr1['meal_name'] = $v['meal_name'];
+                $arr1['value'] = $v['value'];
+                $arr1['price'] = $v['price'];
+                $arr1['cur_state'] = $v['cur_state'];
+                $arr1['create_time'] = time();
+                $arr1['orgid'] = ret_session_name('orgid');
+                $arr1['meals_cur'] = $mea_info['id'].',';
+                $validate2 = new \app\validate\MealCurRelations;
+                if(!$validate2->scene('add')->check($arr1)){
+                    //为了可以得到错误码
+                    $error2 = explode('|',$validate2->getError());
+                    $this->return_data(0,$error2[1],$error2[0]);
+                    exit();
+                }else {
+                    $mea_info2 = Mealss::create($arr1);
+                }
+                }
+                // 提交事务
+                Db::commit();
+                if($mea_info2){
+                    self::return_data_sta(1,0,'添加成功',$mea_info2);
+                }else{
+                    self::return_data_sta(1,0,'添加失败',$mea_info2);
+                }
+            } catch (\Exception $e) {
+                // 回滚事务
+                Db::rollback();
+            }
+
+
+        }
+
+
+
+
+
+    //课程导入模板
     public  function  Import_currm(){
         $kname = ['cur_name', 'subject', 'tmethods', 'ctime', 'describe', 'remarks'];
         $uid = input('uid');
         $orgid = input('orgid');
-        $res = $this->import($kname);
+        $res = Phpexcil::import($kname);
         $infos = array();
         foreach ($res as $ks=>&$vs) {
             if($vs['cur_name']!=null){
@@ -43,6 +190,15 @@ class Index extends Basess
             $v['state'] = 2;
             $v['popular'] = 2;
             $v['tqualific'] = '0/0';
+        }
+        if(empty($infos)){
+            $this->return_data(0,10000,'请填写数据后导入');
+        }
+        $validate = new \app\validate\Curriculums;
+        if(!$validate->scene('add')->check($infos)){
+            //为了可以得到错误码
+            $error = explode('|',$validate->getError());
+            $this->return_data(0,$error[1],$error[0]);
         }
         Db::startTrans();
         try {
@@ -71,7 +227,7 @@ class Index extends Basess
         $subjectinfo_list  = implode(',',$subjectinfo_list);
         $kname = array(
             array('cur_name','课程名称'),
-            array('subject','科目分类 有'.$subjectinfo_list),
+            array('subject','科目分类'),
             array('tmethods','授课方式 1 :1对1 ,2:一对多'),
             array('ctime','课时 如 60分钟 填写60'),
             array('describe','备注'),
@@ -115,108 +271,9 @@ class Index extends Basess
                  }
             }
         }
-            $this->export('课程列表',$kname,$list);
+        Phpexcil::export_tow_aaa('课程列表',$kname,$list,$subjectinfo_list);
     }
 
 
-    //公共导入方法返回数组
-    public function import($kname)
-    {
-        //获取表单上传文件
-        $file = request()->file('excel');
-        $info = $file->validate(['ext' => 'xlsx,xls'])->move('./upload/file/');
-        //数据为空返回错误
-        if(empty($info)){
-            $output['status'] = false;
-            $output['info'] = '导入数据失败~';
-            $this->ajaxReturn($output);
-        }
-        //获取文件名
-        $exclePath = $info->getSaveName();
-        //上传文件的地址
-        $filename = './upload/file/'. $exclePath;
-        //判断截取文件
-        $extension = strtolower( pathinfo($filename, PATHINFO_EXTENSION) );
-        //区分上传文件格式
-        if($extension == 'xlsx') {
-            $objReader =\PHPExcel_IOFactory::createReader('Excel2007');
-            $objPHPExcel = $objReader->load($filename, $encode = 'utf-8');
-        }else if($extension == 'xls'){
-            $objReader =\PHPExcel_IOFactory::createReader('Excel5');
-            $objPHPExcel = $objReader->load($filename, $encode = 'utf-8');
-        }
-        $sheet = $objPHPExcel -> getSheet(0);
-        $highestRow = $sheet -> getHighestRow(); // 取得总行数
-       // print_r($objPHPExcel);exit();
-        $excel_array = $sheet->toArray();//转换为数组格式
-        $fils = array_serch($kname,$excel_array);
-        foreach ($fils as $kl=>&$vl){
-            if($kl==0 or $kl==1){
-                unset($fils[$kl]);
-            }
-        }
-        return $fils;
-    }
-
-    //通用导出方法
-    public function export($filename,$expCellName,$expTableData){
-        //1.从数据库中取出数据
-        //3.实例化PHPExcel类
-        $objPHPExcel = new PHPExcel();
-        //4.激活当前的sheet表
-        $objPHPExcel->setActiveSheetIndex(0);
-        //5.设置表格头（即excel表格的第一行）
-        $cellName = array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI','AJ','AK','AL','AM','AN','AO','AP','AQ','AR','AS','AT','AU','AV','AW','AX','AY','AZ');
-
-        $cellNum = count($expCellName);
-        $dataNum = count($expTableData);
-        for($i=0;$i<$cellNum;$i++){
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue($cellName[$i].'1', $expCellName[$i][1]);
-        }
-        //设置宽高
-        for($i=0;$i<$cellNum;$i++){
-            $objPHPExcel->getActiveSheet()->getRowDimension($i)->setRowHeight(20);
-            $objPHPExcel->getActiveSheet()->getColumnDimension($cellName[$i])->setWidth(30);
-        }
-        //设置第二行内容
-        for($i=0;$i<$cellNum;$i++){
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue($cellName[$i].'2', $expCellName[$i][0]);
-        }
-        //循环刚取出来的数组，将数据逐一添加到excel表格。
-        for($i=0;$i<$dataNum;$i++) {
-            for ($j = 0; $j < $cellNum; $j++) {
-                $objPHPExcel->getActiveSheet(0)->setCellValue($cellName[$j] . ($i + 3), $expTableData[$i][$expCellName[$j][0]]);
-            }
-        }
-
-        //7.设置保存的Excel表格名称
-        $filename = $filename.date('ymd',time()).'.xls';
-        //8.设置当前激活的sheet表格名称；
-        $objPHPExcel->getActiveSheet()->setTitle('学生信息');
-        //9.设置浏览器窗口下载表格
-        header("Content-Type: application/force-download");  
-        header("Content-Type: application/octet-stream");  
-        header("Content-Type: application/download");  
-        header('Content-Disposition:inline;filename="'.$filename.'"');  
-        //生成excel文件
-        $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
-        //下载文件在浏览器窗口
-        $objWriter->save('php://output');
-        exit;
-    }
-
-    //到出模板
-    public  function  daoru_(){
-        $kname = array(
-            array('cur_name','课程名称'),
-            array('subject','科目分类'),
-            array('tmethods','授课方式'),
-            array('ctime','课时'),
-            array('describe','备注'),
-            array('remarks','描述'),
-        );
-        $list =  db('curriculums')->select();
-        $this->export('课程列表',$kname,$list);
-    }
 
 }

@@ -44,7 +44,7 @@ class Login extends Basess{
                          $mup1['cellphone'] = $data['cellphone'];
                           $user_login_info1 =    Users::where($mup1)->find();
                           if($user_login_info1){
-                              $this->return_data(0,20007,'密码错误请重新登录');
+                              $this->return_data(0,60000,'密码错误请重新登录');
                           }else{
                               $this->return_data(0,20007,'用户还没有注册 请注册后登陆');
                           }
