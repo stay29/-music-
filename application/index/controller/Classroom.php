@@ -20,16 +20,18 @@ class Classroom extends BaseController
     public function index()
     {
         $oid = ret_session_name('orgid');
+
         if(empty($oid))
         {
             $this->return_data(1, 0, '', array());
         }
+
         $status = input('get.status/d', null);
         $room_name = input('get.name/s', null);
 
         $where[] = ['or_id', '=', $oid];
 
-        if(isset($status) and ($status==0 || $status==1))
+        if(isset($status) and ($status==2 || $status==1))
         {
             $where[] = ['status', '=', $status];
         }
