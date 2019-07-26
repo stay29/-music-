@@ -23,15 +23,15 @@ class Classroom extends BaseController
 
         if(empty($oid))
         {
-            $this->return_data(1, 0, '', array());
+            $this->return_data(1, '', '', array());
         }
 
-        $status = input('get.status/d', null);
-        $room_name = input('get.name/s', null);
+        $status = input('status/d', null);
+        $room_name = input('name/s', null);
 
         $where[] = ['or_id', '=', $oid];
 
-        if(isset($status) and ($status==2 || $status==1))
+        if(isset($status) and ($status==2 || $status==1) and !empty($status))
         {
             $where[] = ['status', '=', $status];
         }
@@ -40,9 +40,8 @@ class Classroom extends BaseController
             $where[] = ['room_name', 'like', '%' . $room_name. '%'];
         }
         $res = db('classrooms')->field('room_id as id,room_name as 
-            name,status,room_count as total')->where($where)->fetchSql();
+            name,status,room_count as total')->where($where)->select();
 
-//        var_dump($res);
         $this->return_data(1, 0, '', $res);
     }
 
