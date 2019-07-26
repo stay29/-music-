@@ -21,7 +21,8 @@ class Meals  extends Validate
         'list_img' =>    'require',
         'bg_img' =>      'require',
         'orgid' =>       'require',
-        'manager' =>       'require'
+        'manager' =>     'require',
+      
     ];
 
     protected $message = [
@@ -45,15 +46,20 @@ class Meals  extends Validate
 
         'bg_img.require'=> '详情图不能为空|10000',
 
-        'orgid.require'=>  '机构不能为空|10000',
+        'orgid.require'  =>  '机构不能为空|10000',
         'manager.require'=>  '用户id不能为空|10000',
+        'cur_id.require' =>  '套餐课程id不能为空|10000',
     ];
 
     public function sceneAdd()
     {
-        return $this->only(['meal_name','value','price','cur_state','remarks','meals_cur','list_img','bg_img','orgid','manager']);
+        return $this->only(['cur_id','meal_name','value','price','cur_state','remarks','meals_cur','list_img','bg_img','orgid','manager']);
     }
 
+    public function sceneAddtow()
+    {
+        return $this->only(['cur_id','meal_name','value','price','cur_state','meals_cur','orgid','manager']);
+    }
     public function sceneEdit()
     {
         return $this->only(['meal_id','meal_name','value','price','cur_state','remarks','meals_cur','list_img','bg_img','orgid','manager']);

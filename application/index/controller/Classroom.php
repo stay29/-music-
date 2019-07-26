@@ -66,7 +66,6 @@ class Classroom extends BaseController
             $this->return_data(0,50000,$e->getMessage());
         }
     }
-
     /**
      * 修改教室
      */

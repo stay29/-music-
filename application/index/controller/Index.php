@@ -45,6 +45,7 @@ class Index extends Basess
     public  function  inp_list_name()
     {
         $orgid = ret_session_name('orgid');
+        $orgid = 30;
         $list = Curriculums::where('orgid',$orgid)->select();
         $arr  = array();
         foreach ($list as $k=>&$v){
@@ -86,11 +87,12 @@ class Index extends Basess
             $list = Mealss::getall($limit,$where);
             Phpexcil::export_tow_aaa('课程列表',$kname,$list,$arr);
         }
-     }
+        }
+
         //套餐导入
         public  function  setmeal_Import()
         {
-            $kname = ['meal_name','course_model', 'meals_cur', 'cur_num', 'cur_value','actual_price','price','cur_state','value'];
+            $kname = ['meal_name','meals_cur', 'cur_num',  'cur_value','actual_price','price','cur_state','course_model','value'];
             $uid = input('uid');
             $orgid = input('orgid');
             $res = Phpexcil::import($kname);
@@ -104,8 +106,7 @@ class Index extends Basess
             //处理数据 筛选数据
             $arr1 = array();
             $arr2 = array();
-            $arr3 = array();
-            $arr4 = array();
+            // print_r($infos);exit();
             Db::startTrans();
             try {
             foreach ($infos as $k=>&$v) {
@@ -115,12 +116,13 @@ class Index extends Basess
                 $arr2['actual_price'] = $v['actual_price'];
                 $arr2['course_model'] = $v['course_model'];
                 $arr2['cur_value'] = $v['cur_value'];
-                $validate = new \app\validate\Meals;
+                $cur_id = Curriculums::where('cur_name',$v['meals_cur'])->find();
+                $arr2['cur_id'] = $cur_id['cur_id'];
+                $validate = new \app\validate\MealCurRelations;
                 if(!$validate->scene('add')->check($arr2)) {
                     $error = explode('|',$validate->getError());
                     $this->return_data(0,$error[1],$error[0]);
                     exit();
-
                 }else{
                     $mea_info = Mclmodel::create($arr2);
                 }
@@ -130,10 +132,11 @@ class Index extends Basess
                 $arr1['price'] = $v['price'];
                 $arr1['cur_state'] = $v['cur_state'];
                 $arr1['create_time'] = time();
-                $arr1['orgid'] = ret_session_name('orgid');
+                $arr1['orgid'] =  ret_session_name('orgid');
                 $arr1['meals_cur'] = $mea_info['id'].',';
-                $validate2 = new \app\validate\MealCurRelations;
-                if(!$validate2->scene('add')->check($arr1)){
+                $arr1['manager'] = ret_session_name('uid');
+                $validate2 = new \app\validate\Meals;
+                if(!$validate2->scene('addtow')->check($arr1)){
                     //为了可以得到错误码
                     $error2 = explode('|',$validate2->getError());
                     $this->return_data(0,$error2[1],$error2[0]);

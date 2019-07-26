@@ -146,5 +146,36 @@ class Currm extends BaseController
             }
     }
 
-
+    //全部搜索课程列表
+    public  function  all_list_currm()
+    {
+        $cur_name = input('cur_name');
+//        $subject = input('subject');
+//        $tmethods = input('tmethods');
+//        $status = input('status');
+        $orgid  =  input('orgid');
+        $where = null;
+        if($cur_name){
+            $where[]=['cur_name','like','%'.$cur_name.'%'];
+        }
+//        if($subject){
+//            $where[]=['subject','=',$subject];
+//        }
+//        if($tmethods){
+//            $where[]=['tmethods','=',$tmethods];
+//        }
+//        if($status){
+//            $where[]=['status','=', $status];
+//        }
+        if($orgid){
+            $where[]=['orgid','=', $orgid];
+        }
+        try{
+            $res = Curriculums::get_all($where);
+            //print_r($res);exit();
+            $this->return_data(1,0,'返回成功',$res);
+        }catch (\Exception $e){
+            $this->return_data(0,50000,$e->getMessage());
+        }
+    }
 }
