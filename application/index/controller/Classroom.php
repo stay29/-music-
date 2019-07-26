@@ -14,34 +14,37 @@ use PHPExcel;
 
 class Classroom extends BaseController
 {
-    /*
+    /**
      * 获取教室列表
      */
     public function index()
     {
         $oid = ret_session_name('orgid');
+        if(empty($oid))
+        {
+            $this->return_data(1, 0, '', array());
+        }
+        $status = input('get.status/d', null);
+        $room_name = input('get.name/s', null);
 
-        $status = input('status/d', null);
-        $room_name = input('name', null);
+        $where[] = ['or_id', '=', $oid];
 
-        $where = [
-            'or_id' => $oid,
-        ];
-
-        if(!empty($status))
+        if(isset($status) and ($status==0 || $status==1))
         {
             $where[] = ['status', '=', $status];
         }
         if(!empty($room_name))
         {
-            $where[] = ['room_name', '=', $room_name];
+            $where[] = ['room_name', 'like', '%' . $room_name. '%'];
         }
-        $res = ClsModel::field('room_id as id,room_name as name,status,room_count as total')
-            ->order('create_time desc')->where($where)->paginate(20);
+        $res = db('classrooms')->field('room_id as id,room_name as 
+            name,status,room_count as total')->where($where)->fetchSql();
+
+//        var_dump($res);
         $this->return_data(1, 0, '', $res);
     }
 
-    /*
+    /**
      * 添加教室
      */
     public function add(){
@@ -66,6 +69,7 @@ class Classroom extends BaseController
             $this->return_data(0,50000,$e->getMessage());
         }
     }
+
     /**
      * 修改教室
      */
@@ -95,7 +99,7 @@ class Classroom extends BaseController
         }
     }
 
-    /*
+    /**
      * 删除教室
      */
     public function del(){
@@ -123,6 +127,7 @@ class Classroom extends BaseController
      */
     public function export()
     {
+
     }
 
     /*
@@ -130,6 +135,7 @@ class Classroom extends BaseController
      */
     public function import()
     {
+
     }
 
 }
