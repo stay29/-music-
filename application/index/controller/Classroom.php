@@ -20,12 +20,11 @@ class Classroom extends BaseController
     public function index()
     {
         $oid = ret_session_name('orgid');
-
         if(empty($oid))
         {
             $this->return_data(1, '', '', array());
         }
-
+        $limit = input('limit/d', 20);
         $status = input('status/d', null);
         $room_name = input('name/s', null);
 
@@ -39,8 +38,8 @@ class Classroom extends BaseController
         {
             $where[] = ['room_name', 'like', '%' . $room_name. '%'];
         }
-        $res = db('classrooms')->field('room_id as id,room_name as 
-            name,status,room_count as total')->where($where)->select();
+        $res = ClsModel::where($where)->field('room_id as id,room_name as 
+            name,status,room_count as total')->paginate($limit);
 
         $this->return_data(1, 0, '', $res);
     }
@@ -89,7 +88,7 @@ class Classroom extends BaseController
             $this->return_data(0,$error[1],$error[0]);
         }
         $where = [
-            'oid' => $oid,
+            'or_id' => $oid,
             'room_id' => $data['room_id']
         ];
         try{
@@ -112,7 +111,7 @@ class Classroom extends BaseController
         }
         $where = [
             'room_id' => $id,
-            'oid' => $oid
+            'or_id' => $oid
         ];
         $res = ClsModel::where($where)->delete();
         if($res){
