@@ -10,6 +10,7 @@ namespace app\index\controller;
 use app\index\model\Classroom as ClsModel;
 use think\Controller;
 use PHPExcel;
+use think\Exception;
 
 
 class Classroom extends BaseController
@@ -109,14 +110,15 @@ class Classroom extends BaseController
         if(empty($id)){
             $this->return_data(0,10000,'缺少教室主键');
         }
-        $where = [
-            'room_id' => $id,
-            'or_id' => $oid
-        ];
-        $res = ClsModel::where($where)->delete();
-        if($res){
+
+        $where[] = ['room_id', '=', $id];
+        $where[] = ['or_id', '=', $oid];
+
+        try
+        {
+            ClsModel::where($where)->delete();
             $this->return_data(1,0,'删除教室成功');
-        }else{
+        }catch (Exception $e){
             $this->return_data(0,20003,'删除失败');
         }
     }
