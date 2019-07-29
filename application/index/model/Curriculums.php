@@ -13,7 +13,6 @@ class Curriculums extends Model
     {
           return $this->hasOne('Users','uid');
     }
-
     //添加课程
     public static function addcurrl($data)
     {

@@ -31,7 +31,6 @@ class Organization extends BaseController
             'status' =>2,
         ];
         $uid = input('uid');
-
         $validate = new \app\index\validate\Organization();
         if(!$validate->scene('add')->check($data)){
             //为了可以得到错误码
@@ -54,6 +53,8 @@ class Organization extends BaseController
             $this->return_data(0,50000,$e->getMessage());
         }
     }
+
+
     public  function  orglist()
     {
       $list = Organ::where('status',1)->select();

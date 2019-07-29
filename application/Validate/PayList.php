@@ -11,17 +11,15 @@ class PayList extends  Validate
 {
 
     protected  $rule = [
-
-        'pay_id_list'  =>     'require|number',
+        'pay_id_list' => 'require|number',
         'cur_id'  =>     'require|number',
         'cur_name'  =>   'require',
         'pless_id'  =>   'require|number',
         'p_id'  =>       'require|number',
         'bay_paich'  =>  'require|number',
-        'remake'  =>     'require|max:200',
+        'remake'  =>     'max:200',
         'orgid'  =>      'require|number',
         'manager'  =>    'require|number',
-
     ];
 
     protected $message = [
@@ -42,7 +40,7 @@ class PayList extends  Validate
         'bay_paich.require'=>   '结算金额不能为空|10000',
         'bay_paich.number'=>    '结算金额必须为数字|10001',
 
-        'remake.require'=>      '备注不能为空|10000',
+        //'remake.require'=>      '备注不能为空|10000',
         'remake.max'=>          '备注必须不能超过200个字|10001',
 
             'orgid.require'=>   '机构id不能为空|10000',

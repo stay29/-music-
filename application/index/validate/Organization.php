@@ -5,32 +5,28 @@
  * Date: 2019/7/11
  * Time: 10:23
  */
-
 namespace app\index\validate;
-
-
 use think\Validate;
-
 class Organization extends Validate
 {
     protected $rule = [
-        'or_id'=>'require',
-        'or_name'  => 'require|max:8|unique:Organizations',
+        'or_id'=>       'require',
+        'or_name'  =>   'require|max:8|unique:Organizations',
         'telephone'  => 'require|max:11|mobile',
-        'wechat'  => 'require|max:15|unique:Organizations',
-        'describe' => 'require|max:500',
-        'remarks' => 'max:500',
-        'address' => 'require|max:128',
+        'wechat'  =>    'require|max:15|unique:Organizations',
+        'describe' =>   'require|max:500',
+        'remarks' =>    'max:500',
+        'address' =>    'require|max:128',
     ];
     protected $message = [
-        'or_id.require'=>'机构ID不得为空|10000',
-        'or_name.require'=>'机构名称不得为空|10000',
-        'or_name.max'=>'机构名称长度不得大于8位|10001',
-        'or_name.unique'=>'机构已存在|20000',
-        'telephone.require'=>'请填写手机号|10000',
+        'or_id.require'=>       '机构ID不得为空|10000',
+        'or_name.require'=>     '机构名称不得为空|10000',
+        'or_name.max'=>         '机构名称长度不得大于8位|10001',
+        'or_name.unique'=>      '机构已存在|20000',
+        'telephone.require'=>   '请填写手机号|10000',
         'telephone.max'=>'手机号不得大于11位|10001',
         'telephone.mobile'=>'手机号格式不正确|10001',
-//        'telephone.unique'=>'手机号已存在|20000',
+//      'telephone.unique'=>'手机号已存在|20000',
         'wechat.require'=>'微信不得为空|10000',
         'wechat.max'=>'微信长度不得大于15|10001' ,
         'wechat.unique'=>'微信号已存在|20000',
@@ -40,7 +36,6 @@ class Organization extends Validate
         'address.require'=>'地址不得为空|10000',
         'address.max'=>'地址字数不得大于128|10001',
     ];
-
 
     // add验证场景定义
     public function sceneAdd()

@@ -13,7 +13,7 @@
 namespace think;
 
 // 加载基础文件
-require __DIR__ . '/../thinkphp/base.php';
+require __DIR__ . './thinkphp/base.php';
 
 define('UPLOAD_DIR','./upload'.DIRECTORY_SEPARATOR);
 define('MA','erp2');

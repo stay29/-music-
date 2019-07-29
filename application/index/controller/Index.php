@@ -170,6 +170,7 @@ class Index extends Basess
         $uid = input('uid');
         $orgid = input('orgid');
         $res = Phpexcil::import($kname);
+        //print_r($res);exit();
         $infos = array();
         foreach ($res as $ks=>&$vs) {
             if($vs['cur_name']!=null){
@@ -194,6 +195,7 @@ class Index extends Basess
             $v['popular'] = 2;
             $v['tqualific'] = '0/0';
         }
+
         if(empty($infos)){
             $this->return_data(0,10000,'请填写数据后导入');
         }
@@ -228,13 +230,14 @@ class Index extends Basess
             $subjectinfo_list[] = $vll['sname'];
         }
         $subjectinfo_list  = implode(',',$subjectinfo_list);
+
         $kname = array(
-            array('cur_name','课程名称'),
-            array('subject','科目分类'),
-            array('tmethods','授课方式 1 :1对1 ,2:一对多'),
-            array('ctime','课时 如 60分钟 填写60'),
-            array('describe','备注'),
-            array('remarks','描述'),
+            array('cur_name','课程名称(必填)'),
+            array('subject','科目分类(必填)'),
+            array('tmethods','授课方式 1 :1对1 ,2:一对多(必填)'),
+            array('ctime','课时 如 60分钟 填写60(必填)'),
+            array('describe','备注(必填)'),
+            array('remarks','描述(必填)'),
         );
         $cur_name = input('cur_name');
         $subject = input('subject');
