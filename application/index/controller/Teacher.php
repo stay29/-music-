@@ -20,7 +20,7 @@ class Teacher extends BaseController
     public function index()
     {
         $t_name = input('t_name/s', null); // 教师名称
-        $se_id = input('se_id/s', null); // 机构ID
+        $se_id = input('se_id/s', null); // 资历ID
         $status = input('status/d', null);  // 离职状态
         $where = array();
         if(!empty($t_name))
@@ -43,9 +43,32 @@ class Teacher extends BaseController
     /*
      * 修改教师信息
      */
-    public function edit()
-    {
+    public function edit(){
+        $data = [
+            't_id'=>input('post.id'),
+            't_name' => input('post.name'),
+            'avator' => input('post.avator'),
+            'sex' => input('post.sex',1),
+            'se_id' => input('post.se_id'),
+            'cellphone' => input('post.cellphone'),
+            'birthday' => input('post.birthday'),
+            'entry_time' => input('post.entry_day'),
+            'resume' => input('post.resume'),
+            'identity_card' => input('post.id_card')
+        ];
 
+        $validate = new \app\index\validate\Teacher();
+        if (!$validate->check($data)) {
+            //为了可以得到错误码
+            $error = explode('|',$validate->getError());
+            $this->return_data(0,$error[1],$error[0]);
+        }
+        try{
+            \app\index\model\Teacher::update($data,['t_id'=>$data['t_id']]);
+            $this->return_data(1,0,'编辑教师成功');
+        }catch (\Exception $e){
+            $this->return_data(0,50000,$e->getMessage());
+        }
     }
 
     /*
@@ -97,13 +120,12 @@ class Teacher extends BaseController
         }
 
         try{
-            TeacherModel::create($data);
+            TeacherModel::create($data)->save();
             $this->return_data(1,0,'教师新增成功');
         }catch (\Exception $e){
             $this->return_data(0,50000,$e->getMessage());
         }
     }
-
 
     /*
      * 教师离职或者复职。 1离职, 2复职。
@@ -139,8 +161,47 @@ class Teacher extends BaseController
      */
     public function LessonTable()
     {
+        $tid = input('t_id', '');
+        if(empty($tid))
+        {
+            $this->return_data(0,'10000', '缺少参数');
+        }
+        $where[] = ['t_id', '=', $tid];
+        $lsn_name = input('lsn_name');  // 课程名称
+        $time_type = input('type/d', 1); // 时间类型， 本年， 本月， 全部
+        switch ($time_type)
+        {
+            case 1:
+                break;
+            case 2:
+                break;
+            case 3:
+                break;
+        }
+        $where = [];
+    }
+
+}
+
+
+class TeacherService
+{
+    /** 获取教师所带学生列表
+     * @param $t_id 教师ID
+     */
+    public static function getStudent($t_id)
+    {
+        //
+    }
+
+    /** 获取教师课程
+     * @param $t_id
+     */
+    public static function getLesson($t_id)
+    {
 
     }
+
 }
 
 
@@ -182,33 +243,7 @@ class Teacher extends BaseController
 //    /**
 //     * 编辑教师
 //     */
-//    public function edit(){
-//        $data = [
-//            't_id'=>input('post.id'),
-//            't_name' => input('post.name'),
-//            'avator' => input('post.avator'),
-//            'sex' => input('post.sex',1),
-//            'se_id' => input('post.se_id'),
-//            'cellphone' => input('post.cellphone'),
-//            'birthday' => input('post.birthday'),
-//            'entry_time' => input('post.entry_day'),
-//            'resume' => input('post.resume'),
-//            'identity_card' => input('post.id_card')
-//        ];
-//
-//        $validate = new \app\index\validate\Teacher();
-//        if (!$validate->check($data)) {
-//            //为了可以得到错误码
-//            $error = explode('|',$validate->getError());
-//            $this->return_data(0,$error[1],$error[0]);
-//        }
-//        try{
-//            \app\index\model\Teacher::update($data,['t_id'=>$data['t_id']]);
-//            $this->return_data(1,0,'编辑教师成功');
-//        }catch (\Exception $e){
-//            $this->return_data(0,50000,$e->getMessage());
-//        }
-//    }
+
 //
 //    /**
 //     * 设置某些字段，如离职
