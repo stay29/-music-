@@ -29,15 +29,15 @@ class Index extends Basess
         }
         $subjectinfo_list  = implode(',',$subjectinfo_list);
         $kname = array(
-            array('meal_name','套餐名称'),
-            array('course_model','课程模式1课次2包时'),
-            array('meals_cur','课程名称'),
-            array('cur_num','课程节数'),
-            array('cur_value','课程价值'),
-            array('actual_price','实现价值'),
-            array('price','套餐价格'),
-            array('cur_state','套餐状态 1启动 2不启动'),
-            array('value','套餐价值'),
+            array('meal_name','套餐名称(必填)'),
+            array('course_model','课程模式(必填)1课次2包时'),
+            array('meals_cur','课程名称(必填)'),
+            array('cur_num','课程节数(必填)'),
+            array('cur_value','课程价值(必填)'),
+            array('actual_price','实现价值(必填)'),
+            array('price','套餐价格(必填)'),
+            array('cur_state','套餐状态(必填) 1启动 2不启动'),
+            array('value','套餐价值(必填)'),
         );
         Phpexcil::export_tow_aaa('课程列表',$kname,array(),$subjectinfo_list);
     }
@@ -54,21 +54,22 @@ class Index extends Basess
         $arr = implode(',',$arr);
         return $arr;
     }
+
     //导出套餐模板
     public  function  setmeal_export()
     {
         $arr = $this->inp_list_name();
         $moban = input('moban');
         $kname = array(
-            array('meal_name','套餐名称'),
-            array('meals_cur','课程名称'),
-            array('cur_num','课程节数'),
-            array('cur_value','课程价值'),
-            array('actual_price','实现价值'),
-            array('price','套餐价格'),
-            array('cur_state','套餐状态 1启动 2不启动'),
-            array('course_model','课程模式1课次2包时'),
-            array('value','套餐价值'),
+            array('meal_name','套餐名称(必填)'),
+            array('meals_cur','课程名称(必填)'),
+            array('cur_num','课程节数(必填)'),
+            array('cur_value','课程价值(必填)'),
+            array('actual_price','实现价值(必填)'),
+            array('price','套餐价格(必填)'),
+            array('cur_state','套餐状态(必填) 1启动 2不启动'),
+            array('course_model','课程模式(必填)1课次2包时'),
+            array('value','套餐价值(必填)'),
         );
         $meal_name = input('meal_name');
         $cur_state = input('cur_state');
@@ -223,6 +224,9 @@ class Index extends Basess
        }
     }
 
+
+
+
     //导出excil
     public  function  currm_export(){
         $suball = db('subjects')->select();
@@ -230,12 +234,11 @@ class Index extends Basess
             $subjectinfo_list[] = $vll['sname'];
         }
         $subjectinfo_list  = implode(',',$subjectinfo_list);
-
         $kname = array(
             array('cur_name','课程名称(必填)'),
             array('subject','科目分类(必填)'),
-            array('tmethods','授课方式 1 :1对1 ,2:一对多(必填)'),
-            array('ctime','课时 如 60分钟 填写60(必填)'),
+            array('tmethods','授课方式(必填) 1 :1对1 ,2:一对多'),
+            array('ctime','课时(必填) 如 60分钟 填写60'),
             array('describe','备注(必填)'),
             array('remarks','描述(必填)'),
         );
@@ -279,6 +282,9 @@ class Index extends Basess
         }
         Phpexcil::export_tow_aaa('课程列表',$kname,$list,$subjectinfo_list);
     }
+
+
+
 
 
 

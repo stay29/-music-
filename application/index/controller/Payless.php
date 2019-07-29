@@ -14,7 +14,6 @@ use app\index\model\Curriculums;
 use app\index\model\PayInfo as payinfos;
 class Payless extends  BaseController
 {
-
 //添加课程薪酬
 public  function  addpayinfo()
 {

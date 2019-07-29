@@ -7,10 +7,14 @@
  */
 namespace app\index\controller;
 use think\Controller;
-use PHPExcel;
 use think\Db;
 use think\facade\Session;
-use PHPExcel_Style_Color;
+use PHPExcel_Cell_DataType;
+use PHPExcel_IOFactory;
+use PHPExcel;
+use PHPExcel_Style_Fill;
+use PHPExcel_Style_Border;
+use PHPExcel_Style_NumberFormat;
 class Phpexcil extends Basess
 {
     //公共导入方法返回数组
@@ -67,11 +71,16 @@ class Phpexcil extends Basess
         $cellNum = count($expCellName);
         $dataNum = count($expTableData);
         //创建颜色对象，设置颜色像css那样简单的传个色值，需要传对象
-        $color = new \PHPExcel_Style_Color();
-        $color->setRGB('#FF0000');
+        $styleArray = array(
+            'font'  => array(
+                'bold'  => true,
+                'color' => array('rgb' => 'FF0000'),
+                'size'  => 15,
+                'name'  => 'Verdana'
+            ));
         for($i=0;$i<$cellNum;$i++){
             $objPHPExcel->setCellValue($cellName[$i].'1', $expCellName[$i][1]);
-            $objPHPExcel->getActiveSheet()->getStyle($cellName[$i].'1')->getFont()->getColor($color)->setARGB(\PHPExcel_Style_Color::COLOR_RED);
+            $objPHPExcel->getActiveSheet()->getStyle($cellName[$i].'1')->applyFromArray($styleArray);
         }
         //设置宽高
         for($i=0;$i<$cellNum;$i++){
@@ -105,11 +114,59 @@ class Phpexcil extends Basess
         exit;
     }
 
-    public static  function  explords($expTitle,$expCellName,$expTableData)
+    public static  function  explords($filename,$expCellName,$expTableData)
     {
+
         $objPHPExcel = new PHPExcel();
+        //4.激活当前的sheet表
+        $objPHPExcel->setActiveSheetIndex(0);
+        //5.设置表格头（即excel表格的第一行）
+        $cellName = array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI','AJ','AK','AL','AM','AN','AO','AP','AQ','AR','AS','AT','AU','AV','AW','AX','AY','AZ');
 
+        $cellNum = count($expCellName);
+        $dataNum = count($expTableData);
+        $styleArray = array(
+            'font'  => array(
+                'bold'  => true,
+                'color' => array('rgb' => 'FF0000'),
+                'size'  => 15,
+                'name'  => 'Verdana'
+            ));
+        //创建颜色对象，设置颜色像css那样简单的传个色值，需要传对象
+        for($i=0;$i<$cellNum;$i++){
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue($cellName[$i].'1', $expCellName[$i][1]);
+            $objPHPExcel->getActiveSheet()->getStyle($cellName[$i].'1')->applyFromArray($styleArray);
+        }
+        //设置宽高
+        for($i=0;$i<$cellNum;$i++){
+            $objPHPExcel->getActiveSheet()->getRowDimension($i)->setRowHeight(20);
+            $objPHPExcel->getActiveSheet()->getColumnDimension($cellName[$i])->setWidth(30);
+        }
+        //设置第二行内容
+        for($i=0;$i<$cellNum;$i++){
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue($cellName[$i].'2', $expCellName[$i][0]);
+        }
+        //循环刚取出来的数组，将数据逐一添加到excel表格。
+        for($i=0;$i<$dataNum;$i++) {
+            for ($j = 0; $j < $cellNum; $j++) {
+                $objPHPExcel->getActiveSheet(0)->setCellValue($cellName[$j] . ($i + 3), $expTableData[$i][$expCellName[$j][0]]);
+            }
+        }
 
+        //7.设置保存的Excel表格名称
+        $filename = $filename.date('ymd',time()).'.xls';
+        //8.设置当前激活的sheet表格名称；
+        $objPHPExcel->getActiveSheet()->setTitle('学生信息');
+        //9.设置浏览器窗口下载表格
+        header("Content-Type: application/force-download");
+        header("Content-Type: application/octet-stream");
+        header("Content-Type: application/download");
+        header('Content-Disposition:inline;filename="'.$filename.'"');
+        //生成excel文件
+        $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+        //下载文件在浏览器窗口
+        $objWriter->save('php://output');
+        exit;
     }
 
 
@@ -139,9 +196,16 @@ class Phpexcil extends Basess
         }
         //4.激活当前的sheet表
         $objPHPExcel->setActiveSheetIndex(0);
-
+        $styleArray = array(
+            'font'  => array(
+                'bold'  => true,
+                'color' => array('rgb' => 'FF0000'),
+                'size'  => 15,
+                'name'  => 'Verdana'
+            ));
         for($i=0;$i<$cellNum;$i++){
             $objPHPExcel->setActiveSheetIndex(0)->setCellValue($cellName[$i].'1', $expCellName[$i][1]);
+            $objPHPExcel->getActiveSheet()->getStyle($cellName[$i].'1')->applyFromArray($styleArray);
         }
         //设置宽高
         for($i=0;$i<$cellNum;$i++){
