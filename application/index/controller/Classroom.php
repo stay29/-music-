@@ -64,7 +64,7 @@ class Classroom extends BaseController
             $this->return_data(0,$error[1],$error[0]);
         }
         try{
-            ClsModel::create($data);
+            ClsModel::create($data)->save();
             $this->return_data(1,0,'教室新增成功');
         }catch (\Exception $e){
             $this->return_data(0,50000,$e->getMessage());
