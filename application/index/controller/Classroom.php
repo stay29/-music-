@@ -14,7 +14,7 @@ use think\Exception;
 
 
 
-class Classroom extends BaseController
+class Classroom extends Controller
 {
     /**
      * 获取教室列表
@@ -56,6 +56,7 @@ class Classroom extends BaseController
             'room_count' => input('post.total'),
             'oid' => $oid
         ];
+
         $validate = new \app\index\validate\Classroom();
 
         if(!$validate->scene('add')->check($data)){
@@ -136,24 +137,9 @@ class Classroom extends BaseController
         {
             $this->return_data(0, '10000', '缺少参数');
         }
-        $xlsData = db('classrooms')->
-            where('or_id','=' , $org_id)->
-            field('room_name as name, room_count as count, status')
-            ->limit(1)
-            ->select();
-        $data = [];
-        foreach ($xlsData as $k=>$v)
-        {
-            if($v['status'] == 1)
-            {
-                $v['status'] = '可用';
-            }
-            else
-            {
-                $v['status'] = '不可用';
-            }
-            $data[] = $v;
-        }
+        $data = [
+            ['name'=>'教室1', 'count'=>100, 'status'=>'可用']
+        ];
         $this->exportExcel($xlsName,$xlsCell,$data);
     }
 
@@ -215,7 +201,10 @@ class Classroom extends BaseController
             array('count','容纳人数'),
             array('status','状态'),
         );
-
+        if (empty($org_id))
+        {
+            $this->return_data(0, '10000', '缺少参数');
+        }
         $xlsData = db('classrooms')->where('or_id', $org_id)->field('room_id as id, 
             room_name as name, room_count as count, status')->select();
         $data = [];

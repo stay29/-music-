@@ -10,6 +10,7 @@ namespace app\index\controller;
 use app\admin\controller\AdminBase;
 use app\index\model\Teacher as TeacherModel;
 use think\Controller;
+use think\Db;
 use think\Exception;
 use think\Log;
 
@@ -58,16 +59,6 @@ class Teacher extends BaseController
             'resume' => input('post.resume'),
             'identity_card' => input('post.id_card')
         ];
-        $cur_list = input('curlist', '');
-        $cur_select = db('cur_teacher_relations')->where('t_id', '=',  $t_id)->field('cur_id')->select();
-        foreach ($cur_list as $v)
-        {
-            if(!in_array($v, $cur_select))
-            {
-                Log::write('测试日志');
-            }
-
-        }
         $validate = new \app\index\validate\Teacher();
         if (!$validate->check($data)) {
             //为了可以得到错误码
@@ -107,6 +98,50 @@ class Teacher extends BaseController
         {
             $this->return_data(0, '20003', '删除教师失败');
         }
+    }
+
+    /**
+     * 教师详情
+     */
+    public function detail()
+    {
+        $org_id = input('orgid', null);
+        $t_id = input('tid', null);
+        if (!isset($org_id) || !isset($t_id))
+        {
+            $this->return_data(0, '10000', '缺少参数');
+        }
+        // 查询教师详情信息
+        $teacher_sql = "SELECT seniority_id as se_id, seniority_name as se_name,
+	                A.t_id as tid, A.t_name as name, A.sex, A.cellphone, A.birthday, A.entry_time, A.status,  A.resume
+                    FROM erp2_teachers AS A INNER JOIN 
+                        erp2_seniorities AS B ON A.se_id=B.seniority_id WHERE A.t_id={$t_id};";
+
+        // 查询教师所教课程
+        $teacher_cur_sql = "SELECT B.cur_id, B.cur_name FROM erp2_cur_teacher_relations 
+                        AS A INNER JOIN erp2_curriculums AS B ON A.cur_id=B.cur_id 
+                        WHERE A.t_id={$t_id};";
+
+        // 查询教师所带学生
+        $teacher_stu_sql = "SELECT C.stu_id, C.truename as stu_name FROM (erp2_classes_teachers_realations AS A INNER JOIN 
+erp2_class_student_relations AS B ON A.cls_id=B.class_id) INNER JOIN erp2_students AS C
+ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
+
+        // 查询教师所带班级满勤率
+        $full_rate_sql = "SELECT B.class_name, count(C.stu_id)/B.class_count AS fullrat FROM (erp2_classes_teachers_realations AS A INNER JOIN erp2_classes AS B ON A.cls_id=B.class_id)
+	INNER JOIN erp2_class_student_relations AS C ON B.class_id=C.class_id WHERE t_id={$t_id} GROUP BY C.stu_id;";
+
+        $teacher = Db::query($teacher_sql);
+        $teacher_cur = Db::query($teacher_cur_sql);
+        $teacher_stu = Db::query($teacher_stu_sql);
+        $full_rate = Db::query($full_rate_sql);
+        $data = [
+            'teacher' => $teacher,
+            'curriculums' => $teacher_cur,
+            'students' => $teacher_stu,
+            'classes' => $full_rate
+        ];
+        $this->return_data(1, '', $data);
     }
 
     public function add(){
@@ -175,32 +210,112 @@ class Teacher extends BaseController
 
     }
 
+    /**
+     * 删除教师课程
+     */
+    public function lessonDelete()
+    {
+        if(!$this->request->isPost())
+        {
+            $this->return_data(0, '10002', '请用POST方法提交');
+        }
+        $t_id = input('t_id'); // 教师ID
+        $cur_id = input('cur_id'); //课程ID
+        try
+        {
+            $res = db('cur_teacher_relations')->where(['t_id'=>$t_id, 'cur_id'=>$cur_id])->delete();
+            $this->return_data(1, '', '删除成功', '');
+        }catch (Exception $e)
+        {
+            $this->return_data(0, '20003', '删除失败');
+        }
+    }
+
+    /*
+     * 添加教师课程
+     */
+    public function lessonAdd()
+    {
+        if(!$this->request->isPost())
+        {
+            $this->return_data(0, '10002', '请用POST方法提交');
+        }
+        $t_id = input('t_id'); // 教师ID
+        $cur_id = input('cur_id'); //课程ID
+        try
+        {
+            $data = ['cur_id'=>$cur_id, 't_id'=>$t_id];
+            db('cur_teacher_relations')->insert($data);
+            $this->return_data(1, '', '添加课程成功', '');
+        }catch (Exception $e)
+        {
+            $this->return_data(0, '20001', '添加课程失败');
+        }
+    }
+
+    /*
+     * 教师模板下载
+     */
+    public function template()
+    {
+        $org_id = input('orgid');
+        $xlsName  = "教师";
+        $xlsCell  = array(
+            array('t_name', '教师名称'),
+            array('se', '教师资历'),
+            array('sex','教师性别'),
+            array('identity_card', '身份证'),
+            array('cellphone','电话号码'),
+            array('birthday', '生日'),
+            array('entry_time', '入职时间'),
+            array('resume', '简历')
+        );
+
+        $xlsData = [
+            [
+                't_name'=>'林老师',
+                'se' => '高级',
+                'sex' => '男',
+                'identity_card' => '43523664139694xx',
+                'cellphone' => '13832832888',
+                'birthday'  => '1999-11-12',
+                'entry_time' => '2019-7-15',
+                'resume'  =>  '十分靓仔'
+            ]
+        ];
+//        $xlsData = db('teachers')->where('org_id', '=', $org_id)
+//            ->field('t_id, t_name, sex, se_id, identity_card,
+//            cellphone, birthday, entry_time, resume
+//            ')->select();
+//        foreach ($xlsData as $k => &$v)
+//        {
+//            if($v['se_id'] == 1)
+//            {
+//                $v['sex'] = '男';
+//            }
+//            elseif ($v['se_id'] == 2)
+//            {
+//                $v['sex'] = '女';
+//            }
+//            $seniorit = db('seniorities')->where('seniority_id', '=', $v['se_id'])
+//                ->field('seniority_name')->find();
+//            $v['se'] = $seniorit['seniority_name'];
+//            $v['birthday'] = date('Y-m-d', $v['birthday']);
+//            $v['entry_time'] = date('Y-m-d H:i:s', $v['entry_time']);
+//        }
+        $this->exportExcel($xlsName,$xlsCell,$xlsData);;
+    }
+
+
     /*
      * 教师课表
      */
     public function LessonTable()
     {
         $tid = input('t_id', '');
-        if(empty($tid))
-        {
-            $this->return_data(0,'10000', '缺少参数');
-        }
-        $where[] = ['t_id', '=', $tid];
-        $lsn_name = input('lsn_name');  // 课程名称
-        $time_type = input('type/d', 1); // 时间类型， 本年， 本月， 全部
-        switch ($time_type)
-        {
-            case 1:
-                break;
-            case 2:
-                break;
-            case 3:
-                break;
-        }
-        $where = [];
     }
 
-    // 教师
+    // 教师导出
     public function export(){
         $org_id = input('orgid');
         $xlsName  = "教师";
@@ -239,9 +354,9 @@ class Teacher extends BaseController
         $this->exportExcel($xlsName,$xlsCell,$xlsData);;
     }
 
-
-
-
+    /*
+     * 导入EXCEL
+     */
     protected function exportExcel($expTitle,$expCellName,$expTableData){
         $xlsTitle = iconv('utf-8', 'gb2312', $expTitle);//文件名称
 
@@ -284,13 +399,9 @@ class TeacherService
         //
     }
 
-    /** 获取教师课程
+    /** 删除教师课程
      * @param $t_id
      */
-    public static function getLesson($t_id)
-    {
-
-    }
 
 }
 
