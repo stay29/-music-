@@ -14,7 +14,7 @@ use think\Exception;
 
 
 
-class Classroom extends Controller
+class Classroom extends BaseController
 {
     /**
      * 获取教室列表
