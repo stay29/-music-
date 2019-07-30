@@ -54,7 +54,7 @@ class Classroom extends BaseController
             'room_name' => input('post.name'),
             'status' => input('post.status'),
             'room_count' => input('post.total'),
-            'oid' => $oid
+            'or_id' => $oid
         ];
 
         $validate = new \app\index\validate\Classroom();
