@@ -37,7 +37,13 @@ class Login extends Basess{
                      //存入session
                      $arr = Users::loginsession($user_login_info['uid']);
                      //生成token和其他操作
-                     $token =  Users::login_token($arr,$user_login_info['uid']);
+                      $arr1 = [
+                          'id' => $user_login_info['uid'],
+                          'cellphone' => $user_login_info['cellphone'],
+                          'orgid' => $user_login_info['organization'],
+                          'nickname' => $user_login_info['nickname'],
+                      ];
+                     $token =  Users::login_token($arr1,$user_login_info['uid']);
                      $arr['token'] = $token;
                      $this->return_data(1,0,'登录成功',$arr);
                  }else{
@@ -54,8 +60,6 @@ class Login extends Basess{
             $this->return_data(0,50000,$e->getMessage());
         }
     }
-
-
 
 
     public function for_login_old()
@@ -114,8 +118,6 @@ class Login extends Basess{
             $this->return_data(0,50000,$e->getMessage());
         }
     }
-
-
 
     public function register_users()
     {

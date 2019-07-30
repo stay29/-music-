@@ -8,6 +8,8 @@ use app\index\model\Curriculums;
 use app\index\controller\Phpexcil;
 use app\index\model\Meals as Mealss;
 use app\index\model\MealCurRelations as Mclmodel;
+use app\index\model\PayInfo as payinfos;
+use app\validate\PayList as pays;//同名会引起报错 启用别名
 class Index extends Basess
 {
     protected $beforeActionList = [
@@ -18,10 +20,12 @@ class Index extends Basess
     {
        new Phpexcil();
     }
+
     public  function  index(){
         return view();
     }
 
+    //测试端口
     public  function  sss(){
         $suball = db('subjects')->select();
         foreach ($suball as $kll=>&$vll){
@@ -41,6 +45,51 @@ class Index extends Basess
         );
         Phpexcil::export_tow_aaa('课程列表',$kname,array(),$subjectinfo_list);
     }
+    //课程薪酬导出
+    public  function  pay_export()
+    {
+        $subject = input('subject');
+        $cur_name = input('cur_name');
+        $where = array();
+        if($cur_name!=null){
+            $where[]=['cur_name','like','%'.$cur_name.'%'];
+        }
+        $orgid = input('orgid');
+        $where[] = ['orgid','=',$orgid];
+        $res = Db::table('erp2_pay_list')->where([$where])->select();
+        foreach ($res as $k=>&$v){
+            $v['curriculums'] = db('curriculums')->where('cur_id',$v['cur_id'])->find();
+            $v['subjectsall'] = db('subjects')->where('sid',$v['curriculums']['subject'])->find();              $v['pay_info'] = db('pay_info')->where('pay_id_info',$v['p_id'])->find();
+        }
+        $res1 = array();
+        if($subject!=0){
+            foreach ($res as $ks=>&$vs){
+                if($vs['subjectsall']['sid']==$subject){
+                    $res1[] = $vs;
+                }
+            }
+        }else{
+            $res1 = $res;
+        }
+
+        $kname = array(
+            array('cur_name','课程名称'),
+            array('sname','科目名称'),
+            array('tmethods','授课方式'),
+            array('p_id','结算方式'),
+            array('remake','备注'),
+            array('bay_paich','结算金额'),
+        );
+        $subjectinfo_list = '';
+        foreach ($res1 as $k1=>&$v1){
+            $v1['sname'] = $v1['subjectsall']['sname'];
+            $v1['pay_name'] = $v1['pay_info']['pay_name'];
+            $v1['tmethods'] = $v1['curriculums']['tmethods'];
+        }
+        //print_r($res1);exit();
+        Phpexcil::explords('课程薪酬',$kname,$res1,$subjectinfo_list);
+    }
+
 
     public  function  inp_list_name()
     {
@@ -163,8 +212,6 @@ class Index extends Basess
 
 
 
-
-
     //课程导入模板
     public  function  Import_currm(){
         $kname = ['cur_name', 'subject', 'tmethods', 'ctime', 'describe', 'remarks'];
@@ -201,14 +248,15 @@ class Index extends Basess
             $this->return_data(0,10000,'请填写数据后导入');
         }
         $validate = new \app\validate\Curriculums;
-        if(!$validate->scene('add')->check($infos)){
-            //为了可以得到错误码
-            $error = explode('|',$validate->getError());
-            $this->return_data(0,$error[1],$error[0]);
-        }
+        //print_r($infos);exit();
         Db::startTrans();
         try {
-        foreach ($infos as $k=>$vs){
+        foreach ($infos as $ks=>&$vs){
+            if(!$validate->scene('add')->check($vs)){
+                //为了可以得到错误码
+                $error = explode('|',$validate->getError());
+                $this->return_data(0,$error[1],$error[0]);
+            }
            $info =  Curriculums::create($vs);
         }
             Db::commit();
@@ -223,10 +271,6 @@ class Index extends Basess
            $this->return_data(0,50000,'导入失败');
        }
     }
-
-
-
-
     //导出excil
     public  function  currm_export(){
         $suball = db('subjects')->select();
