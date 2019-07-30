@@ -14,7 +14,7 @@ class Classroom extends Validate
 {
     protected $rule = [
         'room_id'=>'require',
-        'room_name'=>'require|max:8|unique:Classrooms',
+        'room_name'=>'require|max:8',
         'room_count'=>'require|between:1,9999',
         'status'=>'require|in:1,2',
     ];

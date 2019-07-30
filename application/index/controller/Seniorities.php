@@ -12,7 +12,7 @@ use think\Controller;
 use think\Exception;
 
 
-class Seniorities extends Controller
+class Seniorities extends BaseController
 {
     /*
      * 查看资历
@@ -23,7 +23,7 @@ class Seniorities extends Controller
             ->field('seniority_id as s_id, seniority_name as s_name')
             ->order('sort')
             ->paginate(20);
-        dump(json_encode($data));
+        $this->return_data(1,'', '', $data);
     }
 
     /*
@@ -52,7 +52,7 @@ class Seniorities extends Controller
         {
             $this->return_data(0, '50000', '服务器错误');
         }
-        $this->return_data();
+        $this->return_data(1, '', '添加资历成功','');
     }
 
     /*
@@ -83,7 +83,7 @@ class Seniorities extends Controller
     }
 
     /*
-     * 添加资历
+     * 修改资历
      */
     public function edit()
     {
