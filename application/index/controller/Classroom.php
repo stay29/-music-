@@ -14,7 +14,7 @@ use think\Exception;
 
 
 
-class Classroom extends Controller
+class Classroom extends BaseController
 {
     /**
      * 获取教室列表
@@ -123,6 +123,40 @@ class Classroom extends Controller
         }
     }
 
+    public function template()
+    {
+        $org_id = input('orgid');
+        $xlsName  = "classroom";
+        $xlsCell  = array(
+            array('name', '教室名称'),
+            array('count','容纳人数'),
+            array('status','状态'),
+        );
+        if (empty($org_id))
+        {
+            $this->return_data(0, '10000', '缺少参数');
+        }
+        $xlsData = db('classrooms')->
+            where('or_id','=' , $org_id)->
+            field('room_name as name, room_count as count, status')
+            ->limit(1)
+            ->select();
+        $data = [];
+        foreach ($xlsData as $k=>$v)
+        {
+            if($v['status'] == 1)
+            {
+                $v['status'] = '可用';
+            }
+            else
+            {
+                $v['status'] = '不可用';
+            }
+            $data[] = $v;
+        }
+        $this->exportExcel($xlsName,$xlsCell,$data);
+    }
+
     public function import(){
         header("content-type:text/html;charset=utf-8");
         //上传excel文件
@@ -173,6 +207,7 @@ class Classroom extends Controller
 
     // 教室导出
     public function export(){
+        $org_id = input('orgid');
         $xlsName  = "classroom";
         $xlsCell  = array(
             array('id','教室ID'),
@@ -181,10 +216,10 @@ class Classroom extends Controller
             array('status','状态'),
         );
 
-        $xlsData = db('classrooms')->field('room_id as id, 
+        $xlsData = db('classrooms')->where('or_id', $org_id)->field('room_id as id, 
             room_name as name, room_count as count, status')->select();
-
-        foreach ($xlsData as $k => &$v)
+        $data = [];
+        foreach ($xlsData as $k => $v)
         {
             if($v['status'] == 1)
             {
@@ -194,8 +229,9 @@ class Classroom extends Controller
             {
                 $v['status'] = '不可用';
             }
+            $data[] = $v;
         }
-        $this->exportExcel($xlsName,$xlsCell,$xlsData);;
+        $this->exportExcel($xlsName,$xlsCell,$data);
     }
 
     public function exportExcel($expTitle,$expCellName,$expTableData){
@@ -220,9 +256,10 @@ class Classroom extends Controller
             }
         }
 
+        ob_end_clean();
         header('pragma:public');
         header('Content-type:application/vnd.ms-excel;charset=utf-8;name="'.$xlsTitle.'.xls"');
-        header("Content-Disposition:attachment;filename=$fileName.xls");//attachment新窗口打印inline本窗口打印
+        header("Content-Disposition:attachment;filename=$fileName.xls");
         $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
         $objWriter->save('php://output');
         exit;

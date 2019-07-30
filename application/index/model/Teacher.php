@@ -11,6 +11,7 @@ namespace app\index\model;
 
 class Teacher extends BaseModel
 {
+    protected $pk = 't_id';
     protected $table = 'erp2_teachers';
     protected $field = true;
     protected $autoWriteTimestamp = true;
@@ -53,6 +54,4 @@ class Teacher extends BaseModel
     protected function seniority(){
         return $this->hasOne('Seniorities','seniority_id','se_id');
     }
-
-
 }

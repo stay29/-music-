@@ -11,6 +11,7 @@ use app\admin\controller\AdminBase;
 use app\index\model\Teacher as TeacherModel;
 use think\Controller;
 use think\Exception;
+use think\Log;
 
 class Teacher extends BaseController
 {
@@ -44,8 +45,9 @@ class Teacher extends BaseController
      * 修改教师信息
      */
     public function edit(){
+        $t_id = input('post.id');
         $data = [
-            't_id'=>input('post.id'),
+            't_id'=>$t_id,
             't_name' => input('post.name'),
             'avator' => input('post.avator'),
             'sex' => input('post.sex',1),
@@ -56,7 +58,16 @@ class Teacher extends BaseController
             'resume' => input('post.resume'),
             'identity_card' => input('post.id_card')
         ];
+        $cur_list = input('curlist', '');
+        $cur_select = db('cur_teacher_relations')->where('t_id', '=',  $t_id)->field('cur_id')->select();
+        foreach ($cur_list as $v)
+        {
+            if(!in_array($v, $cur_select))
+            {
+                Log::write('测试日志');
+            }
 
+        }
         $validate = new \app\index\validate\Teacher();
         if (!$validate->check($data)) {
             //为了可以得到错误码
@@ -111,7 +122,6 @@ class Teacher extends BaseController
             'resume' => input('post.resume'),
             'identity_card' => input('post.id_card'),
         ];
-
         $validate = new \app\index\validate\Teacher();
         if(!$validate->scene('add')->check($data)){
             //为了可以得到错误码
@@ -120,7 +130,16 @@ class Teacher extends BaseController
         }
 
         try{
-            TeacherModel::create($data)->save();
+            $teacher = new TeacherModel;
+            $teacher->data($data);
+            $teacher->allowField(true)->save();
+            $t_id = $teacher->t_id;
+            $cur_list = input('cur_list', null);
+            foreach ($cur_list as $k=>$v)
+            {
+                $data = ['cur_id'=>$v, 't_id'=>$t_id];
+                db('cur_teacher_relations')->data($data)->insert();
+            }
             $this->return_data(1,0,'教师新增成功');
         }catch (\Exception $e){
             $this->return_data(0,50000,$e->getMessage());
@@ -181,6 +200,77 @@ class Teacher extends BaseController
         $where = [];
     }
 
+    // 教师
+    public function export(){
+        $org_id = input('orgid');
+        $xlsName  = "教师";
+        $xlsCell  = array(
+            array('t_id','教师ID'),
+            array('t_name', '教师名称'),
+            array('se', '教师资历'),
+            array('sex','教师性别'),
+            array('identity_card', '身份证'),
+            array('cellphone','电话号码'),
+            array('birthday', '生日'),
+            array('entry_time', '录入时间'),
+            array('resume', '简历')
+        );
+
+        $xlsData = db('teachers')->where('org_id', '=', $org_id)
+            ->field('t_id, t_name, sex, se_id, identity_card,
+            cellphone, birthday, entry_time, resume
+            ')->select();
+        foreach ($xlsData as $k => &$v)
+        {
+            if($v['se_id'] == 1)
+            {
+                $v['sex'] = '男';
+            }
+            elseif ($v['se_id'] == 2)
+            {
+                $v['sex'] = '女';
+            }
+            $seniorit = db('seniorities')->where('seniority_id', '=', $v['se_id'])
+                ->field('seniority_name')->find();
+            $v['se'] = $seniorit['seniority_name'];
+            $v['birthday'] = date('Y-m-d', $v['birthday']);
+            $v['entry_time'] = date('Y-m-d H:i:s', $v['entry_time']);
+        }
+        $this->exportExcel($xlsName,$xlsCell,$xlsData);;
+    }
+
+
+
+
+    protected function exportExcel($expTitle,$expCellName,$expTableData){
+        $xlsTitle = iconv('utf-8', 'gb2312', $expTitle);//文件名称
+
+        $fileName =$xlsTitle . date('_YmdHis');//or $xlsTitle 文件名称可根据自己情况设定
+        $cellNum = count($expCellName);
+        $dataNum = count($expTableData);
+
+        $objPHPExcel = new \PHPExcel();
+        $cellName = array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI','AJ','AK','AL','AM','AN','AO','AP','AQ','AR','AS','AT','AU','AV','AW','AX','AY','AZ');
+
+        $objPHPExcel->getActiveSheet(0)->mergeCells('A1:'.$cellName[$cellNum-1].'1');
+
+        for($i=0;$i<$cellNum;$i++){
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue($cellName[$i].'2', $expCellName[$i][1]);
+        }
+
+        for($i=0;$i<$dataNum;$i++){
+            for($j=0;$j<$cellNum;$j++){
+                $objPHPExcel->getActiveSheet(0)->setCellValue($cellName[$j].($i+3), $expTableData[$i][$expCellName[$j][0]]);
+            }
+        }
+
+        header('pragma:public');
+        header('Content-type:application/vnd.ms-excel;charset=utf-8;name="'.$xlsTitle.'.xls"');
+        header("Content-Disposition:attachment;filename=$fileName.xls");//attachment新窗口打印inline本窗口打印
+        $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+        $objWriter->save('php://output');
+        exit;
+    }
 }
 
 
