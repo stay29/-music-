@@ -8,6 +8,7 @@
 namespace app\index\controller;
 use think\Controller;
 use app\index\model\Users;
+use app\index\model\Organization as Organ;
 class Usersinfo extends BaseController
 {
     public  function  addusers(){
@@ -21,9 +22,15 @@ class Usersinfo extends BaseController
             'senfen'=>input('post.senfen'),
             'sex'=>input('post.sex'),
         ];
-
     }
 
+    public function user_list()
+    {
+        $orgid = input('orgid');
+        $res =  Users::where('organization',$ogrid)->select();
+        
+
+    }
 
 
 

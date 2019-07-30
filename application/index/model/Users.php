@@ -55,6 +55,7 @@ class Users extends Model
                 'intro'      => $orginfo['describe'],
                 'map'        => $orginfo['address'],
                 'remarks'    => $orginfo['remarks'],
+                'pay_state'    => $orginfo['pay_state'],
             ]
         ];
         session(md5(MA.'user'), $arr);
