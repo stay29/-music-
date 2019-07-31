@@ -9,6 +9,7 @@
 namespace app\index\controller;
 use app\admin\controller\AdminBase;
 use app\index\model\Teacher as TeacherModel;
+use function Couchbase\defaultEncoder;
 use think\Controller;
 use think\Db;
 use think\Exception;
@@ -46,7 +47,7 @@ class Teacher extends BaseController
      * 修改教师信息
      */
     public function edit(){
-        $t_id = input('post.id');
+        $t_id = input('post.t_id');
         $data = [
             't_id'=>$t_id,
             't_name' => input('post.name'),
@@ -84,16 +85,14 @@ class Teacher extends BaseController
             $this->return_data(0, '10000', '缺少t_id');
         }
         try {
+            $tmp = db('teach_schedules')->field('t_id')->where('t_id' ,'=', $t_id)->find();
+            if(!empty($tmp))
+            {
+                $this->return_data(0,'20003', '已排课，删除失败');
+            }
+            db('teachers')->where('t_id', '=', $t_id)->delete();
+            $this->return_data(1, '','删除教师成功',true);
 
-            $res = db('teachers')->where('t_id', '=', $t_id)->delete();
-            if($res)
-            {
-                $this->return_data(1, '', '', '删除教师成功');
-            }
-            else
-            {
-                $this->return_data(0, '20003', '删除教师失败');
-            }
         }catch (Exception $e)
         {
             $this->return_data(0, '20003', '删除教师失败');
@@ -105,8 +104,8 @@ class Teacher extends BaseController
      */
     public function detail()
     {
-        $org_id = input('orgid', null);
-        $t_id = input('tid', null);
+        $org_id = input('org_id', null);
+        $t_id = input('t_id', null);
         if (!isset($org_id) || !isset($t_id))
         {
             $this->return_data(0, '10000', '缺少参数');
@@ -147,7 +146,7 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
     public function add(){
 
         $data = [
-            't_name' => input('post.name'),
+            't_name' => input('post.t_name'),
             'avator' => input('post.avator'),
             'sex' => input('post.sex',1),
             'se_id' => input('post.se_id'),
@@ -186,7 +185,7 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
      */
     public function jobStatus()
     {
-        $t_id = input('post.id');
+        $t_id = input('post.t_id');
         $status = input('post.status', null);
         if(empty($status) || empty($t_id))
         {
@@ -258,7 +257,7 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
      */
     public function template()
     {
-        $org_id = input('orgid');
+        $org_id = input('org_id');
         $xlsName  = "教师";
         $xlsCell  = array(
             array('t_name', '教师名称'),
@@ -280,44 +279,18 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
                 'cellphone' => '13832832888',
                 'birthday'  => '1999-11-12',
                 'entry_time' => '2019-7-15',
-                'resume'  =>  '十分靓仔'
+                'resume'  =>  '十年经验'
             ]
         ];
-//        $xlsData = db('teachers')->where('org_id', '=', $org_id)
-//            ->field('t_id, t_name, sex, se_id, identity_card,
-//            cellphone, birthday, entry_time, resume
-//            ')->select();
-//        foreach ($xlsData as $k => &$v)
-//        {
-//            if($v['se_id'] == 1)
-//            {
-//                $v['sex'] = '男';
-//            }
-//            elseif ($v['se_id'] == 2)
-//            {
-//                $v['sex'] = '女';
-//            }
-//            $seniorit = db('seniorities')->where('seniority_id', '=', $v['se_id'])
-//                ->field('seniority_name')->find();
-//            $v['se'] = $seniorit['seniority_name'];
-//            $v['birthday'] = date('Y-m-d', $v['birthday']);
-//            $v['entry_time'] = date('Y-m-d H:i:s', $v['entry_time']);
-//        }
         $this->exportExcel($xlsName,$xlsCell,$xlsData);;
     }
 
 
-    /*
-     * 教师课表
-     */
-    public function LessonTable()
-    {
-        $tid = input('t_id', '');
-    }
+
 
     // 教师导出
     public function export(){
-        $org_id = input('orgid');
+        $org_id = input('org_id');
         $xlsName  = "教师";
         $xlsCell  = array(
             array('t_id','教师ID'),
@@ -386,24 +359,176 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
         $objWriter->save('php://output');
         exit;
     }
-}
 
-
-class TeacherService
-{
-    /** 获取教师所带学生列表
-     * @param $t_id 教师ID
+    /**
+     * 教师薪酬设置
      */
-    public static function getStudent($t_id)
+    public function salary()
     {
-        //
+        $t_id = input('t_id', null);
+        if (!isset($t_id))
+        {
+            $this->return_data(0, '10000', '缺少参数');
+        }
+        if ($this->request->isGet())
+        {
+            $data = [];
+            $this->return_data(1, '', '', $data);
+        }
+        elseif($this->request->isPost())
+        {
+            $data = [];
+            $this->return_data(1, '', '', $data);
+        }
+        else
+        {
+            $this->return_data(0, '10001', '请求非法');
+        }
     }
 
-    /** 删除教师课程
-     * @param $t_id
+    /**
+     * 教师调度
      */
+    public function dispatch()
+    {
+        $t_id = input('t_id', null);
+        $org_id = input('org_id', null);
+        if (!isset($t_id) || !isset($org_id))
+        {
+            $this->return_data(0, '10000', '缺少参数');
+        }
+        // 这里需要判断是否排课了。
+        Db::startTrans();
+        try {
+            Db::table('erp2_teachers')->where('t_id', '=', $t_id)->update(['org_id'=>$org_id]);
+            Db::commit();
+            $this->return_data(1, '', '调度成功', true);
+        } catch (\Exception $e) {
+            // 回滚事务
+            Db::rollback();
+            $this->return_data(0, '20002', '调度失败', false);
+        }
 
+    }
+
+    /*
+    * 教师课表
+    */
+    public function schedule()
+    {
+        $allCode = 1;  // 全部
+        $curYearCode = 2; // 本年
+        $curMonthCode = 3;  // 本月
+        $tid = input('t_id', null);
+        $startTime = input('startTime', null);
+        $endTime = input('endTime', null);
+        $type = input('type', 1);  // 默认是全部
+        $courseId = input('courseId', null); // 通过课程ID筛选
+        $page = input('page', 1);
+        $pageSize = input('size', 10);
+        if (!isset($tid))
+        {
+            $this->return_data(0, '10000', '缺少参数');
+        }
+        // 查询课表数据
+        $sql = "SELECT A.sc_id, A.t_id,A.cur_time, D.cur_name, B.stu_id, B.truename AS stu_name, C.room_id, C.room_name, A.status
+ FROM (`erp2_teach_schedules` AS A  INNER JOIN `erp2_students` AS B ON A.stu_id=B.stu_id) 
+ INNER JOIN `erp2_classrooms` AS C ON A.room_id=C.room_id 
+ INNER JOIN `erp2_curriculums` AS D ON A.cur_id=D.cur_id WHERE A.t_id={$tid}";
+
+        // 查询时间范围
+        if (isset($startTime) and isset($endTime))
+        {
+            $rangeTime = "AND cur_name BETWEEN {$startTime} AND {$endTime}";
+            $sql .= $rangeTime;
+        }else
+        {
+            if($type==$curYearCode) //查询本年数据
+            {
+                $curYear = "AND DATE_FORMAT(A.cur_time,'%Y') = DATE_FORMAT(SYSDATE(),'%Y')";
+                $sql .= $curYear;
+            }
+            elseif ($type==$curMonthCode){ // 查询本月数据
+                $curMonth = "AND DATE_FORMAT( A.cur_time, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )";
+                $sql .= $curMonth;
+            }
+        }
+        if(isset($courseId))
+        {
+            $selectCourse = "AND A.cur_id={$courseId}";
+            $sql .= $selectCourse;
+        }
+        $startNum = ($page - 1) * $pageSize;
+        $limit = "LIMIT {$startNum}, $pageSize";
+        $sql .= $limit;
+        $data = Db::query($sql);
+        $this->return_data(1, '', '', $data);
+    }
+
+    /**
+     * 删除排课记录
+     */
+    public function delSchedule()
+    {
+        $sc_id = input('sc_id', null);
+        if(!isset($sc_id))
+        {
+            $this->return_data(0, '10000', '缺少参数');
+        }
+
+    }
+
+    /**
+     * 调课
+     */
+    public function changeSchedule()
+    {
+        $data = [
+            'sc_id' => input('sc_id/d', ''),
+            't_id'  => input('t_id/d', ''),
+            'cur_time' => input('cur_time/d', ''),
+            'room_id' => input(''),
+            'remark'  => input('remark', null),
+        ];
+        foreach ($data as $k=>$v)
+        {
+
+        }
+    }
+
+    /*
+     * 课程顺延
+     */
+    public function schedulePostpone()
+    {
+
+    }
+
+    /**
+     * 请假
+     */
+    public function pending()
+    {
+
+    }
+
+    /**
+     * 旷课
+     */
+    public function updateTruancy()
+    {
+
+    }
+
+    /*
+     * 取消旷课
+     */
+    public function cancelTruancy()
+    {
+
+    }
 }
+
 
 
 //class Teacher extends BaseController

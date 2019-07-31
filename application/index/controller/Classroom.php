@@ -11,7 +11,7 @@ use app\index\model\Classroom as ClsModel;
 use think\Controller;
 use PHPExcel;
 use think\Exception;
-
+use think\Log;
 
 
 class Classroom extends BaseController
@@ -181,7 +181,7 @@ class Classroom extends BaseController
                 $data['room_count']     = $excel->getActiveSheet()->getCell("B".$i)->getValue();
                 $data['status']     = $excel->getActiveSheet()->getCell("C".$i)->getValue();
                 //将数据保存到数据库
-                // $res = Db::name('user1')->insert($data);
+                ClsModel::create($data)->save();
             }
             $this->return_data(1, '', '导入成功');
         }catch (Exception $e)
