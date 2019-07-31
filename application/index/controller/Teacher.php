@@ -7,13 +7,11 @@
  */
 
 namespace app\index\controller;
-use app\admin\controller\AdminBase;
 use app\index\model\Teacher as TeacherModel;
-use function Couchbase\defaultEncoder;
-use think\Controller;
 use think\Db;
 use think\Exception;
 use think\Log;
+
 
 class Teacher extends BaseController
 {
@@ -185,14 +183,23 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
      */
     public function jobStatus()
     {
-        $t_id = input('post.t_id');
-        $status = input('post.status', null);
+        $t_id = input('post.t_id', '');
+        $status = input('post.status', '');
         if(empty($status) || empty($t_id))
         {
             $this->return_data(0, '10000', '缺少必填参数');
         }
         try
         {
+            // 排课后无法离职
+            if($status == 2)
+            {
+                $tmp = db('teach_schedules')->field('t_id')->where('t_id' ,'=', $t_id)->find();
+                if(!empty($tmp))
+                {
+                    $this->return_data(0,'20003', '已排课，离职失败');
+                }
+            }
             $res = TeacherModel::where('t_id', '=', $t_id)->update(['status'=>$status]);
             if($res)
             {
@@ -222,7 +229,7 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
         $cur_id = input('cur_id'); //课程ID
         try
         {
-            $res = db('cur_teacher_relations')->where(['t_id'=>$t_id, 'cur_id'=>$cur_id])->delete();
+            db('cur_teacher_relations')->where(['t_id'=>$t_id, 'cur_id'=>$cur_id])->delete();
             $this->return_data(1, '', '删除成功', '');
         }catch (Exception $e)
         {
@@ -310,11 +317,11 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
             ')->select();
         foreach ($xlsData as $k => &$v)
         {
-            if($v['se_id'] == 1)
+            if($v['sex'] == 1)
             {
                 $v['sex'] = '男';
             }
-            elseif ($v['se_id'] == 2)
+            elseif ($v['sex'] == 2)
             {
                 $v['sex'] = '女';
             }
@@ -397,7 +404,11 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
         {
             $this->return_data(0, '10000', '缺少参数');
         }
-        // 这里需要判断是否排课了。
+        $tmp = db('teach_schedules')->field('t_id')->where('t_id' ,'=', $t_id)->find();
+        if(!empty($tmp))
+        {
+            $this->return_data(0,'20003', '已排课，无法调度');
+        }
         Db::startTrans();
         try {
             Db::table('erp2_teachers')->where('t_id', '=', $t_id)->update(['org_id'=>$org_id]);
@@ -410,6 +421,33 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
         }
 
     }
+
+    /**
+     * 班级换老师
+     */
+    public function changeTeacher()
+    {
+        //erp2_classes_teachers_realations
+        $cls_id = input('cls_id', '');  //　班级id
+        $t_id = input('t_id', ''); // 当前教师id
+        $new_t_id = input('new_t_id', '');// 新教师id
+        if(empty($t_id) || empty($new_t_id) || empty($cls_id))
+        {
+            $this->return_data(0, '10000', '缺少参数', false);
+        }
+        try
+        {
+            $where[] = ['t_id', '=', $t_id];
+            $where[] = ['cls_id', '=', $t_id];
+            $data = ['t_id' => $new_t_id];
+            db('classes_teachers_realations')->where($where)->update($data);
+            $this->return_data(1,'', '更换教师成功', true);
+        }catch (Exception $e)
+        {
+            $this->return_data(0, '20002', '更换教师失败', false);
+        }
+    }
+
 
     /*
     * 教师课表
@@ -475,7 +513,14 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
         {
             $this->return_data(0, '10000', '缺少参数');
         }
-
+        try
+        {
+            db('teach_schedules')->where('sc_id', '=', $sc_id)->delete();
+            $this->return_data(1, '','删除排课记录成功',true);
+        }catch (Exception $e)
+        {
+            $this->return_data(0, '', '删除排课记录失败', false);
+        }
     }
 
     /**
@@ -483,16 +528,52 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
      */
     public function changeSchedule()
     {
-        $data = [
-            'sc_id' => input('sc_id/d', ''),
+        $sc_id = input('sc_id/d', '');
+        $cur_id = input('cur_id', '');
+        if (empty($sc_id) || empty($cur_id))
+        {
+            $this->return_data(0, '10000', '缺少参数', false);
+        }
+        $temp = [
             't_id'  => input('t_id/d', ''),
             'cur_time' => input('cur_time/d', ''),
-            'room_id' => input(''),
-            'remark'  => input('remark', null),
+            'room_id' => input('room_id/d', ''),
+            'remark'  => input('remark', ''),
         ];
-        foreach ($data as $k=>$v)
+        $data  = [];
+        foreach ($temp as $k=>$v)
         {
+            if (!empty($v))
+            {
+                $data[$k] = $v;
+            }
+        }
+        // 更改了上课时间需要判断是否合法
+        if (isset($data['cur_time']))
+        {
+            if($data['cur_time']  < time())
+            {
+                $this->return_data(0, '10001', '排课时间有误');
+            }
+            // 课程时长分钟数
+            $cur_min = db('curriculums')->where('cur_id', '=', $cur_id)->field('ctime')->find();
 
+            $end_time = $data['cur_time'] + $cur_min * 60;
+            $start_time = $data['cur_time'];
+            $sql = "SELECT * FROM erp2_teach_schedules WHERE cur_time BETWEEN {$start_time} AND {$end_time};";
+            $res = Db::query($sql);
+            if(!empty($res))
+            {
+                $this->return_data(0, '20002', '调课失败');
+            }
+
+        }
+        try{
+            db('teach_schedules')->where('sc_id', '=', $sc_id)->update($data);
+            $this->return_data(1, '', '', true);
+        }catch (Exception $e)
+        {
+            $this->return_data(0, '20002', '调课失败');
         }
     }
 
@@ -501,15 +582,85 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
      */
     public function schedulePostpone()
     {
-
+        $sc_id = input('sc_id', '');
+        if(empty($sc_id))
+        {
+            $this->return_data(0, '', '缺少参数', false);
+        }
+        // 查询上课时间，　和课程时长
+        $sql = "SELECT A.cur_time, B.ctime FROM erp2_teach_schedules
+                AS A INNER JOIN erp2_curriculums B ON A.cur_id=B.cur_id WHERE A.sc_id={$sc_id}";
+        $data = Db::query($sql);
+        $cur_time = $data['cur_time'];
+        $c_time = $data['ctime'];
+        $day_timestamp =  60 * 60 * 24; // 顺延一天
+        $start_time = $cur_time + $day_timestamp; // 顺延后的上课时间
+        $end_time = $cur_time + $day_timestamp + $c_time * 60; // 顺延后的课程结束时间
+        $sql = "SELECT * FROM erp2_teach_schedules WHERE cur_time BETWEEN {$start_time} AND {$end_time};";
+        $res = Db::query($sql);
+        if (!empty($res))
+        {
+            $this->return_data(0, '20002', '顺延失败, 课程冲突', false);
+        }
+        try{
+            db('teach_schedules')->where('sc_id', '=', $sc_id)->update(['cur_time' => $cur_time]);
+            $this->return_data(1, '', '顺延成功', true);
+        }catch (Exception $e)
+        {
+            $this->return_data(0, '', '服务器错误', false);
+        }
     }
 
     /**
      * 请假
      */
-    public function pending()
+    public function updatePending()
     {
+        /** erp2_teach_schedule表状态:
+         *1 是正常
+         *2 是消课
+         *3 是请假
+         *4 是旷课
+         */
+        $status = 3;
+        $sc_id = input('sc_id', '');
+        $level = input('level', 1); // 1事假, 2病假, 老师请假
+        if(empty($sc_id) || $level)
+        {
+            $this->return_data(0, '10000', '缺少参数');
+        }
+        try
+        {
+            db('teach_schedules')->where('sc_id', '=', $sc_id)
+            ->update(['level'=> $level, 'status'=>$status]);
+            $this->return_data(1, '', '请假成功', true);
+        }catch (Exception $e)
+        {
+            $this->return_data(0, '', '服务器错误，　请假失败', true);
+        }
+    }
 
+    /**
+     * 取消请假状态
+     */
+    public function cancelPending()
+    {
+        $status = 1;  //　设为正常状态
+        $sc_id = input('sc_id', '');
+        $level = 0; // 1事假, 2病假, 3老师请假, 0 非请假
+        if(empty($sc_id) || $level)
+        {
+            $this->return_data(0, '10000', '缺少参数');
+        }
+        try
+        {
+            db('teach_schedules')->where('sc_id', '=', $sc_id)
+                ->update(['level'=> $level, 'status'=>$status]);
+            $this->return_data(1, '', '取消请假成功', true);
+        }catch (Exception $e)
+        {
+            $this->return_data(0, '', '服务器错误，　请假失败', true);
+        }
     }
 
     /**
@@ -517,7 +668,21 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
      */
     public function updateTruancy()
     {
-
+        $status = 4;  //　设为旷课状态
+        $sc_id = input('sc_id', '');
+        if(empty($sc_id))
+        {
+            $this->return_data(0, '10000', '缺少参数');
+        }
+        try
+        {
+            db('teach_schedules')->where('sc_id', '=', $sc_id)
+                ->update(['status'=>$status]);
+            $this->return_data(1, '', '取消请假成功', true);
+        }catch (Exception $e)
+        {
+            $this->return_data(0, '', '服务器错误，　请假失败', true);
+        }
     }
 
     /*
@@ -525,84 +690,43 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
      */
     public function cancelTruancy()
     {
+        $status = 1;  //　设为正常状态
+        $sc_id = input('sc_id', '');
+        if(empty($sc_id))
+        {
+            $this->return_data(0, '10000', '缺少参数');
+        }
+        try
+        {
+            db('teach_schedules')->where('sc_id', '=', $sc_id)
+                ->update(['status'=>$status]);
+            $this->return_data(1, '', '取消旷课成功', true);
+        }catch (Exception $e)
+        {
+            $this->return_data(0, '', '服务器错误，　请假失败', true);
+        }
+    }
 
+    /*
+     * 还原默认状态
+     */
+    public function scheduleRecover()
+    {
+        $status = 1;  //　设为正常状态
+        $sc_id = input('sc_id', '');
+        if(empty($sc_id))
+        {
+            $this->return_data(0, '10000', '缺少参数');
+        }
+        try
+        {
+            db('teach_schedules')->where('sc_id', '=', $sc_id)
+                ->update(['status'=>$status]);
+            $this->return_data(1, '', '还原成功', true);
+        }catch (Exception $e)
+        {
+            $this->return_data(0, '', '服务器错误，　请假失败', true);
+        }
     }
 }
 
-
-
-//class Teacher extends BaseController
-//{
-//    /**
-//     * 我的查询，用于搜索
-//     */
-//    protected function _where($model){
-//        if(!$model){
-//            return '';
-//        }
-//        $teacher_name = input('get.teacher_name');
-//        $status = input('get.status/d');
-//        $se_id = input('get.se_id/d');
-//        $status?$model->where('status',$status):'';
-//        $se_id?$model->where('se_id',$se_id):'';
-//        $teacher_name?$model->whereLike('t_name','%'.$teacher_name.'%'):'';
-//
-//        return $model;
-//    }
-//    /**
-//     * 教师列表
-//     */
-//    public function get(){
-//       $model = \app\index\model\Teacher
-//            ::field('t_id as id,t_name as name,sex,cellphone,birthday,entry_time,status,se_id')
-//            ->order('create_time desc');
-//       $res = $this->_where($model)->paginate(20);
-//
-//       $this->return_data(1,0,'',$res);
-//    }
-//    /**
-//     * 新增教师
-//     */
-
-//
-//
-//    /**
-//     * 编辑教师
-//     */
-
-//
-//    /**
-//     * 设置某些字段，如离职
-//     */
-//    public function set_field(){
-//        $id = input('id/d');
-//        $field = input('field');
-//        $action = input('action');
-//        $data = [
-//            't_id'=>$id,
-//            'field'=>$field,
-//            'action'=>$action
-//        ];
-//        $validate = new \app\index\validate\Teacher();
-//        if(!$validate->scene('field')->check($data)){
-//            //为了可以得到错误码
-//            $error = explode('|',$validate->getError());
-//            $this->return_data(0,$error[1],$error[0]);
-//        }
-//        $sinfo = '';
-//        try{
-//            switch ($field){
-//                case 1://离职
-//                    $field = 'status';
-//                    $sinfo = '离职成功';
-//                    break;
-//            }
-//            \app\index\model\Teacher::where('t_id',$id)->update([$field=>$action]);
-//            $this->return_data(1,0,$sinfo);
-//        }catch (\Exception $e){
-//            $this->return_data(0,50000,$e->getMessage());
-//        }
-//
-//
-//    }
-//}
