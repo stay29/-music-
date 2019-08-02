@@ -8,8 +8,10 @@ class Students extends Model
 {
     protected $pk = 'stu_id';
 
+    // auto write create_time, update_time
     protected $autoWriteTimestamp = true;
 
+    //
     protected $insert = ['status' => 1];
 
     protected $type = [

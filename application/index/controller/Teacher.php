@@ -12,11 +12,14 @@ use think\Db;
 use think\Exception;
 use think\Log;
 
-
+/*
+ * Teacher-related Functional Controller
+ */
 class Teacher extends BaseController
 {
     /*
-     * 教师列表
+     * Returning the details of teachers
+     * can be screened by teachers'qualifications and on-the-job status of teachers' names.
      */
     public function index()
     {
@@ -42,7 +45,7 @@ class Teacher extends BaseController
     }
 
     /*
-     * 修改教师信息
+     * Modifying Teacher Information Method
      */
     public function edit(){
         $t_id = input('post.t_id');
@@ -73,7 +76,7 @@ class Teacher extends BaseController
     }
 
     /*
-     * 删除教师
+     * Delete teacher by teacher's id.
      */
     public function del()
     {
@@ -98,7 +101,7 @@ class Teacher extends BaseController
     }
 
     /**
-     * 教师详情
+     * Show teacher's detail information.
      */
     public function detail()
     {
@@ -108,23 +111,23 @@ class Teacher extends BaseController
         {
             $this->return_data(0, '10000', '缺少参数');
         }
-        // 查询教师详情信息
+        //Inquiry for Teacher Details
         $teacher_sql = "SELECT seniority_id as se_id, seniority_name as se_name,
 	                A.t_id as tid, A.t_name as name, A.sex, A.cellphone, A.birthday, A.entry_time, A.status,  A.resume
                     FROM erp2_teachers AS A INNER JOIN 
                         erp2_seniorities AS B ON A.se_id=B.seniority_id WHERE A.t_id={$t_id};";
 
-        // 查询教师所教课程
+        // Inquire about the courses taught by teachers
         $teacher_cur_sql = "SELECT B.cur_id, B.cur_name FROM erp2_cur_teacher_relations 
                         AS A INNER JOIN erp2_curriculums AS B ON A.cur_id=B.cur_id 
                         WHERE A.t_id={$t_id};";
 
-        // 查询教师所带学生
+        // Inquire about the students brought by the teachers
         $teacher_stu_sql = "SELECT C.stu_id, C.truename as stu_name FROM (erp2_classes_teachers_realations AS A INNER JOIN 
 erp2_class_student_relations AS B ON A.cls_id=B.class_id) INNER JOIN erp2_students AS C
 ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
 
-        // 查询教师所带班级满勤率
+        // Inquire about the full attendance rate of the teacher's class
         $full_rate_sql = "SELECT B.class_name, count(C.stu_id)/B.class_count AS fullrat FROM (erp2_classes_teachers_realations AS A INNER JOIN erp2_classes AS B ON A.cls_id=B.class_id)
 	INNER JOIN erp2_class_student_relations AS C ON B.class_id=C.class_id WHERE t_id={$t_id} GROUP BY C.stu_id;";
 
@@ -140,6 +143,7 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
         ];
         $this->return_data(1, '', $data);
     }
+
 
     public function add(){
 
@@ -259,80 +263,6 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
         }
     }
 
-    /*
-     * 教师模板下载
-     */
-    public function template()
-    {
-        $org_id = input('org_id');
-        $xlsName  = "教师";
-        $xlsCell  = array(
-            array('t_name', '教师名称'),
-            array('se', '教师资历'),
-            array('sex','教师性别'),
-            array('identity_card', '身份证'),
-            array('cellphone','电话号码'),
-            array('birthday', '生日'),
-            array('entry_time', '入职时间'),
-            array('resume', '简历')
-        );
-
-        $xlsData = [
-            [
-                't_name'=>'林老师',
-                'se' => '高级',
-                'sex' => '男',
-                'identity_card' => '43523664139694xx',
-                'cellphone' => '13832832888',
-                'birthday'  => '1999-11-12',
-                'entry_time' => '2019-7-15',
-                'resume'  =>  '十年经验'
-            ]
-        ];
-        $this->exportExcel($xlsName,$xlsCell,$xlsData);;
-    }
-
-
-
-
-    // 教师导出
-    public function export(){
-        $org_id = input('org_id');
-        $xlsName  = "教师";
-        $xlsCell  = array(
-            array('t_id','教师ID'),
-            array('t_name', '教师名称'),
-            array('se', '教师资历'),
-            array('sex','教师性别'),
-            array('identity_card', '身份证'),
-            array('cellphone','电话号码'),
-            array('birthday', '生日'),
-            array('entry_time', '录入时间'),
-            array('resume', '简历')
-        );
-
-        $xlsData = db('teachers')->where('org_id', '=', $org_id)
-            ->field('t_id, t_name, sex, se_id, identity_card,
-            cellphone, birthday, entry_time, resume
-            ')->select();
-        foreach ($xlsData as $k => &$v)
-        {
-            if($v['sex'] == 1)
-            {
-                $v['sex'] = '男';
-            }
-            elseif ($v['sex'] == 2)
-            {
-                $v['sex'] = '女';
-            }
-            $seniorit = db('seniorities')->where('seniority_id', '=', $v['se_id'])
-                ->field('seniority_name')->find();
-            $v['se'] = $seniorit['seniority_name'];
-            $v['birthday'] = date('Y-m-d', $v['birthday']);
-            $v['entry_time'] = date('Y-m-d H:i:s', $v['entry_time']);
-        }
-        $this->exportExcel($xlsName,$xlsCell,$xlsData);;
-    }
 
     /*
      * 导入EXCEL

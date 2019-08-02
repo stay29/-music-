@@ -8,22 +8,38 @@ use think\Request;
 use app\index\validate\Students as StuValidate;
 use app\index\model\Students as StuModel;
 
+/*
+ * Student-related Functional Controller.
+ */
+
 
 class Students extends BaseController
 {
     /*
-     * 显示学生列表
+     * Show students records filter by status.
      */
     public function index()
     {
+        $status = input('status', '');
+        $orgid = input('orgid', '');
         $list_rows = input('list_rows', 10);
-        $students = db('students')->field('stu_id, truename, sex, birthday,
-        cellphone, wechat, address, remark')->page($list_rows);
+        $where[] = ['org_id', '=', $orgid];
+
+        if(empty($orgid))
+        {
+            $this->return_data(0, '10000', '缺少参数');
+        }
+        if (!empty($status))
+        {
+            $where[] = ['status', '=', $status];
+        }
+        $students = db('students')->field('stu_id, truename as stu_name, sex, birthday,
+                cellphone, wechat, address, remark')->where($where)->paginate($list_rows);
         $this->return_data(1, '', '', $students);
     }
 
     /*
-     * 修改学生信息
+     * Modify Student Records
      */
     public function edit()
     {
@@ -50,7 +66,7 @@ class Students extends BaseController
     }
 
     /*
-     * 删除学生信息
+     * Delete Students Records
      */
     public function del()
     {
@@ -69,10 +85,11 @@ class Students extends BaseController
     }
 
     /*
-     * 增加学生信息
+     * Creating Student Records
      */
     public function add()
     {
+
         if(!$this->request->isPost())
         {
             $this->return_data(0, '10007', '请用post方法提交数据');
@@ -80,6 +97,7 @@ class Students extends BaseController
         $data = input();
         $validate = new StuValidate();
 
+        // validate data.
         if(!$validate->scene('add')->check($data)){
             $error = explode('|',$validate->getError());
             $this->return_data(0,$error[1],$error[0]);
@@ -95,65 +113,12 @@ class Students extends BaseController
         }
     }
 
-    public function schdule()
-    {
-
-    }
-
-
-    /*
-     * 导入学生
-     */
-    public function importStu()
-    {
-
-    }
-
     /**
-     * 导入购课信息
+     * Return data of student schedule
      */
-    public function importCourse()
+    public function schedule()
     {
 
     }
 
-
-    /** 导出EXCEL文件
-     * @param $expTitle
-     * @param $expCellName
-     * @param $expTableData
-     * @throws \PHPExcel_Exception
-     * @throws \PHPExcel_Reader_Exception
-     * @throws \PHPExcel_Writer_Exception
-     */
-    public function exportExcel($expTitle,$expCellName,$expTableData){
-        $xlsTitle = iconv('utf-8', 'gb2312', $expTitle);//文件名称
-
-        $fileName =$xlsTitle . date('_YmdHis');//or $xlsTitle 文件名称可根据自己情况设定
-        $cellNum = count($expCellName);
-        $dataNum = count($expTableData);
-
-        $objPHPExcel = new \PHPExcel();
-        $cellName = array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI','AJ','AK','AL','AM','AN','AO','AP','AQ','AR','AS','AT','AU','AV','AW','AX','AY','AZ');
-
-        $objPHPExcel->getActiveSheet(0)->mergeCells('A1:'.$cellName[$cellNum-1].'1');
-
-        for($i=0;$i<$cellNum;$i++){
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue($cellName[$i].'2', $expCellName[$i][1]);
-        }
-
-        for($i=0;$i<$dataNum;$i++){
-            for($j=0;$j<$cellNum;$j++){
-                $objPHPExcel->getActiveSheet(0)->setCellValue($cellName[$j].($i+3), $expTableData[$i][$expCellName[$j][0]]);
-            }
-        }
-
-        ob_end_clean();
-        header('pragma:public');
-        header('Content-type:application/vnd.ms-excel;charset=utf-8;name="'.$xlsTitle.'.xls"');
-        header("Content-Disposition:attachment;filename=$fileName.xls");
-        $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
-        $objWriter->save('php://output');
-        exit;
-    }
 }

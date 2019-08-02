@@ -4,11 +4,21 @@ namespace app\index\controller;
 
 use app\index\model\Classroom as ClsModel;
 use think\Controller;
+use think\Db;
 use think\Exception;
-use think\Request;
 
+/*
+* Basic Controller Provides Information Interface for Import, Export and Return
+*/
 class ExcelBase extends Controller
 {
+
+
+    /**
+     * Return error's code and error's message.
+     * @param $error_code
+     * @param $error_msg
+     */
     public function returnError($error_code, $error_msg)
     {
         $data = [
@@ -19,6 +29,12 @@ class ExcelBase extends Controller
         ];
         echo json_encode($data);
     }
+
+    /**
+     * Returns the status and data of the successful request
+     * @param $info
+     * @param $data
+     */
     public function returnData($info, $data)
     {
         $data = [
@@ -30,10 +46,21 @@ class ExcelBase extends Controller
         echo json_encode($data);
     }
 
+    /**
+     * General excel import method
+     * @param $expTitle
+     * @param $expCellName
+     * @param $expTableData
+     * @throws \PHPExcel_Exception
+     * @throws \PHPExcel_Reader_Exception
+     * @throws \PHPExcel_Writer_Exception
+     */
     public function exportExcel($expTitle,$expCellName,$expTableData){
-        $xlsTitle = iconv('utf-8', 'gb2312', $expTitle);//文件名称
 
-        $fileName =$xlsTitle . date('_YmdHis');//or $xlsTitle 文件名称可根据自己情况设定
+        $xlsTitle = iconv('utf-8', 'gb2312', $expTitle);
+
+        $fileName = $xlsTitle . date('_YmdHis');
+
         $cellNum = count($expCellName);
         $dataNum = count($expTableData);
 
@@ -59,11 +86,66 @@ class ExcelBase extends Controller
         $objWriter->save('php://output');
         exit;
     }
+
+
+    /*
+     * Read data from EXCEL into an array
+     */
+    public function getExcelData($request)
+    {
+        $file = $request->file('excel');
+        // save excel file to path: public/uploads/excel/
+        $info = $file->validate(['size'=>1048576,'ext'=>'xls, xlsx'])->move( UPLOAD_DIR . 'excel/');
+        if($info){
+
+            $fileName = $info->getSaveName();
+            $filePath = UPLOAD_DIR.'excel/'. $fileName;
+            $suffix = $info->getExtension();
+
+            if($suffix=="xlsx"){
+                $reader = \PHPExcel_IOFactory::createReader('Excel2007');
+            }else{
+                $reader = PHPExcel_IOFactory::createReader('Excel5');
+            }
+        }else{
+            $this->error('文件过大或格式不正确导致上传失败-_-!');
+        }
+
+        $excel = $reader->load("$filePath", $encode = 'utf-8');
+        $data = $excel->getSheet(0)->toArray();
+        array_shift($data);
+        return $data;
+    }
+
+
+    /*
+     * Get the uploaded excel file path
+     */
+    public function getExcelPath($request)
+    {
+        $file = $request->file('excel');
+        // save excel file to path: public/uploads/excel/
+        $info = $file->validate(['size'=>1048576,'ext'=>'xls, xlsx'])->move( UPLOAD_DIR . 'excel/');
+        if($info)
+        {
+            $fileName = $info->getSaveName();
+            $filePath = UPLOAD_DIR.'excel/'. $fileName;
+            return $filePath;
+        }
+        else {
+            $this->returnError('30000', '文件上传失败');
+        }
+    }
 }
 
-
+/*
+ * All excel import and export template download classes
+ */
 class Excel extends ExcelBase
 {
+    /*
+     * Template Download for classroom information import
+     */
     public function room_tpl()
     {
         $org_id = input('orgid');
@@ -83,23 +165,31 @@ class Excel extends ExcelBase
         $this->exportExcel($xlsName,$xlsCell,$data);
     }
 
-    // 教室导入
-    public function room_import(){
+    // Classroom information introduction method
+    public function room_ipt(){
+        $uid = input('uid', '');
+        $orgid = input('orgid', '');
+        if (empty($uid) || empty($orgid))
+        {
+            $this->returnError('10000', '缺少参数uid或orgid');
+            exit();
+        }
         header("content-type:text/html;charset=utf-8");
-        //上传excel文件
+
         try
         {
+            // upload excel file.
             $file = request()->file('excel');
-            //将文件保存到public/uploads目录下面
+            //save file to path:  public/uploads/excel.
             $info = $file->validate(['size'=>1048576,'ext'=>'xls, xlsx'])->move( UPLOAD_DIR . 'excel/');
             if($info){
-                //获取上传到后台的文件名
+
                 $fileName = $info->getSaveName();
-                //获取文件路径
+
+                // get abspath for excel.
                 $filePath = UPLOAD_DIR.'excel/'. $fileName;
-                //获取文件后缀
                 $suffix = $info->getExtension();
-                //判断哪种类型
+
                 if($suffix=="xlsx"){
                     $reader = \PHPExcel_IOFactory::createReader('Excel2007');
                 }else{
@@ -108,20 +198,24 @@ class Excel extends ExcelBase
             }else{
                 $this->error('文件过大或格式不正确导致上传失败-_-!');
             }
-            //载入excel文件
+
             $excel = $reader->load("$filePath", $encode = 'utf-8');
-            //读取第一张表
+
+            // read first sheet.
             $sheet = $excel->getSheet(0);
-            //获取总行数
+            // get all rows.
             $row_num = $sheet->getHighestRow();
-            //获取总列数
-            $col_num = $sheet->getHighestColumn();
-            $data = []; //数组形式获取表格数据
+
+            // get all cols.
+            //$col_num = $sheet->getHighestColumn();
+            $data = []; // Getting tabular data in array form
+            // Traverse the data and save it to the database
             for ($i=2; $i <=$row_num; $i++) {
                 $data['room_name'] = $sheet->getCell("A".$i)->getValue();
                 $data['room_count']     = $excel->getActiveSheet()->getCell("B".$i)->getValue();
                 $data['status']     = $excel->getActiveSheet()->getCell("C".$i)->getValue();
-                //将数据保存到数据库
+                $data['or_id'] = $orgid;
+                $data['manager'] = $uid;
                 ClsModel::create($data)->save();
             }
             $this->returnData('导入成功', $data);
@@ -131,9 +225,16 @@ class Excel extends ExcelBase
         }
     }
 
-    // 教室导出
-    public function room_export(){
-        $org_id = input('orgid');
+    /*
+     * Classroom Information Exporting Method
+     */
+    public function room_ept(){
+        $org_id = input('orgid/d', '');
+        if (empty($org_id))
+        {
+            $this->returnError('10000', '缺少参数orgid');
+            exit();
+        }
         $xlsName  = "classroom";
         $xlsCell  = array(
             array('id','教室ID'),
@@ -165,11 +266,15 @@ class Excel extends ExcelBase
 
 
     /*
-     * 教师模板下载
+     * Template Download for teacher information import
      */
     public function teacher_tpl()
     {
-        $org_id = input('org_id');
+        $org_id = input('orgid', '');
+        if(empty($org_id))
+        {
+            $this->returnError('10000', '缺少参数orgid');
+        }
         $xlsName  = "教师";
 
         $xlsCell  = array(
@@ -182,30 +287,24 @@ class Excel extends ExcelBase
             array('entry_time', '入职日期'),
             array('resume', '简历')
         );
+        $sql = "SELECT A.t_name, B.seniority_name as se, A.sex, 
+                A.identity_card, A.cellphone, A.birthday, A.entry_time, 
+                A.resume FROM erp2_teachers AS A INNER JOIN erp2_seniorities 
+                AS B ON A.se_id=B.seniority_id WHERE org_id={$org_id} LIMIT 2";
 
-        $xlsData = [
-            [
-                't_name'=>'林老师',
-                'se' => '高级',
-                'sex' => '男',
-                'identity_card' => '43523664139694xx',
-                'cellphone' => '13832832888',
-                'birthday'  => '1999-11-12',
-                'entry_time' => '2019-7-15',
-                'resume'  =>  '十年经验'
-            ]
-        ];
-        $this->exportExcel($xlsName,$xlsCell,$xlsData);;
+        $data = Db::query($sql);
+
+        $this->exportExcel($xlsName,$xlsCell,$data);
     }
 
 
-    // 教师导出
+    // Teacher Information Exporting Method
     public function teacher_ept(){
         $org_id = input('org_id');
         $xlsName  = "教师";
         $xlsCell  = array(
             array('t_id','教师ID'),
-            array('t_name', '教师名称'),
+            array('t_name', '教师姓名'),
             array('se', '教师资历'),
             array('sex','教师性别'),
             array('identity_card', '身份证'),
@@ -237,13 +336,18 @@ class Excel extends ExcelBase
         $this->exportExcel($xlsName,$xlsCell,$xlsData);;
     }
 
+    /**
+     * Teacher information introduction method
+     * @throws \PHPExcel_Exception
+     * @throws \PHPExcel_Reader_Exception
+     */
     public function teacher_ipt(){
         header("content-type:text/html;charset=utf-8");
         //上传excel文件
         try
         {
             $file = request()->file('excel');
-            //将文件保存到public/uploads目录下面
+            //将文件保存到public/uploads/ecxcel
             $info = $file->validate(['size'=>1048576,'ext'=>'xls, xlsx'])->move( UPLOAD_DIR . 'excel/');
             if($info){
                 //获取上传到后台的文件名
@@ -299,4 +403,150 @@ class Excel extends ExcelBase
             $this->returnError('50000', '导入失败');
         }
     }
+
+    /**
+     * Template Download for student information import
+     */
+    public function stu_tpl()
+    {
+        $org_id = input('orgid', '');
+        if(empty($org_id))
+        {
+            $this->returnError('10000', '缺少参数orgid');
+        }
+        $xlsName  = "学生模板";
+
+        $xlsCell  = array(
+            array('stu_name', '学生姓名'),
+            array('sex', '学生性别'),
+            array('birthday', '出生日期'),
+            array('cellphone', '手机号码'),
+            array('wechat', '微信号'),
+            array('address', '地址'),
+            array('remark', '备注'),
+            array('entry_time', '录入时间'),
+            array('status', '状态')
+        );
+        $sql = "SELECT truename as stu_name, 
+                sex, birthday, cellphone, wechat, 
+                address, remark, create_time as entry_time, 
+                status, org_id FROM erp2_students 
+                WHERE org_id={$org_id} LIMIT 2";
+        $result = Db::query($sql);
+        $data = [];
+        foreach ($result as $key=>$value)
+        {
+            $value['entry_time'] = date('Ymd', $value['entry_time']);
+            if ($value['sex'] == 1)
+            {
+                $value['sex'] = '男';
+            }
+            else
+            {
+                $value['sex'] = '女';
+            }
+            if($value['status'] == 1)
+            {
+                $value['status'] = '在学';
+            }
+            else
+            {
+                $value['status'] = '退学';
+            }
+            $data[] = $value;
+        }
+        $this->exportExcel($xlsName, $xlsCell, $data);
+    }
+
+    /*
+     * Student Information Exporting Method
+     */
+    public function stu_ept()
+    {
+        $org_id = input('orgid', '');
+        if(empty($org_id))
+        {
+            $this->returnError('10000', '缺少参数orgid');
+        }
+        $xlsName  = "学生模板";
+
+        $xlsCell  = array(
+            array('stu_id', '学生ID'),
+            array('stu_name', '学生姓名'),
+            array('sex', '学生性别'),
+            array('birthday', '出生日期'),
+            array('cellphone', '手机号码'),
+            array('wechat', '微信号'),
+            array('address', '地址'),
+            array('remark', '备注'),
+            array('entry_time', '录入时间'),
+            array('status', '状态')
+        );
+        $sql = "SELECT stu_id, truename as stu_name, 
+                sex, birthday, cellphone, wechat, 
+                address, remark, create_time as entry_time, 
+                status, org_id FROM erp2_students 
+                WHERE org_id={$org_id} LIMIT 2";
+        $result = Db::query($sql);
+        $data = [];
+        foreach ($result as $key=>$value)
+        {
+            $value['entry_time'] = date('Ymd', $value['entry_time']);
+            if ($value['sex'] == 1)
+            {
+                $value['sex'] = '男';
+            }
+            else
+            {
+                $value['sex'] = '女';
+            }
+            if($value['status'] == 1)
+            {
+                $value['status'] = '在学';
+            }
+            else
+            {
+                $value['status'] = '退学';
+            }
+            $data[] = $value;
+        }
+        $this->exportExcel($xlsName, $xlsCell, $data);
+    }
+
+    /*
+     * Student information introduction method
+     */
+    public function stu_ipt()
+    {
+
+    }
+
+    /**
+     * Download Data Template for Course Purchase
+     */
+    public function course_tpl()
+    {
+        $org_id = input('orgid', '');
+        if(empty($org_id))
+        {
+            $this->returnError('10000', '缺少参数orgid');
+        }
+    }
+
+    /**
+     * Importing Purchasing Course Data from EXCEL
+     */
+    public function course_ipt()
+    {
+
+    }
+
+    /**
+     * Data of students'purchasing lessons are exported to EXCEL
+     */
+    public function course_ept()
+    {
+
+    }
+
 }
