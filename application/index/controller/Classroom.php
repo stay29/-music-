@@ -21,7 +21,7 @@ class Classroom extends BaseController
      */
     public function index()
     {
-        $oid = ret_session_name('orgid');
+        $oid = input('orgid', '');
         if(empty($oid))
         {
             $this->return_data(1, '', '', array());
@@ -81,7 +81,11 @@ class Classroom extends BaseController
      * 修改教室
      */
     public function edit(){
-        $oid = ret_session_name('orgid');
+        $oid = input('orgid', '');
+        if (empty($oid))
+        {
+            $this->return_data(0, '10000', '缺少参数');
+        }
         $data = [
             'room_id'=>input('post.id'),
             'room_name' => input('post.name'),
@@ -119,7 +123,6 @@ class Classroom extends BaseController
 
         $where[] = ['room_id', '=', $id];
         $where[] = ['or_id', '=', $oid];
-
         try
         {
             ClsModel::where($where)->delete();
