@@ -5,12 +5,8 @@
  * Date: 19-7-22
  * Time: 下午3:08
  */
-
 namespace app\admin\controller;
-
-
 use think\Exception;
-
 class Classroom extends AdminBase
 {
     public function index()

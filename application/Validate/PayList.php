@@ -12,7 +12,7 @@ class PayList extends  Validate
 
     protected  $rule = [
         'pay_id_list' => 'require|number',
-        'cur_id'  =>     'require|number|unique:cur_id',
+        'cur_id'  =>     'require|number',
         'cur_name'  =>   'require',
         'pless_id'  =>   'require|number',
         'p_id'  =>       'require|number',
@@ -28,7 +28,7 @@ class PayList extends  Validate
 
         'cur_id.require'=>      '课程id不能为空|10000',
         'cur_id.number'=>       '课程id必须为数字|10001',
-        'cur_id.unique'=>       '该课程已经添加|20000',
+        //'cur_id.unique'=>       '该课程已经添加|20000',
 
         'cur_name.require'=>    '课程名称不能为空|10000',
 

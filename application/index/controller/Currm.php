@@ -82,7 +82,6 @@ class Currm extends BaseController
     }
 
 
-
     //删除课程
     public function delcurrmon()
     {
@@ -97,7 +96,6 @@ class Currm extends BaseController
         $this->return_data(0,20003,'操作失败');
         }
     }
-
 
     //获取单个课程
     public function getcurrm()
@@ -128,9 +126,9 @@ class Currm extends BaseController
     //上传图片
     public function get_img_update()
     {
-      $res =  $this->get_ret_img_update('img','./upload/currm/');
-      $imgpath = './upload/currm/'.$res;
-      $this->return_data(1,0,$imgpath);
+        $res =  $this->get_ret_img_update('img','./upload/currm/');
+        $imgpath = './upload/currm/'.$res;
+        $this->return_data(1,0,$imgpath);
     }
 
     //删除图片
@@ -138,35 +136,22 @@ class Currm extends BaseController
     {
         $oldig = input('oldimg');
         $res = file_exists($oldig);
-            if($res){
-                unlink($oldig);
-                $this->return_data(1,0,'删除成功');
-            }else{
-                $this->return_data(0,50000,'删除失败');
-            }
+        if($res){
+            unlink($oldig);
+            $this->return_data(1,0,'删除成功');
+        }else{
+            $this->return_data(0,50000,'删除失败');
+        }
     }
-
     //全部搜索课程列表
     public  function  all_list_currm()
     {
         $cur_name = input('cur_name');
-//        $subject = input('subject');
-//        $tmethods = input('tmethods');
-//        $status = input('status');
         $orgid  =  input('orgid');
         $where = null;
         if($cur_name){
             $where[]=['cur_name','like','%'.$cur_name.'%'];
         }
-//        if($subject){
-//            $where[]=['subject','=',$subject];
-//        }
-//        if($tmethods){
-//            $where[]=['tmethods','=',$tmethods];
-//        }
-//        if($status){
-//            $where[]=['status','=', $status];
-//        }
         if($orgid){
             $where[]=['orgid','=', $orgid];
         }

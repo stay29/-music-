@@ -12,9 +12,9 @@ use think\Db;
 use think\facade\Session;
 use app\index\model\Organization as Organ;
 use app\index\model\Users;
-
-class Organization extends BaseController
+class Organization extends Basess
 {
+
     /**
      * 新增
      */
@@ -30,6 +30,7 @@ class Organization extends BaseController
             'remarks'=>input('post.remarks'),
             'status' =>2,
         ];
+        //print_r($data);exit();
         $uid = input('uid');
         $validate = new \app\index\validate\Organization();
         if(!$validate->scene('add')->check($data)){
@@ -45,7 +46,6 @@ class Organization extends BaseController
             $where['update_time'] = time();
             //$where['manager'] = ret_session_name('uid');
             Users::where('uid',$uid)->update($where);
-
             $userinfo = Users::loginsession($uid);
             $this->return_data(1,0,$userinfo);
         }catch (\Exception $e){
@@ -53,7 +53,6 @@ class Organization extends BaseController
             $this->return_data(0,50000,$e->getMessage());
         }
     }
-
 
     public  function  orglist()
     {

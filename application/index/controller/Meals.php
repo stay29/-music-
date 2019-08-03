@@ -26,7 +26,7 @@ class Meals extends BaseController
             'list_img'=>input('post.list_img'),
             'bg_img'=>input('post.bg_img'),
             'orgid'=>input('post.orgid'),
-            'manager'=>input('post.uid'),
+            'manager'=>input('post.manager'),
         ];
         Db::startTrans();
         try{

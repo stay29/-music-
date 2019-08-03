@@ -32,7 +32,8 @@ class Login extends Basess{
                  //查询判断新用户还是爱琴家用
                  $mup['cellphone'] = $data['cellphone'];
                  $mup['password'] =md5_return($data['password']);
-                 $user_login_info =    Users::where($mup)->find();
+                 $mup['incumbency'] =1;
+                 $user_login_info = Users::where($mup)->find();
                  if($user_login_info){
                      //存入session
                      $arr = Users::loginsession($user_login_info['uid']);
@@ -49,6 +50,9 @@ class Login extends Basess{
                  }else{
                          $mup1['cellphone'] = $data['cellphone'];
                           $user_login_info1 =    Users::where($mup1)->find();
+                          if($user_login_info1['incumbency']==2){
+                              $this->return_data(0,60000,'你已经离职无法登陆平台');
+                          }
                           if($user_login_info1){
                               $this->return_data(0,60000,'密码错误请重新登录');
                           }else{

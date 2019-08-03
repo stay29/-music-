@@ -1,0 +1,51 @@
+{layout name="layout:layout" /}
+<table class="layui-table">
+    <colgroup>
+        <col width="150">
+        <col width="200">
+        <col>
+    </colgroup>
+    <thead>
+    <tr>
+        <th>id</th>
+        <th>节点名称</th>
+        <th>节点URL</th>
+        <th>父级节点</th>
+        <th>节点状态</th>
+        <th>节点类型</th>
+        <th>节点排序</th>
+        <th>操作者</th>
+        <th>创建时间</th>
+        <th>更新时间</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    {volist name="list" id="vo"}
+    <tr>
+        <td>{$vo.access_id}</td>
+        <td>{$vo.access_name}</td>
+        <td>{$vo.access_url}</td>
+        <td>{$vo.parent_id}</td>
+        <td>{$vo.status}</td>
+        <td>{$vo.type}</td>
+        <td>{$vo.sort}</td>
+        <td>{$vo.manager}</td>
+        <td>{$vo.create_time}</td>
+        <td>{$vo.update_time}</td>
+        <td>
+            <a href="{:url('eidtauth',['access_id'=>$vo.access_id])}" class="layui-btn layui-btn-xs">编辑</a>
+            <a href="{:url('delauth',['access_id'=>$vo.access_id])}" class="layui-btn layui-btn-xs layui-btn-danger">删除</a>
+            <!--            <a href="{:url('del',['or_id'=>1])}" class="layui-btn layui-btn-danger">删除</a>-->
+            <!--  <a href="{:url('del',['or_id'=>1])}" class="layui-btn layui-btn-xs layui-btn-danger">删除</a> -->
+        </td>
+    </tr>
+    {/volist}
+    </div>
+    </tbody>
+</table>
+
+<script>
+    $(function(){
+    })
+</script>

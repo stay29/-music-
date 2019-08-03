@@ -1,0 +1,97 @@
+{layout name="layout:layout" /}
+
+<form class="layui-form" action="">
+    <div class="layui-form-item">
+        <label class="layui-form-label">节点名称</label>
+        <div class="layui-input-block">
+            <input type="text" value="{$res.access_name}" name="access_name" required  lay-verify="required" placeholder="请输入节点名称" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">模/控/方</label>
+        <div class="layui-input-block">
+            <input type="text" name="access_url" value="{$res.access_url}" required  lay-verify="required" placeholder="请输入节点url" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">父级</label>
+        <div class="layui-input-block">
+            <select name="parent_id" lay-verify="required">
+                <option value="1" {if condition="$res['access_id'] eq 1"}selected{/if}>顶级</option>
+                {volist name="authlist" id="vo"}
+                <option value="{$vo.access_id}" {if condition="$res['parent_id'] eq $vo['access_id']"}selected{/if}>{$vo.access_name}</option>
+                {/volist}
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">状态</label>
+        <div class="layui-input-block">
+            <select name="status" lay-verify="required">
+                <option value="1" {if condition="$res['status'] eq 1"}selected{/if}>启用</option>
+                <option value="2" {if condition="$res['status'] eq 2"}selected{/if}>禁用</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">节点类型</label>
+        <div class="layui-input-block">
+            <select name="type" lay-verify="required">
+                <option value="0" {if condition="$res['type'] eq 0"}selected{/if}>顶级分类</option>
+                <option value="1" {if condition="$res['type'] eq 1"}selected{/if}>模块</option>
+                <option value="2" {if condition="$res['type'] eq 2"}selected{/if}>操作</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">排序</label>
+        <div class="layui-input-block">
+            <input type="text" name="sort" value="{$res.sort}" required  lay-verify="required" placeholder="请输入排序越大越前" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <input type="hidden" name="access_id" value="{$res.access_id}">
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
+
+<script>
+    //Demo
+    layui.use('form', function(){
+        var form = layui.form;
+        //监听提交
+        form.on('submit(formDemo)', function(data){
+            $.post('{:url("admin/authinfo/eidtauth")}',data.field,function(e){
+                if(e.status){
+                    layer.msg(e.sinfo);
+                    window.location.href = '{:url("admin/authinfo/authlist")}';
+                }else{
+                    layer.msg(e.emsg,{time:3000});
+                }
+            },'json');
+            return false;
+        });
+    });
+    $(function(){
+        $('.parent_access input').click(function(){
+            var status = this.checked;
+            $elem = $(this).parent().next('.children_access').find('input');
+            $.each($elem,function(k,v){
+                v.checked = status;
+            })
+        });
+        $('.children_access input').click(function(){
+            var status = this.checked;
+            if(status){
+                $elem = $(this).parents('tr').find('.parent_access input').attr('checked',true);
+            }
+        })
+    })
+</script>
+
