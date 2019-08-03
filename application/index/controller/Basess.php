@@ -9,6 +9,7 @@ namespace app\index\controller;
 use think\Controller;
 use think\facade\Request;
 use think\facade\Session;
+
 class Basess extends Controller
 {
 

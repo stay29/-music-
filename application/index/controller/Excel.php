@@ -6,6 +6,7 @@ use app\index\model\Classroom as ClsModel;
 use think\Controller;
 use think\Db;
 use think\Exception;
+use PHPExcel;
 
 /*
 * Basic Controller Provides Information Interface for Import, Export and Return
@@ -91,13 +92,11 @@ class ExcelBase extends Controller
     /*
      * Read data from EXCEL into an array
      */
-    public function getExcelData($request)
+    public function getExcelData($file)
     {
-        $file = $request->file('excel');
         // save excel file to path: public/uploads/excel/
         $info = $file->validate(['size'=>1048576,'ext'=>'xls, xlsx'])->move( UPLOAD_DIR . 'excel/');
         if($info){
-
             $fileName = $info->getSaveName();
             $filePath = UPLOAD_DIR.'excel/'. $fileName;
             $suffix = $info->getExtension();
@@ -105,7 +104,7 @@ class ExcelBase extends Controller
             if($suffix=="xlsx"){
                 $reader = \PHPExcel_IOFactory::createReader('Excel2007');
             }else{
-                $reader = PHPExcel_IOFactory::createReader('Excel5');
+                $reader = \PHPExcel_IOFactory::createReader('Excel5');
             }
         }else{
             $this->error('文件过大或格式不正确导致上传失败-_-!');
@@ -174,54 +173,54 @@ class Excel extends ExcelBase
             $this->returnError('10000', '缺少参数uid或orgid');
             exit();
         }
-        header("content-type:text/html;charset=utf-8");
+        $sql = "SELECT B.or_id as org_id FROM erp2_users AS A INNER JOIN 
+erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
+        $temp = Db::query($sql);
 
-        try
+        if (empty($temp))
         {
-            // upload excel file.
-            $file = request()->file('excel');
-            //save file to path:  public/uploads/excel.
-            $info = $file->validate(['size'=>1048576,'ext'=>'xls, xlsx'])->move( UPLOAD_DIR . 'excel/');
-            if($info){
+            $this->returnError('10000', '请求非法');
+        }
+//        header("content-type:text/html;charset=utf-8");
+        $file = request()->file('excel');
+        if (empty($file))
+        {
+            $this->returnError(10000, '缺少上传文件excel.');
+            exit();
+        }
+        $excel_data = $this->getExcelData($file);
+        Db::startTrans();
+        try {
+            $response = [];
+            foreach ($excel_data as $val)
+            {
 
-                $fileName = $info->getSaveName();
-
-                // get abspath for excel.
-                $filePath = UPLOAD_DIR.'excel/'. $fileName;
-                $suffix = $info->getExtension();
-
-                if($suffix=="xlsx"){
-                    $reader = \PHPExcel_IOFactory::createReader('Excel2007');
-                }else{
-                    $reader = PHPExcel_IOFactory::createReader('Excel5');
+                $data['room_name'] = $val[0];
+                $data['room_count'] = $val[1];
+                if(!is_numeric($data['room_count']))
+                {
+                    continue;
                 }
-            }else{
-                $this->error('文件过大或格式不正确导致上传失败-_-!');
-            }
 
-            $excel = $reader->load("$filePath", $encode = 'utf-8');
-
-            // read first sheet.
-            $sheet = $excel->getSheet(0);
-            // get all rows.
-            $row_num = $sheet->getHighestRow();
-
-            // get all cols.
-            //$col_num = $sheet->getHighestColumn();
-            $data = []; // Getting tabular data in array form
-            // Traverse the data and save it to the database
-            for ($i=2; $i <=$row_num; $i++) {
-                $data['room_name'] = $sheet->getCell("A".$i)->getValue();
-                $data['room_count']     = $excel->getActiveSheet()->getCell("B".$i)->getValue();
-                $data['status']     = $excel->getActiveSheet()->getCell("C".$i)->getValue();
-                $data['or_id'] = $orgid;
+                $data['status'] = $val[2];
                 $data['manager'] = $uid;
-                ClsModel::create($data)->save();
+                $data['or_id'] = $orgid;
+
+                $res = Db::table('erp2_classrooms')->where('room_name', '=',
+                    $data['room_name'])->find();
+                if(!$res)
+                {
+                    array_push($response, $data['room_name']);
+                }
+                Db::table('erp2_classrooms')->insert($data);
             }
-            $this->returnData('导入成功', $data);
-        }catch (Exception $e)
-        {
-            $this->returnError('50000', '导入失败');
+            // 提交事务
+            Db::commit();
+            $this->returnData('导入成功', $response);
+        } catch (\Exception $e) {
+            // 回滚事务
+            Db::rollback();
+            $this->returnError('20003', '导入失败');
         }
     }
 
@@ -518,6 +517,14 @@ class Excel extends ExcelBase
      */
     public function stu_ipt()
     {
+        $orgid = input('orgid', '');
+        $uid = input('uid');
+        if(empty($orgid))
+        {
+            $this->returnError(10000, '缺少参数orgid');
+        }
+
+
 
     }
 
