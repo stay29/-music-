@@ -23,6 +23,9 @@ class Students extends BaseController
         $status = input('status', '');
         $orgid = input('orgid', '');
         $list_rows = input('list_rows', 10);
+        $stu_name = input('stu_name', '');
+        $teacher_name = input('t_name', '');
+        $course_name = input('c_name', '');
         $where[] = ['org_id', '=', $orgid];
 
         if(empty($orgid))
@@ -33,6 +36,15 @@ class Students extends BaseController
         {
             $where[] = ['status', '=', $status];
         }
+        if (!empty($stu_name))
+        {
+            $where[] = ['stu_name', 'like', '%' . $stu_name . '%'];
+        }
+        if (!empty($teacher_name))
+        {
+            $where[] = ['teacher_name', 'like', '%' . $teacher_name . '%'];
+        }
+        $where[] = ['is_del', '=', 0];
         $students = db('students')->field('stu_id, truename as stu_name, sex, birthday,
                 cellphone, wechat, address, remark')->where($where)->paginate($list_rows);
         $this->return_data(1, '', '', $students);
@@ -77,7 +89,7 @@ class Students extends BaseController
         }
         try
         {
-            StuModel::destroy($stu_id);
+            StuModel::where('stu_id', '=', $stu_id)->update(['is_del'=>1]);
             $this->return_data(1, '', '删除成功', true);
         }catch (Exception $e){
             $this->return_data(0, '', '删除失败', false);
@@ -96,7 +108,6 @@ class Students extends BaseController
         }
         $data = input();
         $validate = new StuValidate();
-
         // validate data.
         if(!$validate->scene('add')->check($data)){
             $error = explode('|',$validate->getError());
@@ -118,7 +129,12 @@ class Students extends BaseController
      */
     public function schedule()
     {
+        $stu_id = input('stu_id', '');
+        $org_id = input('orgid', '');
+        if(empty($stu_id) || empty($org_id))
+        {
+            $this->return_data(0, '10000', '缺少参数');
+        }
 
     }
-
 }

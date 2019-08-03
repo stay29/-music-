@@ -17,7 +17,7 @@ use think\Log;
 class Classroom extends BaseController
 {
     /**
-     * 获取教室列表
+     * Show classroom information list.
      */
     public function index()
     {
@@ -40,13 +40,14 @@ class Classroom extends BaseController
         {
             $where[] = ['room_name', 'like', '%' . $room_name. '%'];
         }
+        $where[] = ['is_del', '=', 0];
         $res = ClsModel::where($where)->field('room_id as id,room_name as 
             name,status,room_count as total')->paginate($limit);
         $this->return_data(1, 0, '', $res);
     }
 
     /**
-     * 添加教室
+     * Adding Classroom Interface
      */
     public function add(){
         $oid = input('orgid', '');
@@ -59,7 +60,8 @@ class Classroom extends BaseController
             'room_name' => input('post.name'),
             'status' => input('post.status'),
             'room_count' => input('post.total'),
-            'or_id' => $oid
+            'or_id' => $oid,
+            'is_del' => 0
         ];
 
         $validate = new \app\index\validate\Classroom();
@@ -78,7 +80,7 @@ class Classroom extends BaseController
     }
 
     /**
-     * 修改教室
+     * Edit classroom's information.
      */
     public function edit(){
         $oid = input('orgid', '');
@@ -111,21 +113,21 @@ class Classroom extends BaseController
     }
 
     /**
-     * 删除教室
+     * delete classroom information.
      */
     public function del(){
         $id = input('id/d');
         $oid = ret_session_name('orgid');
 
         if(empty($id)){
-            $this->return_data(0,10000,'缺少教室主键');
+            $this->return_data(0,10000,'缺少教室ID');
         }
 
         $where[] = ['room_id', '=', $id];
         $where[] = ['or_id', '=', $oid];
         try
         {
-            ClsModel::where($where)->delete();
+            ClsModel::where($where)->update(['is_del'=>1]);
             $this->return_data(1,0,'删除教室成功');
         }catch (Exception $e){
             $this->return_data(0,20003,'删除失败');
