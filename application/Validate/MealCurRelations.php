@@ -15,7 +15,7 @@ class MealCurRelations  extends Validate
         'cur_id' =>       'require|number',
         'cur_num' =>      'require|number',
         'cur_value' =>    'require|number',
-        'actual_price' => 'require|number',
+        'actual_price' => 'require',
         'course_model' => 'require|number',
     ];
 
@@ -23,11 +23,14 @@ class MealCurRelations  extends Validate
         'cur_name.require'=>'课程名称不能为空|10000',
         'cur_name.max'=>    '课程名称最长12个字|10001',
 
+
         'cur_id.require'=>'课程id不能为空|10000',
         'cur_id.number'=> '课程id必须为数字|10001',
 
+
         'cur_num.require'=>'课程次数不能为空|10000',
         'cur_num.number'=> '课程次数必须为数字|10001',
+
 
         'meal_cur_id.require'=>'套餐课程id不能为空|10000',
         'meal_cur_id.number'=> '套餐课程id必须为数字|10001',
@@ -36,7 +39,7 @@ class MealCurRelations  extends Validate
         'cur_value.number'=> '课程价值必须为数字|10001',
 
         'actual_price.require'=>'实际价值不能为空|10000',
-        'actual_price.number'=> '实际价值必须为数字|10001',
+        //'actual_price.number'=> '实际价值必须为数字|10001',
 
         'course_model.require'=>'课程模式不能为空|10000',
         'course_model.number'=> '课程模式为数字|10001',

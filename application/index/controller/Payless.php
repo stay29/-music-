@@ -1,6 +1,5 @@
 <?php
 /*               真米如初
-
                  _oo0oo_
                 o8888888o
                 88" . "88
@@ -19,9 +18,7 @@
     \  \ '_.   \_ __\ /__ _/   .-` /  /
 =====`-.____`.___ \_____/ ___.-`___.-'=====
                   '=----='
-
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
           佛祖保佑        永无Bug
 */
 /**
@@ -41,10 +38,10 @@ use app\index\model\Organization as Organ;
 use app\index\model\Users;
     class Payless extends  BaseController
 {
-
 //添加课程薪酬
-public  function  addpayinfo()
+public function  addpayinfo()
 {
+    //接受数据
     $cur_id   =    input('cur_id');
     $data = [
         'pless_id'   =>   input('pless_id'),
@@ -52,28 +49,47 @@ public  function  addpayinfo()
         'remake'   =>   input('remake'),
         'bay_paich'   =>   input('bay_paich'),
         'orgid'   =>   input('orgid'),
-        'manager'   =>   input('uid'),
+        'manager'   =>   ret_session_name('uid'),
     ];
-    //$cur_id = ['35','36'];
-    //验证器验证
+
+    $arr = array();
+    $arr1 = array();
+    //数据处理
+    foreach ($cur_id as $k=>&$v)
+    {
+        $cur_name = Curriculums::where('cur_id',$v)->find();
+        $arr['cur_name'] = $cur_name['cur_name'];
+        $arr['pless_id'] = input('pless_id');
+        $arr['p_id'] = input('p_id');
+        $arr['remake'] = input('remake');
+        $arr['bay_paich'] = input('bay_paich');
+        $arr['orgid'] = input('orgid');
+        $arr['manager'] = input('manager');
+        $arr['cur_id'] = $v;
+        $arr1[] = $arr;
+    }
     Db::startTrans();
     try {
-    $validate = new pays;
-    //数据处理
-    foreach ($cur_id as $k=>&$v) {
-        $data['cur_id'] = $v;
-        $cur_name =Curriculums::where('cur_id',$v)->find();
-        $data['cur_name'] = $cur_name['cur_name'];
-    if(!$validate->scene('add')->check($data)){
-        $error = explode('|',$validate->getError());
-        $this->return_data(0,$error[1],$error[0]);
-        exit();
-    }else{
-         $res = PayList::create($data);
-        // 提交事务
-         Db::commit();
-        }
-        }
+        $validate = new pays;
+       foreach ($arr1 as $ks=>$vs)
+       {
+           //判断是不是已经设置
+           $where['cur_id'] = $vs['cur_id'];
+           $where['orgid'] = input('orgid');
+           $oginfo =  PayList::where($where)->find();
+           if($oginfo){
+               $this->return_data(0,'20000 ','该课程已经设置');
+           }
+           //验证器
+           if(!$validate->scene('add')->check($vs)){
+               $error = explode('|',$validate->getError());
+               $this->return_data(0,$error[1],$error[0]);
+           }else{
+               $res = PayList::create($vs);
+               // 提交事务
+               Db::commit();
+           }
+       }
         if($res){
             $this->return_data(1,0,'添加成功');
         }else{
@@ -131,7 +147,7 @@ public  function  pay_list()
     $res = Db::table('erp2_pay_list')->where([$where])->select();
     foreach ($res as $k=>&$v){
         $v['curriculums'] = db('curriculums')->where('cur_id',$v['cur_id'])->find();
-        $v['subjectsall'] = db('subjects')->where('sid',$v['curriculums']['subject'])->find();              $v['pay_info'] = db('pay_info')->where('pay_id_info',$v['p_id'])->find();
+        $v['subjectsall'] = db('subjects')->where('sid',$v['curriculums']['subject'])->find();                                     $v['pay_info'] = db('pay_info')->where('pay_id_info',$v['p_id'])->find();
     }
     $res1 = array();
     if($subject!=0){
@@ -144,11 +160,10 @@ public  function  pay_list()
            $res1 = $res;
     }
     $res_list = $this->array_page_list_show($limit,$page,$res1,1);
-    //print_r($aaaa);exit();
     $this->return_data(1,0,'搜索成功',$res_list);
     }
 
-
+    //数组分页方法
     public function array_page_list_show($count,$page,$array,$order)
     {
         $page=(empty($page))?'1':$page; #判断当前页面是否为空 如果为空就表示为第一页面

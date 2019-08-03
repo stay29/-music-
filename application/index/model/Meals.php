@@ -30,13 +30,13 @@ class Meals extends Model
             foreach ($meals_cur as $k=>$v){
                 $meals_cur_name[] = $v['cur_name'];
             }
-            $item['meals_cur'] = implode(',',$meals_cur_name);
+            $item['meals_cur'] =trim(implode(',',$meals_cur_name),',');
         });
         return $list;
     }
     public static  function  get_mealkec_name($arr){
       //$arr = '35,36,37';
-      $arrinfo = explode(',',$arr);
+      $arrinfo = explode('/',$arr);
       $info = array();
       foreach ($arrinfo as $k=>&$v)
       {

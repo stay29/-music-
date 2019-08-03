@@ -39,7 +39,7 @@ class Login extends AdminBase
              $this->return_data(0,'账号已被禁用，请联系管理员');
         }
         $log = db('admins')
-        ->where(['ad_account'=>$ac,'ad_password'=>sha1($pwd.$has['ad_secret'])])
+        ->where(['ad_account'=>$ac,'ad_password'=>$pwd])
         ->field('id,ad_account,ad_login_time,ad_create_time,ad_update_time,ad_nickname')
         ->find();
         session('admin',$log);

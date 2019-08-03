@@ -131,10 +131,65 @@ function shua_session(){
 
 
 
+
+
+
+
 //删除数组元素一维数组一个或者多个
     function del_array_info($array,$info){
         $res= array_diff_key($array, $info);
         return $res;
     }
+
+
+//通用返回应该字段
+function getname($dataName,$where,$getname){
+    $aaa = Db::table($dataName)->where($where)->find();
+    return $aaa[$getname];
+}
+
+//通用单条查询
+function finds($dataName,$where){
+    return Db::table($dataName)->where($where)->find();
+}
+//通用查询
+function selects($dataName,$where){
+    return Db::table($dataName)->where($where)->select();
+}
+//通用增加
+function add($dataName,$data,$key=''){
+    if($key==1){
+        return Db::table($dataName)->data($data)->insert();
+    }else{
+        return Db::table($dataName)->insertGetId($data);
+    }
+
+}
+//通用删除
+function del($dataName,$where){
+    return Db::table($dataName)->where($where)->delete();
+}
+//通用修改
+function edit($dataName,$where,$data){
+    return Db::table($dataName)->where($where)->update($data);
+    //echo M($dataName)->_sql();die;//输出sql语句
+}
+//通用输出sql
+function getsql($dataName){
+    return Db::table($dataName)->getLastSql();
+}
+
+
+
+//生成session 何tonken
+function add_session_tokne()
+{
+    echo 111;
+}
+
+
+
+
+
 
 
