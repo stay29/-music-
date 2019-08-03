@@ -39,6 +39,7 @@ class Teacher extends BaseController
         {
             $where = ['se_id', '=', $se_id];
         }
+        $where[] = ['is_del', '=', 0];
         $teacher = TeacherModel::where($where)->field('t_id as id,t_name as name,
                 sex,cellphone,birthday,entry_time,status, se_id, resume')->paginate(20);
         $this->return_data(1, '','', $teacher);
@@ -91,7 +92,7 @@ class Teacher extends BaseController
             {
                 $this->return_data(0,'20003', '已排课，删除失败');
             }
-            db('teachers')->where('t_id', '=', $t_id)->delete();
+            db('teachers')->where('t_id', '=', $t_id)->update(['is_del'=>1]);
             $this->return_data(1, '','删除教师成功',true);
 
         }catch (Exception $e)
@@ -115,7 +116,7 @@ class Teacher extends BaseController
         $teacher_sql = "SELECT seniority_id as se_id, seniority_name as se_name,
 	                A.t_id as tid, A.t_name as name, A.sex, A.cellphone, A.birthday, A.entry_time, A.status,  A.resume
                     FROM erp2_teachers AS A INNER JOIN 
-                        erp2_seniorities AS B ON A.se_id=B.seniority_id WHERE A.t_id={$t_id};";
+                        erp2_seniorities AS B ON A.se_id=B.seniority_id WHERE A.t_id={$t_id} AND A.is_del=1;";
 
         // Inquire about the courses taught by teachers
         $teacher_cur_sql = "SELECT B.cur_id, B.cur_name FROM erp2_cur_teacher_relations 
@@ -125,11 +126,11 @@ class Teacher extends BaseController
         // Inquire about the students brought by the teachers
         $teacher_stu_sql = "SELECT C.stu_id, C.truename as stu_name FROM (erp2_classes_teachers_realations AS A INNER JOIN 
 erp2_class_student_relations AS B ON A.cls_id=B.class_id) INNER JOIN erp2_students AS C
-ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
+ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=1;";
 
         // Inquire about the full attendance rate of the teacher's class
         $full_rate_sql = "SELECT B.class_name, count(C.stu_id)/B.class_count AS fullrat FROM (erp2_classes_teachers_realations AS A INNER JOIN erp2_classes AS B ON A.cls_id=B.class_id)
-	INNER JOIN erp2_class_student_relations AS C ON B.class_id=C.class_id WHERE t_id={$t_id} GROUP BY C.stu_id;";
+	INNER JOIN erp2_class_student_relations AS C ON B.class_id=C.class_id WHERE t_id={$t_id} GROUP BY C.stu_id AND A.is_del=1;";
 
         $teacher = Db::query($teacher_sql);
         $teacher_cur = Db::query($teacher_cur_sql);
@@ -144,7 +145,9 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
         $this->return_data(1, '', $data);
     }
 
-
+    /*
+     * add teacher information.
+     */
     public function add(){
 
         $data = [
@@ -233,7 +236,7 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id};";
         $cur_id = input('cur_id'); //课程ID
         try
         {
-            db('cur_teacher_relations')->where(['t_id'=>$t_id, 'cur_id'=>$cur_id])->delete();
+            db('cur_teacher_relations')->where(['t_id'=>$t_id, 'cur_id'=>$cur_id])->update(['is_del'=>1]);
             $this->return_data(1, '', '删除成功', '');
         }catch (Exception $e)
         {
