@@ -1,13 +1,11 @@
 <?php
 
 namespace app\index\controller;
-
 use app\index\model\Classroom as ClsModel;
 use think\Controller;
 use think\Db;
 use think\Exception;
 use PHPExcel;
-
 /*
 * Basic Controller Provides Information Interface for Import, Export and Return
 */

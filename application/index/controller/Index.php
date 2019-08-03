@@ -211,7 +211,6 @@ class Index extends Basess
         }
 
 
-
     //课程导入模板
     public  function  Import_currm(){
         $kname = ['cur_name', 'subject', 'tmethods', 'ctime', 'describe', 'remarks'];

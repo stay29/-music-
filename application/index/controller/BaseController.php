@@ -23,19 +23,19 @@ class BaseController extends Controller
 //        }
     }
 
-    protected $beforeActionList = [
-        'first',
-    ];
+//    protected $beforeActionList = [
+//        'first',
+//    ];
 
-    protected function first()
-    {
-       $uid = ret_session_name('uid');
-       $aaa = $this->auth_get_token($uid);
-       //print_r($aaa);exit();
-       if($aaa==false){
-           return $this->return_data(0, 40000 , '您的权限不足请联系管理员');
-       }
-    }
+//    protected function first()
+//    {
+//       $uid = ret_session_name('uid');
+//       $aaa = $this->auth_get_token($uid);
+//       //print_r($aaa);exit();
+//       if($aaa==false){
+//           return $this->return_data(0, 40000 , '您的权限不足请联系管理员');
+//       }
+//    }
 
 
     /**

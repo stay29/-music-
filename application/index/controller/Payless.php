@@ -76,6 +76,7 @@ public function  addpayinfo()
            //判断是不是已经设置
            $where['cur_id'] = $vs['cur_id'];
            $where['orgid'] = input('orgid');
+           $where['is_del'] = 0;
            $oginfo =  PayList::where($where)->find();
            if($oginfo){
                $this->return_data(0,'20000 ','该课程已经设置');
@@ -108,15 +109,15 @@ public  function  del_pay_list()
     $data = [
         'pay_id_list'   =>   input('pay_id_list'),
         'orgid'   =>   input('orgid'),
-        'manager'   =>   input('uid'),
+        //'manager'   =>   input('uid'),
     ];
+    $up['is_del'] = 1;
     $validate = new pays;
     if(!$validate->scene('del')->check($data)) {
         $error = explode('|',$validate->getError());
         $this->return_data(0,$error[1],$error[0]);
-        exit();
     }else {
-        $res = PayList::where($data)->delete();
+        $res = PayList::where($data)->update($up);
         if($res){
             $this->return_data(1,0,'删除成功',$res);
         }else{
@@ -143,7 +144,9 @@ public  function  pay_list()
         $where[]=['cur_name','like','%'.$cur_name.'%'];
     }
     $orgid = input('orgid');
+    $where[] = ['is_del','=',0];
     $where[] = ['orgid','=',$orgid];
+
     $res = Db::table('erp2_pay_list')->where([$where])->select();
     foreach ($res as $k=>&$v){
         $v['curriculums'] = db('curriculums')->where('cur_id',$v['cur_id'])->find();
@@ -162,6 +165,7 @@ public  function  pay_list()
     $res_list = $this->array_page_list_show($limit,$page,$res1,1);
     $this->return_data(1,0,'搜索成功',$res_list);
     }
+
 
     //数组分页方法
     public function array_page_list_show($count,$page,$array,$order)
@@ -234,15 +238,14 @@ public  function  pay_list()
         }
     }
 
-
     //薪酬课程列表
     public  function  get_curr_pay_list()
     {
         $where = array();
         $orgid = input('orgid');
+        $where[] = ['is_del','=',0];
         $where[] =  ['orgid','=',$orgid];
         $list = PayList::where($where)->field('cur_id')->select();
-
         $arr1 = array();
         foreach ($list as $k=>$v) {
             $arr1[] = $v['cur_id'];
@@ -255,5 +258,4 @@ public  function  pay_list()
         }
         $this->return_data(1,0,'查询成功',$res);
     }
-
 }

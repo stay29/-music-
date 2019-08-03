@@ -49,9 +49,9 @@ class Curriculums extends Model
     }
 
 
-	public static function delcurrl($data)
+	public static function delcurrl($where,$data)
     {
-		$res =  Curriculums::where($data)->delete();
+		$res =  Curriculums::where($where)->update($data);
 		return  $res;
 	}
 

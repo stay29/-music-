@@ -149,9 +149,16 @@ function getname($dataName,$where,$getname){
 }
 
 //通用单条查询
-function finds($dataName,$where){
-    return Db::table($dataName)->where($where)->find();
+function finds($dataName,$where,$field=''){
+    return Db::table($dataName)->field($field)->where($where)->find();
 }
+//通用筛选查询
+function select_find($dataName,$where,$field='')
+{
+
+     return Db::table($dataName)->field($field)->where($where)->select();
+}
+
 //通用查询
 function selects($dataName,$where){
     return Db::table($dataName)->where($where)->select();
