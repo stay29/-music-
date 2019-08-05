@@ -211,16 +211,16 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $where[] = ['or_id', '=', $org_id];
                 $where[] = ['room_name', '=', $data['room_name']];
                 $where[] = ['is_del', '=', 0];
-                $res = Db::table('erp2_classrooms')->where($where)->select();
-                if(!$res[0])
-                {
-                    $data['create_time'] = time();
-                    Db::table('erp2_classrooms')->insert($data);
-                }
-                else
+                $count = Db::table('erp2_classrooms')->where($where)->count();
+                if($count > 0)
                 {
                     $data['update_time'] = time();
                     Db::table('erp2_classrooms')->where($where)->update($data);
+                }
+                else
+                {
+                    $data['create_time'] = time();
+                    Db::table('erp2_classrooms')->insert($data);
                 }
 
             }
