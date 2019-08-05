@@ -169,7 +169,7 @@ class Excel extends ExcelBase
     // Classroom information introduction method
     public function room_ipt(){
         $uid = input('uid', '');
-        $org_id = input('org_id', '');
+        $org_id = input('orgid', '');
         if (empty($uid) || empty($org_id))
         {
             $this->returnError('10000', '缺少参数uid或orgid');
