@@ -114,7 +114,7 @@ class ExcelBase extends Controller
 
         $excel = $reader->load("$filePath", $encode = 'utf-8');
         $data = $excel->getSheet(0)->toArray();
-        array_shift($data);
+//        array_shift($data);
         return $data;
     }
 
