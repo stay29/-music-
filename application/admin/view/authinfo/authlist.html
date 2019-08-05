@@ -10,7 +10,9 @@
         <th>id</th>
         <th>节点名称</th>
         <th>节点URL</th>
-        <th>父级节点</th>
+        <th>模块节点</th>
+        <th>控制器节点</th>
+        <th>方法节点</th>
         <th>节点状态</th>
         <th>节点类型</th>
         <th>节点排序</th>
@@ -25,14 +27,16 @@
     <tr>
         <td>{$vo.access_id}</td>
         <td>{$vo.access_name}</td>
-        <td>{$vo.access_url}</td>
-        <td>{$vo.parent_id}</td>
+        <td>{$vo.a_home}</td>
+        <td>{$vo.a_coller}</td>
+        <td>{$vo.a_action}</td>
+        <td>{$vo.pid}</td>
         <td>{$vo.status}</td>
         <td>{$vo.type}</td>
         <td>{$vo.sort}</td>
         <td>{$vo.manager}</td>
-        <td>{$vo.create_time}</td>
-        <td>{$vo.update_time}</td>
+        <td>{$vo.create_time|date='Y-m-d'}</td>
+        <td>{$vo.update_time|date='Y-m-d'}</td>
         <td>
             <a href="{:url('eidtauth',['access_id'=>$vo.access_id])}" class="layui-btn layui-btn-xs">编辑</a>
             <a href="{:url('delauth',['access_id'=>$vo.access_id])}" class="layui-btn layui-btn-xs layui-btn-danger">删除</a>
@@ -44,7 +48,7 @@
     </div>
     </tbody>
 </table>
-
+{$page|raw}
 <script>
     $(function(){
     })

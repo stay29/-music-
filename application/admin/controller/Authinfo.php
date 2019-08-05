@@ -16,15 +16,16 @@ class Authinfo extends AdminBase
         $this->assign('add', url('admin/authinfo/addauth'));
         $this->assign('title', $title);
         $orgid = [];
-        $res1 = selects('erp2_user_accesses',$orgid);
-        $ar1 = ['顶级分类','模块','操作'];//可读性很强
-        foreach ($res1 as $k=>&$v)
-        {
+        $res1 = Db::table('erp2_user_accesses')->where($orgid)->paginate(20)->each(function ($v,$k){
+            $ar1 = ['顶级分类','模块','操作'];//可读性很强
             $v['type'] = $ar1[$v['type']];//可读性很强
             $v['status'] = $v['status']==1?'启用':'不启用';//可读性很强
-            $a['access_id'] = $v['parent_id'];
-            $v['parent_id'] = $v['parent_id']==0?'顶级分类':getname('erp2_user_accesses',$a,'access_name');
-        }
+            $a['access_id'] = $v['pid'];
+            $v['pid'] = $v['pid']==0?'顶级分类':getname('erp2_user_accesses',$a,'access_name');
+            return $v;
+        });
+        $page = $res1->render();
+        $this->assign('page', $page);
         $this->assign('list', $res1);
         return view();
     }
@@ -36,11 +37,14 @@ class Authinfo extends AdminBase
             $data = [
                 //'orgid' =>input('orgid'),
                 'access_name' =>input('access_name'),
-                'access_url' =>input('access_url'),
+                'a_home' =>input('a_home'),
+                'a_coller' =>input('a_coller'),
+                'a_action' =>input('a_action'),
                 //'manager' =>input('uid'),
-                'parent_id' =>input('parent_id'),
+                'pid' =>input('pid'),
                 'status'=>input('status'),
                 'create_time'=>time(),
+                'update_time'=>time(),
                 'sort'=>input('sort'),
                 'type'=>input('type'),
             ];
@@ -70,6 +74,7 @@ class Authinfo extends AdminBase
         if ($this->request->isPost()) {
             $a['access_id'] = input('access_id');
             $data = input('');
+            $data['update_time'] = time();
             $resinfo =  edit('erp2_user_accesses',$a,$data);
             if($resinfo){
                 $this->return_data(1, '操作成功');

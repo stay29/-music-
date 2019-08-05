@@ -122,7 +122,6 @@ class Usersinfo extends BaseController
     }
 
 
-
     public  function  deluser()
     {
         $uid['uid'] = input('uid');
@@ -156,17 +155,20 @@ class Usersinfo extends BaseController
     }
 
 
+
     public  function  getoneuser()
     {
         $uid = input('uid');
         $orgid = input('orgid');
         $mup['uid'] = $uid;
         $mup['organization'] = $orgid;
-        $res = finds('erp2_users',$mup);
-        $res['orginfo'] = finds('erp2_organizations',['or_id'=>$orgid]);
+        $res = select_find('erp2_users',$mup,'uid,account,nickname,cellphone,sex,organization,rid,incumbency');
+        $res['orginfo'] = select_find('erp2_organizations',['or_id'=>$orgid],'or_id,or_name,status,contact_man');
         //$res['ridinfo'][] = selects('erp2_user_roles',);
         $this->return_data(1,0,'查询成功',$res);
     }
+
+
 
     public function  edituser_info()
     {
@@ -186,4 +188,5 @@ class Usersinfo extends BaseController
             $this->return_data(0,10000,'没有任何改变');
         }
     }
+
 }
