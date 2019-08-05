@@ -193,6 +193,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             exit();
         }
         $excel_data = $this->getExcelData($file);
+        $this->returnData('test', $excel_data);
         Db::startTrans();
         try {
             $response = [];
