@@ -176,11 +176,13 @@ class Excel extends ExcelBase
             $this->returnError('10000', '缺少参数uid或orgid');
             exit();
         }
-        $sql = "SELECT B.or_id as or_id FROM erp2_users AS A INNER JOIN 
+        $sql = "SELECT B.or_id as org_id FROM erp2_users AS A INNER JOIN 
 erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         $temp = Db::query($sql);
+        var_dump($temp);
+        exit();
         \log('执行到这咯');
-        if (empty($temp))
+        if (empty($temp) || $temp['org_id'] != $org_id)
         {
             $this->returnError('10000', '请求非法');
         }
