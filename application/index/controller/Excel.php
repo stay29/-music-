@@ -207,9 +207,9 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $data['status'] = $val[2];
                 $data['manager'] = $uid;
                 $data['or_id'] = $org_id;
-//                $where[] = ['or_id', '=', $org_id];
-//                $where[] = ['room_name', '=', $data['room_name']];
-//                $flag = db('classrooms')->where($where)->find();
+                $where[] = ['or_id', '=', $org_id];
+                $where[] = ['room_name', '=', $data['room_name']];
+                $flag = db('classrooms')->where($where)->find();
 //                if (!$flag->isEmpty())
 //                {
 //                    db('classrooms')->where($where)->update($data);
