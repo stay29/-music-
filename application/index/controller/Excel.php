@@ -210,9 +210,13 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $where[] = ['or_id', '=', $org_id];
                 $where[] = ['room_name', '=', $data['room_name']];
                 $res = Db::table('erp2_classrooms')->where($where)->find();
-                if ($res->isEmpty())
+                if(!$res)
                 {
                     Db::table('erp2_classrooms')->insert($data);
+                }
+                else
+                {
+                    Db::table('erp2_classrooms')->where($where)->update($data);
                 }
 
             }
