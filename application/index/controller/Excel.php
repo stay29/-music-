@@ -6,6 +6,7 @@ use think\Controller;
 use think\Db;
 use think\Exception;
 use PHPExcel;
+use think\Log;
 
 /*
 * Basic Controller Provides Information Interface for Import, Export and Return
@@ -178,8 +179,8 @@ class Excel extends ExcelBase
         $sql = "SELECT B.or_id as or_id FROM erp2_users AS A INNER JOIN 
 erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         $temp = Db::query($sql);
-
-        if (empty($temp) || $temp['or_id'] != $org_id)
+        \log('执行到这咯');
+        if (empty($temp))
         {
             $this->returnError('10000', '请求非法');
         }
