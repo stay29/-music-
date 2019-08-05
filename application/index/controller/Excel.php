@@ -212,7 +212,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $where[] = ['room_name', '=', $data['room_name']];
                 $where[] = ['is_del', '=', 0];
                 $res = Db::table('erp2_classrooms')->where($where)->select();
-                if($res->isEmpty())
+                if(!$res[0])
                 {
                     $data['create_time'] = time();
                     Db::table('erp2_classrooms')->insert($data);
