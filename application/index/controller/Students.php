@@ -2,6 +2,7 @@
 
 namespace app\index\controller;
 
+use MongoDB\BSON\Decimal128;
 use think\Controller;
 use think\Db;
 use think\Exception;
@@ -22,8 +23,8 @@ class Students extends BaseController
     public function index()
     {
         $status = input('status', '');
-        $orgid = input('orgid', '');
-        $list_rows = input('list_rows', 10);
+        $org_id = input('org_id', '');
+        $limit = input('limit', 10);
         $stu_name = input('stu_name', '');
         $teacher_name = input('t_name', '');
         $course_name = input('c_name', '');
@@ -45,9 +46,14 @@ class Students extends BaseController
         {
             $where[] = ['teacher_name', 'like', '%' . $teacher_name . '%'];
         }
+        if (!empty($course_name))
+        {
+            $where[] = ['cur_name', 'like', '%' . $course_name . '%'];
+        }
         $where[] = ['is_del', '=', 0];
+        $where[] = ['org_id', '=', $org_id];
         $students = db('students')->field('stu_id, truename as stu_name, sex, birthday,
-                cellphone, wechat, address, remark')->where($where)->paginate($list_rows);
+                cellphone, wechat, address, remark')->where($where)->paginate($limit);
         $this->return_data(1, '', '', $students);
     }
 
@@ -84,9 +90,10 @@ class Students extends BaseController
     public function del()
     {
         $stu_id = input('stu_id', '');
-        if(empty($stu_id))
+        $org_id = input('org_id', '');
+        if(empty($stu_id) || empty($org_id))
         {
-            $this->return_data(0, 10000, '缺少请求参数');
+            $this->return_data(0, 10000, '缺少请求参数stu_id或org_id');
         }
         try
         {
@@ -103,11 +110,12 @@ class Students extends BaseController
     public function classInfo()
     {
         $stu_id = input('stu_id', '');
+        $org_id = input('org_id', '');
         $page = input('page', 1);
         $pageSize = input('pageSize', 10);
-        if (empty($stu_id))
+        if (empty($stu_id) || empty($org_id))
         {
-            $this->return_data(0, '10000', '缺少stu_id');
+            $this->return_data(0, '10000', '缺少stu_id或org_id');
         }
         $start = ($page - 1) * $pageSize;
         $end = $pageSize;
@@ -124,13 +132,27 @@ class Students extends BaseController
     public function changeClass()
     {
         $stu_id = input('stu_id/d', '');  // student's id.
+        $org_id = input('org_id/d', '');  // student's organization id.
         $cls_id = input('cls_id/d', ''); // student's original class id.
         $new_cls_id = input('new_cls_id/d', ''); // student's new class id.
         if (empty($stu_id) || empty($cls_id) || empty($new_cls_id))
         {
             $this->return_data(0, '10000', '缺少参数', false);
         }
-
+        Db::startTrans();
+        try {
+            $where[] = ['stu_id', '=', $stu_id];
+            $where[] = ['cls_id', '=', $cls_id];
+            $where[] = ['org_id', '=', $org_id];
+            $data = ['cls_id'=>$cls_id];
+            Db::table('erp2_class_student_relations')->where($where)->update($data);
+            Db::commit();
+            $this->return_data(1, '', '更换教室成功', true);
+        }catch (Exception $e)
+        {
+            Db::rollback();
+            $this->return_data(0, '', '更换教室失败', false);
+        }
     }
 
     /*
@@ -144,11 +166,14 @@ class Students extends BaseController
             $this->return_data(0, '10007', '请用post方法提交数据');
         }
         $data = input();
+//        var_dump($data);
         $validate = new StuValidate();
         // validate data.
         if(!$validate->scene('add')->check($data)){
-            $error = explode('|',$validate->getError());
-            $this->return_data(0,$error[1],$error[0]);
+//            var_dump($validate->getError());
+            $error = explode('|', $validate->getError());
+//            var_dump($error);
+            $this->return_data(0, $error[1], $error[0]);
         }
         try
         {
@@ -175,4 +200,21 @@ class Students extends BaseController
 
     }
 
+}
+
+
+/**
+ * The student balance log becomes recorded
+ * @package app\index\controller
+ */
+Class BalanceLog{
+    /*
+     * recharge record method.
+     */
+    public static function rechargeRecord($money){
+        $data = [
+            'op_id' => 1,
+            ''
+        ];
+    }
 }
