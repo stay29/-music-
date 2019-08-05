@@ -218,7 +218,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 }
                 else
                 {
-                    Db::table('erp2_classrooms')->where($where)->update($data);
+                    Db::table('erp2_classrooms')->where($where)->limit(1)->update($data);
                 }
 
             }
