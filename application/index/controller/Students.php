@@ -3,6 +3,7 @@
 namespace app\index\controller;
 
 use think\Controller;
+use think\Db;
 use think\Exception;
 use think\Request;
 use app\index\validate\Students as StuValidate;
@@ -97,6 +98,42 @@ class Students extends BaseController
     }
 
     /*
+     * Student Class Information
+     */
+    public function classInfo()
+    {
+        $stu_id = input('stu_id', '');
+        $page = input('page', 1);
+        $pageSize = input('pageSize', 10);
+        if (empty($stu_id))
+        {
+            $this->return_data(0, '10000', '缺少stu_id');
+        }
+        $start = ($page - 1) * $pageSize;
+        $end = $pageSize;
+        $sql = "SELECT B.class_id AS cls_id, B.class_name AS cls_name 
+	FROM erp2_class_student_relations AS A 
+    INNER JOIN erp2_classes AS B ON A.class_id = B.class_id WHERE stu_id=1 LIMIT {$start} OFFSET {$end}";
+        $data = Db::query($sql);
+        $this->return_data(1, '', '请求成功', $data);
+    }
+
+    /*
+     * Replacement of student classes.
+     */
+    public function changeClass()
+    {
+        $stu_id = input('stu_id/d', '');  // student's id.
+        $cls_id = input('cls_id/d', ''); // student's original class id.
+        $new_cls_id = input('new_cls_id/d', ''); // student's new class id.
+        if (empty($stu_id) || empty($cls_id) || empty($new_cls_id))
+        {
+            $this->return_data(0, '10000', '缺少参数', false);
+        }
+
+    }
+
+    /*
      * Creating Student Records
      */
     public function add()
@@ -137,4 +174,5 @@ class Students extends BaseController
         }
 
     }
+
 }
