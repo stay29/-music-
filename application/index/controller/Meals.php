@@ -119,6 +119,7 @@ class Meals extends BaseController
             $where[]=['cur_state','=',$cur_state];
         }
         $where[] = ['orgid','=',$orgid];
+        $where[] = ['is_del','=',0];
         try{
             $res = Mealss::getall($limit,$where);
             $this->return_data(1,0,'套餐列表',$res);
@@ -168,60 +169,84 @@ class Meals extends BaseController
         $mid = input('post.meal_id');
         $res = Mealss::where('meal_id',$mid)->find();
         $res['meals_cur'] =  Mealss::get_mealkec_name($res['meals_cur']);
+        //print_r($res['meals_cur']);exit();
         $this->return_data(1,0,'获取详情',$res);
     }
 
     //修改套餐课程
     public function  edit_meals_mealcur()
     {
+        //print_r(input('post.'));exit();
         $meal_cur_id = input('meal_cur_id');
-        $data = [
-                 'cur_id'=>input('cur_id'),
-                 'cur_name'=>input('cur_name'),
-                 'cur_num'=>input('cur_num'),
-                 'cur_value'=>input('cur_value'),
-                 'actual_price'=>input('actual_price'),
-                 'course_model'=>input('course_model'),
-                 'meal_cur_id'=>input('meal_cur_id'),
-        ];
+        $mealcurlist = input('mealcurlist');
+        foreach ($mealcurlist as $k1=>&$v1)
+        {
+        unset($v1['meal_cur_id']);
+        unset($v1['is_del']);
+        unset($v1['delete_time']);
+        }
+        $info = finds('erp2_meals',['meal_id'=>$meal_cur_id]);
+        if($info['meals_cur']!=null){
+        $cur_array = explode('/',$info['meals_cur']);
+            foreach ($cur_array as $k => $v) {
+                $del_info = del('erp2_meal_cur_relations', ['meal_cur_id' => $v]);
+            }
+            if(!$del_info){
+                $this->return_data(0,10000,'删除过去课程失败');
+            }
+        }
         Db::startTrans();
         try{
             $validate = new \app\validate\MealCurRelations;
-            if(!$validate->scene('edit')->check($data)){
-                //为了可以得到错误码
-                $error = explode('|',$validate->getError());
-                $this->return_data(0,$error[1],$error[0]);
-                exit();
-            }else {
-                $res = Mclmodel::where('meal_cur_id', $meal_cur_id)->update($data);
+            foreach ($mealcurlist as $ks=>&$vs){
+                if(!$validate->scene('addone')->check($vs)){
+                    //为了可以得到错误码
+                    $error = explode('|',$validate->getError());
+                    $this->return_data(0,$error[1],$error[0]);
+                    exit();
+                }else {
+                    $res[] = add('erp2_meal_cur_relations',$vs);
+                }
             }
             Db::commit();
         }catch (\Exception $e){
             Db::rollback();
             $this->return_data(0,50000,$e->getMessage());
         }
-        if($res){
-            $this->return_data(1,0,'修改成功',$res);
+        if(!empty($res)){
+            $ff = edit('erp2_meals',['meal_id'=>$meal_cur_id],['meals_cur'=>implode('/',$res)]);
+            if($ff){
+                $vildata = [
+                    'meal_name'=>input('meal_name'),
+                    'value'=>input('value'),
+                    'price'=>input('price'),
+                    'cur_state'=>input('cur_state'),
+                    'remarks'=>input('remarks'),
+                    'list_img'=>input('list_img'),
+                    'bg_img'=>input('bg_img'),
+                    'orgid'=>input('orgid'),
+                    'manager'=>input('manager'),
+                ];
+                $lll = edit('erp2_meals',['meal_id'=>$meal_cur_id],$vildata);
+                if($lll){
+                    $this->return_data(1,0,'修改成功');
+                }else{
+                    $this->return_data(0,10000,'修改失败');
+                }
+            }
         }else{
             $this->return_data(0,10000,'修改失败');
         }
     }
-
     //删除套餐课程
     public  function  del_meals_mealcur()
     {
         $meal_cur_id = input('meal_cur_id');
-
-        //$mid = input('post.meal_id');
         Db::startTrans();
         try{
-        $res = Mclmodel::where('meal_cur_id',$meal_cur_id)->delete();
+        $res = edit('erp2_meals',['meal_id'=>$meal_cur_id],['is_del'=>1]);
             Db::commit();
         if($res){
-            //$info = Mealss::where('meal_id',$mid)->find();
-            //删除课程套餐后把链接的套餐里的id删除
-            //$a['meals_cur'] =  str_replace($meal_cur_id.',',"",$info['meals_cur']);
-            //$info_res =Mealss::where('meal_id',$mid)->update($a);
             $this->return_data(1,0,'删除成功',$res);
         }else{
             $this->return_data(0,10000,'删除失败',$res);
@@ -231,7 +256,4 @@ class Meals extends BaseController
             $this->return_data(0,50000,$e->getMessage());
         }
     }
-
-
-
 }

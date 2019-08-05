@@ -107,7 +107,8 @@ class Index extends Basess
     //导出套餐模板
     public  function  setmeal_export()
     {
-        $arr = $this->inp_list_name();
+        //$arr = $this->inp_list_name();
+        //$arr = array();
         $moban = input('moban');
         $kname = array(
             array('meal_name','套餐名称(必填)'),
@@ -132,13 +133,12 @@ class Index extends Basess
         $where[] = ['orgid','=',$orgid];
         if($moban=='1'){
             $list = array();
-            Phpexcil::export_tow_aaa('课程列表',$kname,$list,$arr);
+            Phpexcil::export('课程列表',$kname,$list);
         }else{
-            $list = Mealss::getall($limit,$where);
-            Phpexcil::export_tow_aaa('课程列表',$kname,$list,$arr);
+            $list = Mealss::get_all_list($where);
+            Phpexcil::export('课程列表',$kname,$list);
         }
         }
-
         //套餐导入
         public  function  setmeal_Import()
         {
@@ -209,7 +209,6 @@ class Index extends Basess
 
 
         }
-
 
     //课程导入模板
     public  function  Import_currm(){

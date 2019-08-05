@@ -79,7 +79,7 @@ class Phpexcil extends Basess
                 'name'  => 'Verdana'
             ));
         for($i=0;$i<$cellNum;$i++){
-            $objPHPExcel->setCellValue($cellName[$i].'1', $expCellName[$i][1]);
+            $objPHPExcel->getActiveSheet()->setCellValue($cellName[$i].'1', $expCellName[$i][1]);
             $objPHPExcel->getActiveSheet()->getStyle($cellName[$i].'1')->applyFromArray($styleArray);
         }
         //设置宽高
@@ -88,13 +88,13 @@ class Phpexcil extends Basess
             $objPHPExcel->getActiveSheet()->getColumnDimension($cellName[$i])->setWidth(30);
         }
         //设置第二行内容
-        for($i=0;$i<$cellNum;$i++){
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue($cellName[$i].'2', $expCellName[$i][0]);
-        }
+//        for($i=0;$i<$cellNum;$i++){
+//            $objPHPExcel->setActiveSheetIndex(0)->setCellValue($cellName[$i].'2', $expCellName[$i][0]);
+//        }
         //循环刚取出来的数组，将数据逐一添加到excel表格。
         for($i=0;$i<$dataNum;$i++) {
             for ($j = 0; $j < $cellNum; $j++) {
-                $objPHPExcel->getActiveSheet(0)->setCellValue($cellName[$j] . ($i + 3), $expTableData[$i][$expCellName[$j][0]]);
+                $objPHPExcel->getActiveSheet(0)->setCellValue($cellName[$j] . ($i + 2), $expTableData[$i][$expCellName[$j][0]]);
             }
         }
 
@@ -152,7 +152,6 @@ class Phpexcil extends Basess
                 $objPHPExcel->getActiveSheet(0)->setCellValue($cellName[$j] . ($i + 2), $expTableData[$i][$expCellName[$j][0]]);
             }
         }
-
         //7.设置保存的Excel表格名称
         $filename = $filename.date('ymd',time()).'.xls';
         //8.设置当前激活的sheet表格名称；
@@ -217,7 +216,6 @@ class Phpexcil extends Basess
 //            $objPHPExcel->setActiveSheetIndex(0)->setCellValue($cellName[$i].'2', $expCellName[$i][0]);
 //        }
         //循环刚取出来的数组，将数据逐一添加到excel表格。
-
         for($i=0;$i<$dataNum;$i++) {
             for ($j = 0; $j < $cellNum; $j++) {
                 $objPHPExcel->getActiveSheet(0)->setCellValue($cellName[$j] . ($i + 2), $expTableData[$i][$expCellName[$j][0]]);

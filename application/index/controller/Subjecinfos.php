@@ -21,4 +21,5 @@ class Subjecinfos  extends BaseController
         $res = Subjects::get_noe_subjects($data);
         $this->return_data(1,0,$res);
     }
+
 }

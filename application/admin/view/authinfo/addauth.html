@@ -9,15 +9,33 @@
     </div>
 
     <div class="layui-form-item">
-        <label class="layui-form-label">模/控/方</label>
+        <label class="layui-form-label">模块</label>
         <div class="layui-input-block">
-            <input type="text" name="access_url" required  lay-verify="required" placeholder="请输入节点url" autocomplete="off" class="layui-input">
+            <input type="text" name="a_home" required  lay-verify="required" placeholder="请输入模块节点url" autocomplete="off" class="layui-input">
         </div>
     </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">控制器</label>
+        <div class="layui-input-block">
+            <input type="text" name="a_coller" required  lay-verify="required" placeholder="请输入控制器节点url" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">方法</label>
+        <div class="layui-input-block">
+            <input type="text" name="a_action" required  lay-verify="required" placeholder="请输入方法节点url" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+
+
+
     <div class="layui-form-item">
         <label class="layui-form-label">父级</label>
         <div class="layui-input-block">
-            <select name="parent_id" lay-verify="required">
+            <select name="pid" lay-verify="required">
                 <option value="0">顶级</option>
                 {volist name="authlist" id="vo"}
                 <option value="{$vo.access_id}">{$vo.access_name}</option>
