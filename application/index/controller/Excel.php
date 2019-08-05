@@ -198,7 +198,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             $response = [];
             foreach ($excel_data as $val)
             {
-                $data['room_name'] = $val[0];
+                $data['room_name'] = trim($val[0]);
                 $data['room_count'] = $val[1];
                 if(!is_numeric($data['room_count']) || !is_numeric($data['room_count']))
                 {
@@ -207,7 +207,15 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $data['status'] = $val[2];
                 $data['manager'] = $uid;
                 $data['or_id'] = $org_id;
-
+                $where = [
+                        ['or_id' => $org_id],
+                        ['room_name' => $data['room_name']],
+                ];
+                $flag = db('classrooms')->where($where)->find();
+                if (!$flag->isEmpty())
+                {
+                    db('classrooms')->where($where)->update($data);
+                }
                 $res = Db::table('erp2_classrooms')->where('room_name', '=',
                     $data['room_name'])->find();
                 Db::table('erp2_classrooms')->insert($data);
