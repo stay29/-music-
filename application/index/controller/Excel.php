@@ -180,7 +180,7 @@ class Excel extends ExcelBase
 erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         $temp = Db::query($sql);
 
-        if (empty($temp) || $temp['org_id'] != $org_id)
+        if (empty($temp) || $temp[0]['org_id'] != $org_id)
         {
             $this->returnError('10000', '请求非法');
         }
