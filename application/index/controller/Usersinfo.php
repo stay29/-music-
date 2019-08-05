@@ -19,8 +19,8 @@ class Usersinfo extends BaseController
         if($password!=$rpassword){
             $this->return_data(0,10000,'两次密码不一致');
         }
-        $u= Db::query("select * from erp2_users WHERE  organization=$orgid AND senfen=0 AND  status=1");
-        $uid = $u[0]['uid'];
+        $u= finds('erp2_users',['organization'=>$orgid]);
+        $uid = $u['uid'];
         $data = [
             'nickname' =>input('nickname'),
             'account'=>input('cellphone'),
@@ -186,7 +186,4 @@ class Usersinfo extends BaseController
             $this->return_data(0,10000,'没有任何改变');
         }
     }
-
-
-
 }
