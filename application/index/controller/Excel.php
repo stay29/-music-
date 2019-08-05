@@ -109,7 +109,7 @@ class ExcelBase extends Controller
                 $reader = \PHPExcel_IOFactory::createReader('Excel5');
             }
         }else{
-            $this->error('文件过大或格式不正确导致上传失败-_-!');
+            $this->returnError('30000', '上传失败');
         }
 
         $excel = $reader->load("$filePath", $encode = 'utf-8');
