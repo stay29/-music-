@@ -214,8 +214,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $count = Db::table('erp2_classrooms')->where($where)->count();
                 if($count > 0)
                 {
-                    $data['update_time'] = time();
-                    Db::table('erp2_classrooms')->where($where)->update($data);
+                    continue;
                 }
                 else
                 {
