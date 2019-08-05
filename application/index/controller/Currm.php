@@ -20,7 +20,7 @@ class Currm extends BaseController
         $subject = input('subject');
         $tmethods = input('tmethods');
         $status = input('status');
-        $orgid  = session(md5(MA.'user'))['orgid'];
+        $orgid  = input('orgid');
         $where = null;
         if($cur_name){
             $where[]=['cur_name','like','%'.$cur_name.'%'];
@@ -34,9 +34,7 @@ class Currm extends BaseController
         if($status){
             $where[]=['status','=', $status];
         }
-        if($orgid){
-            $where[]=['orgid','=', $orgid];
-        }
+        $where[]=['orgid','=',$orgid];
         $where[] = ['is_del','=',0];
         try{
         $res = Curriculums::getall($limit,$where);

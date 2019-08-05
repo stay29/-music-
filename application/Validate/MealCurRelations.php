@@ -14,7 +14,7 @@ class MealCurRelations  extends Validate
         'cur_name'  =>    'require|max:12',
         'cur_id' =>       'require|number',
         'cur_num' =>      'require|number',
-        'cur_value' =>    'require|number',
+        'cur_value' =>    'require',
         'actual_price' => 'require',
         'course_model' => 'require|number',
     ];
@@ -36,7 +36,7 @@ class MealCurRelations  extends Validate
         'meal_cur_id.number'=> '套餐课程id必须为数字|10001',
 
         'cur_value.require'=>'课程价值不能为空|10000',
-        'cur_value.number'=> '课程价值必须为数字|10001',
+        //'cur_value.number'=> '课程价值必须为数字|10001',
 
         'actual_price.require'=>'实际价值不能为空|10000',
         //'actual_price.number'=> '实际价值必须为数字|10001',
@@ -49,6 +49,11 @@ class MealCurRelations  extends Validate
     {
         return $this->only(['cur_name','cur_id','cur_num','cur_value','actual_price','course_model']);
     }
+    public function sceneAddone()
+    {
+        return $this->only(['cur_name','cur_id','cur_num','cur_value','actual_price','course_model']);
+    }
+
     public function sceneEdit()
     {
         return $this->only(['cur_name','cur_id','cur_num','cur_value','actual_price','course_model','meal_cur_id']);
