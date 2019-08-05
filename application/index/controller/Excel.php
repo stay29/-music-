@@ -96,10 +96,11 @@ class ExcelBase extends Controller
     public function getExcelData($file)
     {
         // save excel file to path: public/uploads/excel/
-        $info = $file->validate(['size'=>104857600,'ext'=>'xls, xlsx'])->move( UPLOAD_DIR . 'file/');
+        $dirPath = "./upload/file/";
+        $info = $file->validate(['size'=>104857600,'ext'=>'xls,xlsx'])->move( $dirPath);
         if($info){
             $fileName = $info->getSaveName();
-            $filePath = UPLOAD_DIR.'file/'. $fileName;
+            $filePath = $dirPath . $fileName;
             $suffix = $info->getExtension();
 
             if($suffix=="xlsx"){
