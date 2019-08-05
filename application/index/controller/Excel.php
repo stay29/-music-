@@ -175,7 +175,7 @@ class Excel extends ExcelBase
             $this->returnError('10000', '缺少参数uid或orgid');
             exit();
         }
-        $sql = "SELECT B.or_id as org_id FROM erp2_users AS A INNER JOIN 
+        $sql = "SELECT B.or_id as or_id FROM erp2_users AS A INNER JOIN 
 erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         $temp = Db::query($sql);
 
