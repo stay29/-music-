@@ -147,28 +147,30 @@ class Excel extends ExcelBase
      */
     public function room_tpl()
     {
-        $org_id = input('orgid');
-        $xlsName  = "classroom";
-        $xlsCell  = array(
-            array('name', '教室名称'),
-            array('count','容纳人数'),
-            array('status','状态'),
-        );
-        if (empty($org_id))
-        {
-            $this->returnError('10000', '缺少参数');
-        }
-        $data = [
-            ['name'=>'教室1', 'count'=>100, 'status'=>'可用']
-        ];
-        $this->exportExcel($xlsName,$xlsCell,$data);
+        $str = "./public/uploads/file/classroom.xlsx";
+        $this->returnData('', $str);
+//        $org_id = input('orgid');
+//        $xlsName  = "classroom";
+//        $xlsCell  = array(
+//            array('name', '教室名称'),
+//            array('count','容纳人数'),
+//            array('status','状态'),
+//        );
+//        if (empty($org_id))
+//        {
+//            $this->returnError('10000', '缺少参数');
+//        }
+//        $data = [
+//            ['name'=>'教室1', 'count'=>100, 'status'=>'可用']
+//        ];
+//        $this->exportExcel($xlsName,$xlsCell,$data);
     }
 
     // Classroom information introduction method
     public function room_ipt(){
         $uid = input('uid', '');
-        $orgid = input('orgid', '');
-        if (empty($uid) || empty($orgid))
+        $org_id = input('org_id', '');
+        if (empty($uid) || empty($org_id))
         {
             $this->returnError('10000', '缺少参数uid或orgid');
             exit();
@@ -177,7 +179,7 @@ class Excel extends ExcelBase
 erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         $temp = Db::query($sql);
 
-        if (empty($temp) || $temp['org_id'] != $orgid)
+        if (empty($temp) || $temp['or_id'] != $org_id)
         {
             $this->returnError('10000', '请求非法');
         }
@@ -194,7 +196,6 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             $response = [];
             foreach ($excel_data as $val)
             {
-
                 $data['room_name'] = $val[0];
                 $data['room_count'] = $val[1];
                 if(!is_numeric($data['room_count']) || !is_numeric($data['room_count']))
@@ -203,7 +204,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 }
                 $data['status'] = $val[2];
                 $data['manager'] = $uid;
-                $data['or_id'] = $orgid;
+                $data['or_id'] = $org_id;
 
                 $res = Db::table('erp2_classrooms')->where('room_name', '=',
                     $data['room_name'])->find();
