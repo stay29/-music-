@@ -74,7 +74,7 @@ class PayList extends  Validate
             [
                 'pay_id_list',
                 'orgid',
-                'manager',
+                //'manager',
             ]);
     }
 

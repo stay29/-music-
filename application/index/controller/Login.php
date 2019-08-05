@@ -29,15 +29,12 @@ class Login extends Basess{
                 $error = explode('|',$validate->getError());//为了可以得到错误码
                 $this->return_data(0,$error[1],$error[0]);
             }else{
-                 //查询判断新用户还是爱琴家用
                  $mup['cellphone'] = $data['cellphone'];
                  $mup['password'] =md5_return($data['password']);
                  $mup['incumbency'] =1;
                  $user_login_info = Users::where($mup)->find();
                  if($user_login_info){
-                     //存入session
                      $arr = Users::loginsession($user_login_info['uid']);
-                     //生成token和其他操作
                       $arr1 = [
                           'id' => $user_login_info['uid'],
                           'cellphone' => $user_login_info['cellphone'],
@@ -46,6 +43,9 @@ class Login extends Basess{
                       ];
                      $token =  Users::login_token($arr1,$user_login_info['uid']);
                      $arr['token'] = $token;
+                     $time = time();
+                     $uid = $user_login_info['uid'];
+                     Db::query("UPDATE erp2_users SET login_time=$time WHERE uid=$uid");
                      $this->return_data(1,0,'登录成功',$arr);
                  }else{
                          $mup1['cellphone'] = $data['cellphone'];

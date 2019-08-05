@@ -37,6 +37,7 @@ class Currm extends BaseController
         if($orgid){
             $where[]=['orgid','=', $orgid];
         }
+        $where[] = ['is_del','=',0];
         try{
         $res = Curriculums::getall($limit,$where);
         $this->return_data(1,0,$res);
@@ -85,11 +86,12 @@ class Currm extends BaseController
     //删除课程
     public function delcurrmon()
     {
-        $data['cur_id'] = input('cur_id');
-        if($data==null){
+        $where['cur_id'] = input('cur_id');
+        $data['is_del'] = 1;
+        if($where==null){
             $this->return_data(0,10000,'缺少参数');
         }
-        $res = Curriculums::delcurrl($data);
+        $res = Curriculums::delcurrl($where,$data);
         if($res){
         $this->return_data(1,0,'删除成功');
         }else{
@@ -155,6 +157,7 @@ class Currm extends BaseController
         if($orgid){
             $where[]=['orgid','=', $orgid];
         }
+        $where[]=['is_del','=', 0];
         try{
             $res = Curriculums::get_all($where);
             //print_r($res);exit();
