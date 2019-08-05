@@ -175,7 +175,7 @@ class Excel extends ExcelBase
 erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         $temp = Db::query($sql);
 
-        if (empty($temp))
+        if (empty($temp) || $temp['org_id'] != $orgid)
         {
             $this->returnError('10000', '请求非法');
         }
@@ -195,21 +195,16 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
 
                 $data['room_name'] = $val[0];
                 $data['room_count'] = $val[1];
-                if(!is_numeric($data['room_count']))
+                if(!is_numeric($data['room_count']) || !is_numeric($data['room_count']))
                 {
-                    continue;
+                    $this->returnError('10001', 'excel数据不合法');
+                    exit();
                 }
-
                 $data['status'] = $val[2];
                 $data['manager'] = $uid;
                 $data['or_id'] = $orgid;
-
                 $res = Db::table('erp2_classrooms')->where('room_name', '=',
                     $data['room_name'])->find();
-                if(!$res)
-                {
-                    array_push($response, $data['room_name']);
-                }
                 Db::table('erp2_classrooms')->insert($data);
             }
             // 提交事务
@@ -232,12 +227,11 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             $this->returnError('10000', '缺少参数orgid');
             exit();
         }
-        $xlsName  = "classroom";
+        $xlsName  = "教室信息";
         $xlsCell  = array(
-            array('id','教室ID'),
-            array('name', '教室名称'),
-            array('count','容纳人数'),
-            array('status','状态'),
+            array('name', '教室名称(必填)'),
+            array('count','容纳人数(必填)'),
+            array('status','教室状态(1可用,2不可用, 默认是１)'),
         );
         if (empty($org_id))
         {
@@ -245,20 +239,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         }
         $xlsData = db('classrooms')->where('or_id', $org_id)->field('room_id as id, 
             room_name as name, room_count as count, status')->select();
-        $data = [];
-        foreach ($xlsData as $k => $v)
-        {
-            if($v['status'] == 1)
-            {
-                $v['status'] = '可用';
-            }
-            else
-            {
-                $v['status'] = '不可用';
-            }
-            $data[] = $v;
-        }
-        $this->exportExcel($xlsName,$xlsCell,$data);
+        $this->exportExcel($xlsName,$xlsCell,$xlsData);
     }
 
 
@@ -516,13 +497,11 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
     public function stu_ipt()
     {
         $orgid = input('orgid', '');
-        $uid = input('uid');
+        $uid = input('uid', '');
         if(empty($orgid))
         {
             $this->returnError(10000, '缺少参数orgid');
         }
-
-
 
     }
 
