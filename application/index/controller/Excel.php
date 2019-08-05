@@ -23,7 +23,7 @@ class ExcelBase extends Controller
     public function returnError($error_code, $error_msg)
     {
         $data = [
-            'status' => 0,
+            'status' => false,
             'error_code' => $error_code,
             'error_msg' => $error_msg,
             'data' => ''
@@ -39,7 +39,7 @@ class ExcelBase extends Controller
     public function returnData($info, $data)
     {
         $data = [
-            'status' => 1,
+            'status' => true,
             'sinfo' => $info,
             'error_code' => '',
             'data' => $data
