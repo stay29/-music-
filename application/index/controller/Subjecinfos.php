@@ -8,6 +8,8 @@
 namespace app\index\controller;
 use think\Controller;
 use app\index\model\Subjects;
+
+
 class Subjecinfos  extends BaseController
 {
     public function index()
