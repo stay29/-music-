@@ -14,6 +14,7 @@ class MealCurRelations  extends Validate
         'cur_name'  =>    'require|max:12',
         'cur_id' =>       'require|number',
         'cur_num' =>      'require|number',
+        'cur_value' =>    'require|number',
         'cur_value' =>    'require',
         'actual_price' => 'require',
         'course_model' => 'require|number',

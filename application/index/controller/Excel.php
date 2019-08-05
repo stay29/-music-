@@ -6,9 +6,11 @@ use think\Controller;
 use think\Db;
 use think\Exception;
 use PHPExcel;
+
 /*
 * Basic Controller Provides Information Interface for Import, Export and Return
 */
+
 class ExcelBase extends Controller
 {
 
@@ -197,12 +199,12 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $data['room_count'] = $val[1];
                 if(!is_numeric($data['room_count']) || !is_numeric($data['room_count']))
                 {
-                    $this->returnError('10001', 'excel数据不合法');
-                    exit();
+                    $this->returnError('10001', '数据有误');
                 }
                 $data['status'] = $val[2];
                 $data['manager'] = $uid;
                 $data['or_id'] = $orgid;
+
                 $res = Db::table('erp2_classrooms')->where('room_name', '=',
                     $data['room_name'])->find();
                 Db::table('erp2_classrooms')->insert($data);
@@ -227,11 +229,12 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             $this->returnError('10000', '缺少参数orgid');
             exit();
         }
-        $xlsName  = "教室信息";
+        $xlsName  = "classroom";
         $xlsCell  = array(
-            array('name', '教室名称(必填)'),
-            array('count','容纳人数(必填)'),
-            array('status','教室状态(1可用,2不可用, 默认是１)'),
+            array('id','教室ID'),
+            array('name', '教室名称'),
+            array('count','容纳人数'),
+            array('status','状态'),
         );
         if (empty($org_id))
         {
@@ -239,7 +242,20 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         }
         $xlsData = db('classrooms')->where('or_id', $org_id)->field('room_id as id, 
             room_name as name, room_count as count, status')->select();
-        $this->exportExcel($xlsName,$xlsCell,$xlsData);
+        $data = [];
+        foreach ($xlsData as $k => $v)
+        {
+            if($v['status'] == 1)
+            {
+                $v['status'] = '可用';
+            }
+            else
+            {
+                $v['status'] = '不可用';
+            }
+            $data[] = $v;
+        }
+        $this->exportExcel($xlsName,$xlsCell,$data);
     }
 
 
@@ -504,7 +520,6 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         }
 
     }
-
     /**
      * Download Data Template for Course Purchase
      */
