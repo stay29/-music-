@@ -208,23 +208,22 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $data['status'] = $val[2];
                 $data['manager'] = $uid;
                 $data['or_id'] = $org_id;
-
-                $where[] = ['or_id', '=', $org_id];
-                $where[] = ['room_name', '=', $data['room_name']];
-                $where[] = ['is_del', '=', 0];
-
+//                $where[] = ['or_id', '=', $org_id];
+//                $where[] = ['room_name', '=', $data['room_name']];
+//                $where[] = ['is_del', '=', 0];
                 $count = Db::table('erp2_classrooms')->where(
                         ['or_id'=>$org_id, 'room_name'=>$data['room_name'], 'is_del'=>0]
                 )->count();
                 if($count > 0)
                 {
-                    continue;
+                    array_push($response, $data['room_name']);
                 }
                 else
                 {
                     $data['create_time'] = time();
                     Db::table('erp2_classrooms')->insert($data);
                 }
+                unset($data);
             }
             // 提交事务
             Db::commit();
