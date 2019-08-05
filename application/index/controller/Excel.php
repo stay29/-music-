@@ -210,7 +210,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $data['or_id'] = $org_id;
                 $where[] = ['or_id', '=', $org_id];
                 $where[] = ['room_name', '=', $data['room_name']];
-                $where[] = ['status', '=', 0];
+                $where[] = ['is_del', '=', 0];
                 $res = Db::table('erp2_classrooms')->where($where)->find();
                 if(!$res)
                 {
