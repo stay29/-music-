@@ -1,0 +1,126 @@
+{layout name="layout:layout" /}
+
+<form class="layui-form" action="">
+    <div class="layui-form-item">
+        <label class="layui-form-label">角色</label>
+        <div class="layui-input-block">
+            <input type="text" name="role_name" required  lay-verify="required" placeholder="请输入角色" autocomplete="off" class="layui-input" value="{$info.role_name}">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">权限</label>
+        <div class="layui-input-block">
+
+
+            <table class="layui-table layui-table-bordered">
+                <tr>
+                    <th>模块权限</th>
+                    <th>子集权限</th>
+                    <th>操作权限</th>
+                </tr>
+                {volist name='list' id='item'}
+                <tr>
+                    <td class="parent_access">
+                        <input type="checkbox" name="aid[]" title="{$item.access_name}" lay-ignore value="{$item.access_id}"
+                               {if condition='in_array($item["access_id"],$info["pidlist"])'}checked{/if}
+                        >
+                        {$item.access_name}
+                    </td>
+                    <td class="children_access1">
+                        {volist name='item.pid_type1' id='v'}
+                        <input type="checkbox" name="aid[]" title="{$v.access_name}" lay-ignore value="{$v.access_id}"
+                               {if condition='in_array($v["access_id"],$info["pidlist"])'}checked{/if}
+                        >
+                        {$v.access_name}
+                        {/volist}
+                    </td>
+                    <td class="children_access1">
+                        {volist name='item.pid_type1' id='v2'}
+                        {volist name='v2.pid_type2' id='v1'}
+                        <input type="checkbox" name="aid[]" title="{$v1.access_name}" lay-ignore value="{$v1.access_id}"
+                               {if condition='in_array($v1["access_id"],$info["pidlist"])'}checked{/if}
+                        >
+                        {$v1.access_name}
+                        {/volist}
+                        {/volist}
+                    </td>
+                </tr>
+                {/volist}
+            </table>
+        </div>
+
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">状态</label>
+        <div class="layui-input-block">
+            <select name="status" lay-verify="required">
+                <option value="1" {if condition="$info['status'] eq 1"}selected{/if}>启用</option>
+                <option value="2" {if condition="$info['status'] eq 2"}selected{/if}>禁用</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">状态</label>
+        <div class="layui-input-block">
+            <select name="deflau" lay-verify="required">
+                <option value="1" {if condition="$info['deflau'] eq 1"}selected{/if}>系统默认</option>
+                <option value="2" {if condition="$info['deflau'] eq 2"}selected{/if}>自行创建</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">机构</label>
+        <div class="layui-input-block">
+            <select name="orgid" lay-verify="">
+                <option value="" {if condition="$info['orgid'] eq ''"}selected{/if}>系统默认没有机构</option>
+                {volist name='orglist' id='vs'}
+                <option value="{$vs.or_id}" {if condition="$vs['or_id'] eq $info['orgid']"}selected{/if}>{$vs.or_name}</option>
+                {/volist}
+            </select>
+        </div>
+    </div>
+    <input type="hidden" name="role_id" value="{$info.role_id}">
+    <div class="layui-form-item">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
+<script>
+    //Demo
+    layui.use('form', function(){
+        var form = layui.form;
+        //监听提交
+        form.on('submit(formDemo)', function(data){
+            $.post('{:url("edit_role_linfo")}',data.field,function(e){
+                if(e.status){
+                    layer.msg(e.sinfo);
+                    window.location.href = '{:url("roleadd_list")}';
+                }else{
+                    layer.msg(e.emsg,{time:2000});
+                }
+            },'json');
+            return false;
+        });
+    });
+    $(function(){
+        $('.parent_access input').click(function(){
+            var status = this.checked;
+            $elem = $(this).parent().siblings(".children_access1").find('input');
+            $.each($elem,function(k,v){
+                v.checked = status;
+            });
+        });
+        $('.children_access1 input').click(function(){
+            var status = this.checked;
+            if(status){
+                $elem = $(this).parents('tr').find('.parent_access input').attr('checked',true);
+            }
+        });
+
+    })
+</script>
+
