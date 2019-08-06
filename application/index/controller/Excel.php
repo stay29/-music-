@@ -68,7 +68,7 @@ class ExcelBase extends Controller
 
         $objPHPExcel = new \PHPExcel();
         $cellName = array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI','AJ','AK','AL','AM','AN','AO','AP','AQ','AR','AS','AT','AU','AV','AW','AX','AY','AZ');
-        $objPHPExcel->getActiveSheet()->setTitle("教室信息");
+        $objPHPExcel->getActiveSheet()->setTitle($xlsTitle);
         $objPHPExcel->getActiveSheet(0)->mergeCells('A1:'.$cellName[$cellNum-1].'1');
 
         for($i=0;$i<$cellNum;$i++){
@@ -245,9 +245,8 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             $this->returnError('10000', '缺少参数orgid');
             exit();
         }
-        $xlsName  = "classroom";
+        $xlsName  = "教室信息";
         $xlsCell  = array(
-            array('id','教室ID'),
             array('name', '教室名称'),
             array('count','容纳人数'),
             array('status','状态'),
@@ -256,22 +255,11 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         {
             $this->returnError('10000', '缺少参数');
         }
-        $xlsData = db('classrooms')->where('or_id', $org_id)->field('room_id as id, 
-            room_name as name, room_count as count, status')->select();
-        $data = [];
-        foreach ($xlsData as $k => $v)
-        {
-            if($v['status'] == 1)
-            {
-                $v['status'] = '可用';
-            }
-            else
-            {
-                $v['status'] = '不可用';
-            }
-            $data[] = $v;
-        }
-        $this->exportExcel($xlsName,$xlsCell,$data);
+        $xlsData = db('classrooms')->
+                    where('or_id', $org_id)->
+                    field(' room_name as name, room_count as count, status')->select();
+
+        $this->exportExcel($xlsName,$xlsCell,$xlsData);
     }
 
 
