@@ -23,10 +23,15 @@ class Teacher extends BaseController
      */
     public function index()
     {
+        $org_id = input('org_id', '');
         $t_name = input('t_name/s', null); // 教师名称
         $se_id = input('se_id/s', null); // 资历ID
         $status = input('status/d', null);  // 离职状态
         $where = array();
+        if(empty($org_id))
+        {
+            $this->return_data(0, '10000', '缺少参数');
+        }
         if(!empty($t_name))
         {
             $where[] = ['t_name', 'like', '%' . $t_name. '%'];
@@ -40,6 +45,7 @@ class Teacher extends BaseController
             $where = ['se_id', '=', $se_id];
         }
         $where[] = ['is_del', '=', 0];
+        $where[] = ['org_id', '=', $org_id];
         $teacher = TeacherModel::where($where)->field('t_id as id,t_name as name,
                 sex,cellphone,birthday,entry_time,status, se_id, resume')->paginate(20);
         $this->return_data(1, '','', $teacher);
