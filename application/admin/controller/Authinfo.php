@@ -16,7 +16,7 @@ class Authinfo extends AdminBase
         $this->assign('add', url('admin/authinfo/addauth'));
         $this->assign('title', $title);
         $orgid = [];
-        $res1 = Db::table('erp2_user_accesses')->where($orgid)->paginate(20)->each(function ($v,$k){
+        $res1 = Db::table('erp2_user_accesses')->where($orgid)->paginate(15)->each(function ($v,$k){
             $ar1 = ['顶级分类','模块','操作'];//可读性很强
             $v['type'] = $ar1[$v['type']];//可读性很强
             $v['status'] = $v['status']==1?'启用':'不启用';//可读性很强
@@ -30,7 +30,6 @@ class Authinfo extends AdminBase
         return view();
     }
 
-    //添加节点
     public  function  addauth()
     {
         if ($this->request->isPost()) {
@@ -68,7 +67,6 @@ class Authinfo extends AdminBase
     }
 
 
-    //修改节点
     public  function  eidtauth()
     {
         if ($this->request->isPost()) {
@@ -95,7 +93,7 @@ class Authinfo extends AdminBase
             return view();
         }
     }
-    //删除应该没有人使用该节点
+
     public  function  delauth()
     {
         $a['access_id'] = input('access_id');
@@ -108,5 +106,92 @@ class Authinfo extends AdminBase
     }
 
 
+    public function  roleadd_list()
+    {
+        $title = '前台角色列表';
+        $this->assign('title', $title);
+        $this->assign('add', url('admin/authinfo/role_add_info'));
+        $res = Db::table('erp2_user_roles')->where('status',1)->where('is_del',0)->paginate(15)->each(function ($v,$k){
+            $a['or_id'] = $v['orgid'];
+            $v['orgid'] = $v['orgid'] ==0?'系统创建':getname('erp2_organizations',$a,'or_name');
+            $v['status'] = $v['status'] ==1?'正常':'禁用';
+            return $v;
+        });
+        $this->assign('authlist', $res);
+        return view();
+    }
 
+    public  function  role_add_info()
+    {
+        if ($this->request->isPost()) {
+            $data = [
+                'role_name' => input('role_name'),
+                'status' => input('status'),
+                'aid' => implode(',',input('aid')),
+                'deflau' => input('deflau'),
+                'orgid' => input('orgid'),
+                'create_time'=>time(),
+                'update_time'=>time(),
+            ];
+            $res = add('erp2_user_roles',$data);
+            if($res){
+                $this->return_data(1, '操作成功');
+            }else{
+                $this->return_data(0, '操作失败');
+            }
+        }else{
+        $title = '前台添加角色';
+        $this->assign('title', $title);
+        $res = selects('erp2_user_accesses',['is_del'=>0,'type'=>0]);
+        foreach ($res as $k=>&$v){
+            $v['pid_type1'] = selects('erp2_user_accesses',['is_del'=>0,'type'=>1,'pid'=>$v['access_id']]);
+            foreach ($v['pid_type1'] as $k1=>&$v1){
+                $v1['pid_type2'] = selects('erp2_user_accesses',['is_del'=>0,'type'=>2,'pid'=>$v1['access_id']]);
+            }
+        }
+        $this->assign('list', $res);
+        $orglist = selects('erp2_organizations',['is_del'=>0]);
+        $this->assign('orglist', $orglist);
+        return view();
+        }
+    }
+
+
+    public function  edit_role_linfo()
+    {
+        if ($this->request->isPost()) {
+            $role_id['role_id'] = input('role_id');
+            $data = [
+                'role_name' => input('role_name'),
+                'status' => input('status'),
+                'aid' => implode(',',input('aid')),
+                'deflau' => input('deflau'),
+                'orgid' => input('orgid'),
+            ];
+        $edinfo = edit('erp2_user_roles',$role_id,$data);
+            if($edinfo){
+                $this->return_data(1, '操作成功');
+            }else{
+                $this->return_data(0, '操作失败');
+            }
+        }else{
+            $title = '前台修改角色';
+            $this->assign('title', $title);
+            $res = selects('erp2_user_accesses',['is_del'=>0,'type'=>0]);
+            foreach ($res as $k=>&$v){
+                $v['pid_type1'] = selects('erp2_user_accesses',['is_del'=>0,'type'=>1,'pid'=>$v['access_id']]);
+                foreach ($v['pid_type1'] as $k1=>&$v1){
+                    $v1['pid_type2'] = selects('erp2_user_accesses',['is_del'=>0,'type'=>2,'pid'=>$v1['access_id']]);
+                }
+            }
+            $this->assign('list', $res);
+            $orglist = selects('erp2_organizations',['is_del'=>0]);
+            $this->assign('orglist', $orglist);
+            $role_id['role_id'] = input('role_id');
+            $info = finds('erp2_user_roles',$role_id);
+            $info['pidlist'] = explode(',',$info['aid']);
+            $this->assign('info', $info);
+            return view();
+        }
+    }
 }

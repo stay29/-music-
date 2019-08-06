@@ -34,8 +34,8 @@ class Currm extends BaseController
         if($status){
             $where[]=['status','=', $status];
         }
-        $where[]=['orgid','=',$orgid];
-        $where[] = ['is_del','=',0];
+        $where[] = ["is_del",'=',"0"];
+        $where[] = ["orgid",'=',"$orgid"];
         try{
         $res = Curriculums::getall($limit,$where);
         $this->return_data(1,0,$res);
@@ -61,6 +61,7 @@ class Currm extends BaseController
             $this->return_data(0,50000,$e->getMessage());
         }
  	}
+
     //修改课程
     public function editcurrm()
     {
