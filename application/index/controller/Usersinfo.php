@@ -51,8 +51,6 @@ class Usersinfo extends BaseController
             Db::rollback();
             $this->return_data(0,50000,$e->getMessage());
         }
-
-
      if($res){
          $this->return_data(1,0,'添加成功');
      }else{
@@ -188,5 +186,40 @@ class Usersinfo extends BaseController
             $this->return_data(0,10000,'没有任何改变');
         }
     }
+
+    public  function  addrole_new()
+    {
+        $rid = input('rid');
+        $uid = input('uid');
+        $res = edit('erp2_users',['uid'=>$uid],['rid'=>$rid]);
+        if($res){
+            $this->return_data(1,0,'操作成功');
+        }else{
+            $this->return_data(0,10000,'没有任何改变');
+        }
+    }
+
+    public  function  add_accauth_list()
+    {
+        $data = [
+            'role_name' =>input('role_name'),
+            'status' =>1,
+            'manager' =>input('uid'),
+            'orgid' =>input('orgid'),
+            'aid' =>implode(',',input('aid')),
+            'deflau' =>2,
+        ];
+        $res = add('erp2_user_roles',$data);
+        if($res){
+            $this->return_data(1,0,'操作成功');
+        }else{
+            $this->return_data(0,10000,'没有任何改变');
+        }
+    }
+
+
+
+
+
 
 }

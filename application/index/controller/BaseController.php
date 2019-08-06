@@ -16,28 +16,88 @@ class BaseController extends Controller
     public function initialize()
     {
         parent::initialize();
-       $tokenall =  $this->checkToken();
-       $token = db('Token_user')->where('uid',$tokenall['uid'])->find();
-       if ($token['token'] != $tokenall['token']) {
-           return $this->return_data(0, 10005, '请重新登录');
-       }
+        $tokenall =  $this->checkToken();
+        $token = db('Token_user')->where('uid',$tokenall['uid'])->find();
+        if ($token['token'] != $tokenall['token']) {
+            return $this->return_data(0, 10005, '请重新登录');
+        }
+    }
+    protected $beforeActionList = [
+        'first',
+    ];
+    protected function first()
+    {
+        $this->auth_get_token();
+    }
+    /*
+     *权限效验
+     *没有添加的节点不限制
+     * */
+    public function  auth_get_token()
+    {
+
+        $mup['a_home'] = Request::instance()->module();
+        $mup['a_coller'] = Request::instance()->controller();
+        $mup['a_action'] = Request::instance()->action();
+        $mup['is_del'] = 0;
+        $res = finds('erp2_user_accesses',$mup);
+        $uid = ret_session_name('uid');
+        $auth = $this->get_aid_role111($uid);
+        $a = json_decode($auth);
+        if($res){
+            if(!in_array($res['access_id'],$a)){
+                $this->return_data(0,0,'你没有改权限,请联系管理员');
+            }
+        }
     }
 
-//    protected $beforeActionList = [
-//        'first',
-//    ];
-
-//    protected function first()
-//    {
-//       $uid = ret_session_name('uid');
-//       $aaa = $this->auth_get_token($uid);
-//       //print_r($aaa);exit();
-//       if($aaa==false){
-//           return $this->return_data(0, 40000 , '您的权限不足请联系管理员');
-//       }
-//    }
 
 
+    //获取当前用户的最终权限
+    public  function  get_aid_role111($uid)
+    {
+       // $uid = input('uid');
+        $userinfo = finds('erp2_users',['uid'=>$uid]);
+        $rid = explode(',',$userinfo['rid']);
+        $array = [];
+        foreach ($rid as $k=>$v){
+            $array[] = finds('erp2_user_roles',['role_id'=>$v]);
+        }
+        $arr = [];
+        foreach ($array as $k1=>$v1){
+
+            $arr []= explode(',',$v1['aid']);
+        }
+        $a = $this->array_heb($arr);
+        $b =   $this->a_array_unique($a);
+        return json_encode($b);
+    }
+
+    public  function array_heb($arrs)
+    {
+        static $arrays  = array();
+        foreach ($arrs as $key=>$value)
+        {
+            if(is_array($value)){
+                $this->array_heb($value);
+            }else{
+                $arrays[]= $value;
+            }
+        }
+        return $arrays;
+    }
+
+    public function a_array_unique($array)//写的比较好
+    {
+        $out = array();
+        foreach ($array as $key=>$value) {
+            if (!in_array($value, $out))
+            {
+                $out[$key] = $value;
+            }
+        }
+        return $out;
+    }
     /**
      *响应
      *$info,在status=1返回成功提示，0的时候返回错误提示，$data返回需要的数据
@@ -144,47 +204,8 @@ class BaseController extends Controller
     }
 
 
-    //权限验证
-    public function  auth_get_token($uid)
-    {
-
-        $module = Request::instance()->module();
-        $controller = Request::instance()->controller();
-        $action = Request::instance()->action();
-        $url = '/'.$module.'/'.$controller.'/'.$action;
-        //获取用户信息
-        $userinfo = finds('erp2_users',['uid'=>$uid]);
-        //获取全部权限接口
-        $rolelist = selects('erp2_user_role_relations',['role_id'=>$userinfo['rid']]);
-        //获取当前操作操作节点id
-        $mup1['access_url'] = $url;
-       // $mup1['orgid']  = ret_session_name('orgid');
-        $aid = finds('erp2_user_accesses',$mup1);
-        //print_r($mup1);exit();
-        if(empty($aid)){
-            //如果aid为空证明是全局接口不需要验证 直接操作
-            $dass['status'] = 1;
-            $dass['create_time'] = time();
-            $dass['update_time'] = time();
-            $dass['access_url'] = $url;
-            //$dass['orgid'] = ret_session_name('orgid');
-            //$dass['manager'] = $uid;
-            $arrauth = add('erp2_user_accesses',$dass,2);
-            return true;
-        }else{
-            //验证开始 不为空则是需要权限验证接口
-            $mup2['aid'] = $aid['access_id'];
-            $mup2['orgid'] = ret_session_name('orgid');
-            $ff =  finds('erp2_user_role_relations',$mup2);
-            if($ff){
-                return true;
-            }else{
-                return true;
-            }
-        }
-    }
-
 
 
 
 }
+

@@ -188,13 +188,6 @@ function getsql($dataName){
 
 
 
-//生成session 何tonken
-function add_session_tokne()
-{
-    echo 111;
-}
-
-
 
 
 

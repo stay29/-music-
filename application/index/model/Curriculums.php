@@ -24,7 +24,7 @@ class Curriculums extends Model
 	public  static  function getall($limit,$where)
     {
             $list = Curriculums::where($where)
-            //->field('cur_id,cur_name,subject,tmethods,ctime,state,orgid,manager,create_time,tqualific,popular')
+            ->field('cur_id,cur_name,subject,tmethods,ctime,state,orgid,manager,create_time,tqualific,popular,is_del')
             ->paginate($limit)->each(function($item, $key){
             $where1['sid'] = $item['subject'];
             $item['subject'] = db('subjects')->field('sid,sname,pid')->where($where1)->find();
@@ -34,7 +34,6 @@ class Curriculums extends Model
         });
         return $list;
 	}
-
     public  static  function  get_all($where)
     {
         $list = Curriculums::where($where)->select()
