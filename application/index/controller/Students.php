@@ -13,8 +13,6 @@ use app\index\model\Students as StuModel;
 /*
  * Student-related Functional Controller.
  */
-
-
 class Students extends BaseController
 {
     /*
