@@ -1,0 +1,44 @@
+{layout name="layout:layout" /}
+
+<table class="layui-table">
+    <colgroup>
+        <col width="150">
+        <col width="200">
+        <col>
+    </colgroup>
+    <thead>
+    <tr>
+        <th>姓名</th>
+        <th>电话</th>
+        <th>年级</th>
+        <th>监护人</th>
+        <th>创建人</th>
+        <th>创建时间</th>
+        <th>状态</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    {volist name='students_list' id='item'}
+    <tr>
+        <td>{$item.truename}</td>
+        <td>{$item.cellphone}</td>
+        <td>{$item.grade}</td>
+        <td>{$item.guardian_name}</td>
+        <td>{$item.manager}</td>
+        <td>{$item.status_text}</td>
+        <td>{:date('Y-m-d H:i:s',$item.create_time)}</td>
+        <td>
+            <a href="{:url('student_edit',['stu_id'=>$item['stu_id']])}" class="layui-btn layui-btn-xs">编辑</a>
+        </td>
+    </tr>
+    {/volist}
+    </div>
+    </tbody>
+</table>
+{$students_list|raw}
+<script>
+    $(function(){
+    })
+</script>
+
