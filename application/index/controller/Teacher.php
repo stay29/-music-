@@ -23,7 +23,7 @@ class Teacher extends BaseController
      */
     public function index()
     {
-        $org_id = input('org_id', '');
+        $org_id = input('orgid', '');
         $t_name = input('t_name/s', null); // 教师名称
         $se_id = input('se_id/s', null); // 资历ID
         $status = input('status/d', null);  // 离职状态
@@ -58,6 +58,7 @@ class Teacher extends BaseController
         $t_id = input('post.t_id');
         $data = [
             't_id'=>$t_id,
+            'org_id' => input('post.orgid'),
             't_name' => input('post.name'),
             'avator' => input('post.avator'),
             'sex' => input('post.sex',1),
@@ -112,7 +113,7 @@ class Teacher extends BaseController
      */
     public function detail()
     {
-        $org_id = input('org_id', null);
+        $org_id = input('orgid', null);
         $t_id = input('t_id', null);
         if (!isset($org_id) || !isset($t_id))
         {
@@ -165,6 +166,7 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=1;";
             'birthday' => input('post.birthday'),
             'entry_time' => input('post.entry_day'),
             'resume' => input('post.resume'),
+            'org_id' => input('orgid'),
             'identity_card' => input('post.id_card'),
         ];
         $validate = new \app\index\validate\Teacher();
@@ -196,6 +198,7 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=1;";
      */
     public function jobStatus()
     {
+        $org_id = input('org_id', null);
         $t_id = input('post.t_id', '');
         $status = input('post.status', '');
         if(empty($status) || empty($t_id))
@@ -234,6 +237,7 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=1;";
      */
     public function lessonDelete()
     {
+        $org_id = input('orgid');
         if(!$this->request->isPost())
         {
             $this->return_data(0, '10002', '请用POST方法提交');
@@ -259,6 +263,7 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=1;";
         {
             $this->return_data(0, '10002', '请用POST方法提交');
         }
+        $org_id = input('orgid', '');
         $t_id = input('t_id'); // 教师ID
         $cur_id = input('cur_id'); //课程ID
         try
@@ -272,39 +277,6 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=1;";
         }
     }
 
-
-    /*
-     * 导入EXCEL
-     */
-    protected function exportExcel($expTitle,$expCellName,$expTableData){
-        $xlsTitle = iconv('utf-8', 'gb2312', $expTitle);//文件名称
-
-        $fileName =$xlsTitle . date('_YmdHis');//or $xlsTitle 文件名称可根据自己情况设定
-        $cellNum = count($expCellName);
-        $dataNum = count($expTableData);
-
-        $objPHPExcel = new \PHPExcel();
-        $cellName = array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI','AJ','AK','AL','AM','AN','AO','AP','AQ','AR','AS','AT','AU','AV','AW','AX','AY','AZ');
-
-        $objPHPExcel->getActiveSheet(0)->mergeCells('A1:'.$cellName[$cellNum-1].'1');
-
-        for($i=0;$i<$cellNum;$i++){
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue($cellName[$i].'2', $expCellName[$i][1]);
-        }
-
-        for($i=0;$i<$dataNum;$i++){
-            for($j=0;$j<$cellNum;$j++){
-                $objPHPExcel->getActiveSheet(0)->setCellValue($cellName[$j].($i+3), $expTableData[$i][$expCellName[$j][0]]);
-            }
-        }
-
-        header('pragma:public');
-        header('Content-type:application/vnd.ms-excel;charset=utf-8;name="'.$xlsTitle.'.xls"');
-        header("Content-Disposition:attachment;filename=$fileName.xls");//attachment新窗口打印inline本窗口打印
-        $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
-        $objWriter->save('php://output');
-        exit;
-    }
 
     /**
      * 教师薪酬设置

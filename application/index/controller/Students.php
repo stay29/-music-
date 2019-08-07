@@ -195,6 +195,22 @@ class Students extends BaseController
         {
             $this->return_data(0, '10000', '缺少参数');
         }
+    }
+
+    /*
+     * Student's balance.
+     */
+    public function balance(){
+        $stu_id = input('stu_id', '');
+        if (empty($stu_id)) {
+            $this->return_data('10000', '缺少参数');
+        }
+    }
+
+    /*
+     * Buying Lesson
+     */
+    public function buyLesson(){
 
     }
 
