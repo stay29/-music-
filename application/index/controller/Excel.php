@@ -14,8 +14,6 @@ use think\Log;
 
 class ExcelBase extends Controller
 {
-
-
     /**
      * Return error's code and error's message.
      * @param $error_code
@@ -177,7 +175,7 @@ class Excel extends ExcelBase
             $this->returnError('10000', '缺少参数uid或orgid');
             exit();
         }
-        $sql = "SELECT B.or_id as org_id FROM erp2_users AS A INNER JOIN 
+        $sql = "SELECT B.or_id as org_id FROM erp2_users AS A INNER JOIN
 erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         $temp = Db::query($sql);
 
@@ -285,9 +283,9 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             array('entry_time', '入职日期'),
             array('resume', '简历')
         );
-        $sql = "SELECT A.t_name, B.seniority_name as se, A.sex, 
-                A.identity_card, A.cellphone, A.birthday, A.entry_time, 
-                A.resume FROM erp2_teachers AS A INNER JOIN erp2_seniorities 
+        $sql = "SELECT A.t_name, B.seniority_name as se, A.sex,
+                A.identity_card, A.cellphone, A.birthday, A.entry_time,
+                A.resume FROM erp2_teachers AS A INNER JOIN erp2_seniorities
                 AS B ON A.se_id=B.seniority_id WHERE org_id={$org_id} LIMIT 2";
 
         $data = Db::query($sql);
@@ -425,10 +423,10 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             array('entry_time', '录入时间'),
             array('status', '状态')
         );
-        $sql = "SELECT truename as stu_name, 
-                sex, birthday, cellphone, wechat, 
-                address, remark, create_time as entry_time, 
-                status, org_id FROM erp2_students 
+        $sql = "SELECT truename as stu_name,
+                sex, birthday, cellphone, wechat,
+                address, remark, create_time as entry_time,
+                status, org_id FROM erp2_students
                 WHERE org_id={$org_id} LIMIT 2";
         $result = Db::query($sql);
         $data = [];
@@ -480,10 +478,10 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             array('entry_time', '录入时间'),
             array('status', '状态')
         );
-        $sql = "SELECT stu_id, truename as stu_name, 
-                sex, birthday, cellphone, wechat, 
-                address, remark, create_time as entry_time, 
-                status, org_id FROM erp2_students 
+        $sql = "SELECT stu_id, truename as stu_name,
+                sex, birthday, cellphone, wechat,
+                address, remark, create_time as entry_time,
+                status, org_id FROM erp2_students
                 WHERE org_id={$org_id} LIMIT 2";
         $result = Db::query($sql);
         $data = [];
