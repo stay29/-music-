@@ -81,7 +81,7 @@ class Login extends Basess{
             }else{
                 //查询判断新用户还是爱琴家用
                 $mup['cellphone'] = $data['cellphone'];
-                $mup['password'] =md5_return($data['password']);
+                $mup['password'] = md5_return($data['password']);
                 $user_login_info =    Users::where($mup)->find();
                 //判断是不是重复登陆
                 $arr_sess = Session::get($user_login_info['uid']);

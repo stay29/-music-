@@ -73,36 +73,6 @@ class User extends Validate
     }
 
 
-
-//    protected function check_user($password,$rule,$data)
-//    {
-//        $user_info = Users::where(['cellphone'=>$data['cellphone'],'password'=>md5_return($password)])->find();
-//        if($user_info){
-//            $orginfo =  Organization::where('or_id',$user_info['organization'])->find();
-//            session(md5(MA.'user'),[
-//                'id'=>$user_info['uid'],
-//                'user_aco'=>$user_info['cellphone'],
-//                'username'=>$user_info['nickname'],
-//                'sex'=>$user_info['sex'],
-//                'orgid'=>$user_info['organization'],
-//                'config'=> [
-//                    'or_id'      => $orginfo['or_id'],
-//                    'name'       => $orginfo['or_name'],
-//                    'logo'       => $orginfo['logo'],
-//                    'contacts'   => $orginfo['contact_man'],
-//                    'phone'      => $orginfo['telephone'],
-//                    'wechat'     => $orginfo['wechat'],
-//                    'intro'      => $orginfo['describe'],
-//                    'map'        => $orginfo['address'],
-//                    'remarks'    => $orginfo['remarks'],
-//                ]
-//            ]);
-//            return true;
-//        }else{
-//        //return '用户名密码错误|20007';
-//        $user_lits_info = Db::query("select * from user_list where status=1");
-//        }
-//    }
     /**
      * @param $is_rem
      * 记住密码
