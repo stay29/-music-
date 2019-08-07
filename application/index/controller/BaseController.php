@@ -21,6 +21,7 @@ class BaseController extends Controller
         if ($token['token'] != $tokenall['token']) {
             return $this->return_data(0, 10005, '请重新登录');
         }
+        $this->auth_get_token();
     }
     protected $beforeActionList = [
         'first',
