@@ -69,16 +69,22 @@ class Usersinfo extends BaseController
             $limit = 10;
         }
         //超级管理员
-        $orgid['organization'] = input('orgid');
-        $orgid['is_del'] = 0;
+        //$orgid['organization'] = input('orgid');
+        $orgid[] = ['organization','=', input('orgid')];
+        $account = input('account');
+        if($account){
+                $orgid[] = ['account','like','%'.$account.'%'];
+        }
+        $orgid[] = ['is_del','=',"0"];
+
         $res = select_find('erp2_users',$orgid,'nickname,uid,cellphone,incumbency,rid,organization,sex,senfen');
         foreach ($res as $k=>&$v){
             $v['orginfo'] = finds('erp2_organizations',['or_id'=>$v['organization']],'or_id,or_name');
             $v['ridinfo'] = $this->exp_name($v['rid'],'role_name');
         }
-
         $res_list = $this->array_page_list_show($limit,$page,$res,1);
-        $this->return_data(1,0,'查询成功',$res);
+        //$res['res_list'] =$res_list;
+        $this->return_data(1,0,'查询成功',$res_list);
     }
 
     public  function  exp_name($da,$name){
@@ -152,8 +158,7 @@ class Usersinfo extends BaseController
         }
     }
 
-
-
+    
     public  function  getoneuser()
     {
         $uid = input('uid');
@@ -165,8 +170,6 @@ class Usersinfo extends BaseController
         //$res['ridinfo'][] = selects('erp2_user_roles',);
         $this->return_data(1,0,'查询成功',$res);
     }
-
-
 
     public function  edituser_info()
     {
@@ -199,6 +202,7 @@ class Usersinfo extends BaseController
         }
     }
 
+
     public  function  add_accauth_list()
     {
         $data = [
@@ -207,6 +211,7 @@ class Usersinfo extends BaseController
             'manager' =>input('uid'),
             'orgid' =>input('orgid'),
             'aid' =>implode(',',input('aid')),
+            //'aid' =>implode(',',['1','3']),
             'deflau' =>2,
         ];
         $res = add('erp2_user_roles',$data);
@@ -217,7 +222,43 @@ class Usersinfo extends BaseController
         }
     }
 
+    public  function  edit_accauth_list()
+    {
+        $rid['role_id'] = input('rid');
+        $data = [
+            'role_name' =>input('role_name'),
+            'status' =>1,
+            'manager' =>input('uid'),
+            'orgid' =>input('orgid'),
+             'aid' =>implode(',',input('aid')),
+            //'aid' =>implode(',',['1','3']),
+            'deflau' =>2,
+        ];
+        //$res = add('erp2_user_roles',$data);
+        $res = edit('erp2_user_roles',$rid,$data);
+        if($res){
+            $this->return_data(1,0,'操作成功');
+        }else{
+            $this->return_data(0,10000,'没有任何改变');
+        }
+    }
 
+
+    public function get_auth_orgid_list()
+    {
+        $list = selects('erp2_user_accesses',['is_del'=>0,'type'=>0]);
+        //$orgid = ret_session_name('orgid');
+        $orgid = 30;
+        foreach ($list as $k=>&$v)
+        {
+            $v['pidlist'] = selects('erp2_user_accesses',['is_del'=>0,'type'=>1,'pid'=>$v['access_id']]);
+        }
+        $orlist = finds('erp2_organizations',['is_del'=>0,'status'=>2,'or_id'=>$orgid]);
+        $res['auth'] = $list;
+        $res['orglist'] = $orlist;
+        $this->return_data(1,0,$res);
+
+    }
 
 
 

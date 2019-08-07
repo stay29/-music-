@@ -47,7 +47,7 @@ class Currm extends BaseController
  	public function  addcurrmon()
     {
  		$data = input('post.');
- 		$data['manager'] = session(md5(MA.'user'))['id'];
+ 		$data['manager'] = ret_session_name('user');
         $validate = new \app\validate\Curriculums;
         if(!$validate->scene('add')->check($data)){
             //为了可以得到错误码
@@ -80,7 +80,6 @@ class Currm extends BaseController
             $this->return_data(0,50000,$e->getMessage());
         }
     }
-
 
     //删除课程
     public function delcurrmon()

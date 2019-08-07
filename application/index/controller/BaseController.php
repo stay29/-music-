@@ -16,20 +16,22 @@ class BaseController extends Controller
     public function initialize()
     {
         parent::initialize();
-        $tokenall =  $this->checkToken();
-        $token = db('Token_user')->where('uid',$tokenall['uid'])->find();
-        if ($token['token'] != $tokenall['token']) {
-            return $this->return_data(0, 10005, '请重新登录');
-        }
-        $this->auth_get_token();
+//        $tokenall =  $this->checkToken();
+//        $token = db('Token_user')->where('uid',$tokenall['uid'])->find();
+//        if ($token['token'] != $tokenall['token']) {
+//            return $this->return_data(0, 10005, '请重新登录');
+//        }
     }
+
     protected $beforeActionList = [
         'first',
     ];
+
     protected function first()
     {
-        $this->auth_get_token();
+        //$this->auth_get_token();
     }
+
     /*
      *权限效验
      *没有添加的节点不限制
