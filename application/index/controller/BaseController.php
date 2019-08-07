@@ -22,13 +22,17 @@ class BaseController extends Controller
             return $this->return_data(0, 10005, '请重新登录');
         }
     }
-    protected $beforeActionList = [
-        'first',
-    ];
+    // protected $beforeActionList = [
+    //     'first',
+    // ];
     protected function first()
     {
-        $this->auth_get_token();
+       $res = $this->auth_get_token();
+       if(!$res){
+             return $this->return_data(0, 10000, '请联系管理 添加权限');
+       }
     }
+
     /*
      *权限效验
      *没有添加的节点不限制
@@ -45,8 +49,7 @@ class BaseController extends Controller
         $a = json_decode($auth);
         if($res){
             if(!in_array($res['access_id'],$a)){
-                $this->return_data(0,0,'你没有改权限,请联系管理员');
-                die();
+               return 0;
             }
         }
     }
