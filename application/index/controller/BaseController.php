@@ -35,7 +35,6 @@ class BaseController extends Controller
      * */
     public function  auth_get_token()
     {
-
         $mup['a_home'] = Request::instance()->module();
         $mup['a_coller'] = Request::instance()->controller();
         $mup['a_action'] = Request::instance()->action();
@@ -47,6 +46,7 @@ class BaseController extends Controller
         if($res){
             if(!in_array($res['access_id'],$a)){
                 $this->return_data(0,0,'你没有改权限,请联系管理员');
+                die();
             }
         }
     }
@@ -191,7 +191,7 @@ class BaseController extends Controller
                     'msg' => 'Token验证通过'
                 ];
             } else {
-                $this->return_data('0', '10004', 'Token验证不通过,用户不存在');
+                $this->return_data('0', '10004', '请重新登录');
             }
             return $msg;
         } catch (\Firebase\JWT\SignatureInvalidException $e) {

@@ -224,6 +224,7 @@ class Index extends Basess
             }
         }
         //数据处理
+        $arrcur_name = array();
         foreach ($infos as $k=>&$v){
             $where['sname'] = $v['subject'];
             $subinfe = db('subjects')->where($where)->find();
@@ -240,8 +241,14 @@ class Index extends Basess
             $v['state'] = 2;
             $v['popular'] = 2;
             $v['tqualific'] = '0/0';
+            $cur_name_get_ilo = finds('erp2_curriculums',['cur_name'=>$v['cur_name']]);
+            if(!empty($cur_name_get_ilo)){
+                $arrcur_name = $cur_name_get_ilo['cur_name'];
+            }
         }
-
+        if(!empty($arrcur_name)){
+                $this->return_data(0,10000,'课程名称已经存在',implode(',',$arrcur_name));
+        }
         if(empty($infos)){
             $this->return_data(0,10000,'请填写数据后导入');
         }
@@ -257,6 +264,7 @@ class Index extends Basess
             }
            $info =  Curriculums::create($vs);
         }
+
             Db::commit();
         }catch(\Exception $e){
             // 回滚事务
