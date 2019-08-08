@@ -13,6 +13,7 @@ use app\index\model\Organization as Organ;
 class Usersinfo extends BaseController
 {
     public  function  addusers(){
+
         $orgid = input('organization');
         $password =input('password');
         $rpassword =input('rpassword');
@@ -26,9 +27,9 @@ class Usersinfo extends BaseController
             'account'=>input('cellphone'),
             'cellphone' =>input('cellphone'),
             'password'=>$password,
-            'organization' =>input('organization'),
+            'organization' =>$orgid,
             'sex'=>input('sex'),
-            'rid'=>input('rid'),
+            'rid'=>implode(',',input('rid')),
             'incumbency'=>1,
             'status'=>1,
             'create_time'=>time(),
@@ -170,7 +171,6 @@ class Usersinfo extends BaseController
         //$res['ridinfo'][] = selects('erp2_user_roles',);
         $this->return_data(1,0,'查询成功',$res);
     }
-
     public function  edituser_info()
     {
         $uid = input('uid');
@@ -243,23 +243,31 @@ class Usersinfo extends BaseController
         }
     }
 
+
     public function get_auth_orgid_list()
     {
-        $list = selects('erp2_user_accesses',['is_del'=>0,'type'=>0]);
-        //$orgid = ret_session_name('orgid');
-        $orgid = 30;
+        $orgid = ret_session_name('orgid');
+        //$list = selects('erp2_user_accesses',['is_del'=>0,'type'=>0]);
+        $list =  selects('erp2_user_roles',['is_del'=>0,'orgid'=>$orgid]);
         foreach ($list as $k=>&$v)
         {
-            $v['pidlist'] = selects('erp2_user_accesses',['is_del'=>0,'type'=>1,'pid'=>$v['access_id']]);
+            $v['f'] = "1";
+            // $v['rolelist'] = selects('erp2_user_roles',['is_del'=>0,'orgid'=>$orgid]);
+            //$v['pidlist'] = selects('erp2_user_accesses',['is_del'=>0,'type'=>1,'pid'=>$v['access_id']]);
+        }
+        $alist = selects('erp2_user_accesses',['is_del'=>0,'type'=>0]);
+        foreach ($alist as $k1=>&$v1)
+        {
+            $v['f'] = "1";
+            $v1['pidlist'] = selects('erp2_user_accesses',['is_del'=>0,'type'=>1,'pid'=>$v1['access_id']]);
         }
         $orlist = finds('erp2_organizations',['is_del'=>0,'status'=>2,'or_id'=>$orgid]);
+        $orlist['f'] = "1";
         $res['auth'] = $list;
         $res['orglist'] = $orlist;
+        $res['alist'] = $alist;
         $this->return_data(1,0,$res);
     }
-
-
-
 
 
 

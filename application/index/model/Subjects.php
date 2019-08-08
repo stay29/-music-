@@ -12,14 +12,12 @@ class Subjects extends Model
     	$res = Subjects::where($where)->select()->each(function($item, $key){
     		$where1['pid'] = $item['sid'];
     		$item['pids'] = Subjects::where($where1)->select();
+            $item['pidsname'] =implode(',',getnameselect('erp2_subjects',$where1,'sname'));
     	});
     	return $res;
     }
-
     public  static  function  get_noe_subjects($data){
         $res = Subjects::where($data)->find();
         return $res;
     }
-
-
 }

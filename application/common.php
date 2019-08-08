@@ -148,6 +148,17 @@ function getname($dataName,$where,$getname){
     return $aaa[$getname];
 }
 
+function getnameselect($dataName,$where,$getname){
+    $aaa = Db::table($dataName)->where($where)->select();
+    $fff = [];
+    foreach ($aaa as $k=>$v){
+        $fff[] = $v[$getname];
+    }
+    return $fff;
+}
+
+
+
 //通用单条查询
 function finds($dataName,$where,$field=''){
     return Db::table($dataName)->field($field)->where($where)->find();
@@ -155,7 +166,6 @@ function finds($dataName,$where,$field=''){
 //通用筛选查询
 function select_find($dataName,$where,$field='')
 {
-
      return Db::table($dataName)->field($field)->where($where)->select();
 }
 
