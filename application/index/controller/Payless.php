@@ -125,10 +125,11 @@ public  function  del_pay_list()
         }
     }
 }
-
 //薪酬列表
 public  function  pay_list()
 {
+//   $daa= input('post.');
+//   print_r($daa);exit();
     $page = input('page');
     if($page==null){
         $page = 1;

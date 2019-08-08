@@ -16,17 +16,16 @@ class BaseController extends Controller
     public function initialize()
     {
         parent::initialize();
-//        $tokenall =  $this->checkToken();
-//        $token = db('Token_user')->where('uid',$tokenall['uid'])->find();
-//        if ($token['token'] != $tokenall['token']) {
-//            return $this->return_data(0, 10005, '请重新登录');
-//        }
+        $tokenall =  $this->checkToken();
+        $token = db('Token_user')->where('uid',$tokenall['uid'])->find();
+        if ($token['token'] != $tokenall['token']) {
+            return $this->return_data(0, 10005, '请重新登录');
+        }
     }
 
     protected $beforeActionList = [
         'first',
     ];
-
     protected function first()
     {
         //$this->auth_get_token();
@@ -163,7 +162,7 @@ class BaseController extends Controller
     public function checkToken()
     {
         $header = Request::instance()->header();
-        //print_r($header);
+        //print_r($header);exit();
         if(array_key_exists('x-token',$header)){
         if ($header['x-token'] == 'null'){
             $this->return_data('0', '10006', 'Token不存在，拒绝访问');

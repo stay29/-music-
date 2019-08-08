@@ -21,6 +21,9 @@ class Currm extends BaseController
         $tmethods = input('tmethods');
         $status = input('status');
         $orgid  = input('orgid');
+        if(!$orgid){
+            $orgid = ret_session_name('orgid');
+        }
         $where = null;
         if($cur_name){
             $where[]=['cur_name','like','%'.$cur_name.'%'];
@@ -43,11 +46,12 @@ class Currm extends BaseController
             $this->return_data(0,50000,$e->getMessage());
         }
     }
+
     //添加课程
  	public function  addcurrmon()
     {
  		$data = input('post.');
- 		$data['manager'] = ret_session_name('user');
+ 		$data['manager'] = ret_session_name('uid');
         $validate = new \app\validate\Curriculums;
         if(!$validate->scene('add')->check($data)){
             //为了可以得到错误码

@@ -158,7 +158,7 @@ class Usersinfo extends BaseController
         }
     }
 
-    
+
     public  function  getoneuser()
     {
         $uid = input('uid');
@@ -243,7 +243,6 @@ class Usersinfo extends BaseController
         }
     }
 
-
     public function get_auth_orgid_list()
     {
         $list = selects('erp2_user_accesses',['is_del'=>0,'type'=>0]);
@@ -257,8 +256,9 @@ class Usersinfo extends BaseController
         $res['auth'] = $list;
         $res['orglist'] = $orlist;
         $this->return_data(1,0,$res);
-
     }
+
+
 
 
 
