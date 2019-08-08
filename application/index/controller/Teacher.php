@@ -639,5 +639,23 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=1;";
             $this->return_data(0, '', '服务器错误，　请假失败', true);
         }
     }
+
+    public function course()
+    {
+        $orgid = input('orgid');
+        if (empty($orgid))
+        {
+            $this->return_data('0', '10000', '缺少参数orgid');
+        }
+        $data = db('subjects')->field('sid, sname')->select();
+        foreach ($data as $k=>$v) {
+            $temp = db('curriculums')->
+                    field('cur_id, cur_name')->
+                    where(['orgid'=>$orgid, 'subject'=>$v['sid']])->select();
+            $data['courses']=$temp;
+            unset($temp);
+        }
+        $this->return_data(1, '', '', $data);
+    }
 }
 
