@@ -20,7 +20,7 @@ class Teacher extends Validate
         'se_id' => 'require|integer',
         'sex' => 'integer',
         'entry_time' => 'require',
-        'birthday' => 'date',
+        'birthday' => 'require',
         'id_card' => 'idCard',
         'status' => 'integer',
         'field'=>'require',
