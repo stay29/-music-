@@ -9,7 +9,13 @@
 namespace app\index\model;
 
 
-class Classess
+use think\Model;
+
+/*
+ * 班级模型
+ */
+class Classess extends Model
 {
+    protected $pk = 'class_id';
 
 }
