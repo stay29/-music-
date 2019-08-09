@@ -284,7 +284,7 @@ class Students extends BaseController
         Db::startTrans();
         try
         {
-            // 查找用户余额，　是否足够购买课程。
+
             Db::table('erp2_purchase_lessons')->insert($data);
             Db::commit();
             $this->return_data('1', '', '购课成功', true);
@@ -292,6 +292,51 @@ class Students extends BaseController
         {
             Db::rollback();
             $this->return_data('0', '', '购课失败', false);
+        }
+    }
+
+    /*
+     * 学生充值
+     */
+    public function recharge()
+    {
+        $recharge_amount = input('recharge/f', 0.00);
+        $give_amount = input('give/f', 0.00);
+        $remark = input('remark/s', '');
+        $stu_id = input('stu_id', '');
+        if (empty($stu_id))
+        {
+            $this->return_data('0', '10000', '缺少stu_id', false);
+        }
+        Db::startTrans();
+        try{
+            $data = Db::where(['stu_id' => $stu_id])->find();
+            if (empty($data))
+            {   // 未创建钱包的用户
+                $this->return_data('0', '50000', '系统错误');
+            }
+            $data['gift_balance'] += $give_amount;
+            $data['recharge balance'] += $recharge_amount;
+            Db::table('erp2_stu_balance')->where(['stu_id'=>$stu_id])->update($data);
+            //　充值记录，　账号明细需求是有个充值余额和赠送余额的概念，保持一至。
+            $recharge_log = [
+                'stu_id' => $stu_id,
+                'recharge_amount' => $recharge_amount,
+                'give_amount' => $give_amount,
+                'recharge_balance' => $data['gift_balance'],
+                'give_balance' => $data['give_balance'],
+                'remark' => $remark,
+                'is_del' => 0,
+                'create_time' => time(),
+                'update_time' => time()
+            ];
+            Db::table('ero2_stu_recharges')->insert($recharge_log);
+            Db::commit();
+            $this->return_data('0', '', '充值成功', true);
+        }catch (Exception $e)
+        {
+            Db::rollback();
+            $this->return_data('0', '50000', '服务器错误');
         }
     }
 
