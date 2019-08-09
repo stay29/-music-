@@ -8,6 +8,7 @@ class Currm extends BaseController
     //课程列表
     public function index()
     {
+        $this->auth_get_token();
         $page = input('page');
         if($page==null){
           $page = 1;
@@ -50,6 +51,7 @@ class Currm extends BaseController
     //添加课程
  	public function  addcurrmon()
     {
+        $this->auth_get_token();
  		$data = input('post.');
  		$data['manager'] = ret_session_name('uid');
         $validate = new \app\validate\Curriculums;
@@ -69,6 +71,7 @@ class Currm extends BaseController
     //修改课程
     public function editcurrm()
     {
+        $this->auth_get_token();
         $currid = input('post.cur_id');
         $data = input('post.');
         $validate = new \app\validate\Curriculums;
@@ -88,6 +91,7 @@ class Currm extends BaseController
     //删除课程
     public function delcurrmon()
     {
+        $this->auth_get_token();
         $where['cur_id'] = input('cur_id');
         $data['is_del'] = 1;
         if($where==null){
@@ -111,6 +115,7 @@ class Currm extends BaseController
 
     //设置热门 1为热门 2为取消热门
     public function  edit_popular(){
+        $this->auth_get_token();
         $currid  =   input('cur_id');
         $where['orgid'] = session(md5(MA.'user'))['orgid'];
         $data2['popular'] = 2;
@@ -150,6 +155,7 @@ class Currm extends BaseController
     //全部搜索课程列表
     public  function  all_list_currm()
     {
+        $this->auth_get_token();
         $cur_name = input('cur_name');
         $orgid  =  input('orgid');
         $where = null;

@@ -244,7 +244,6 @@ class Usersinfo extends BaseController
         }
     }
 
-
     public function get_auth_orgid_list()
     {
         $orgid = ret_session_name('orgid');
@@ -268,5 +267,28 @@ class Usersinfo extends BaseController
     }
 
 
+    public  function  getrole_user()
+    {
+        $orgid =  64;
+        $uid =  160;
+//        $orgid = ret_session_name('orgid');
+//        $uid = ret_session_name('uid');
+        $list =  selects('erp2_user_roles',['is_del'=>0,'orgid'=>$orgid]);
+        foreach ($list as $k=>&$v)
+        {
+            $v['info'] = $this->uuu($v['aid']);
 
+        }
+        $this->return_data(1,0,$list);
+    }
+    public  function  uuu($aid)
+    {
+        $aidlist = explode(',',$aid);
+        foreach ($aidlist as $k=>&$v){
+            $arr = finds('erp2_user_accesses',['access_id'=>$v]);
+            $arr['pidinfo'] = selects('erp2_user_accesses',['pid'=>$v]);
+            $array[] = $arr;
+        }
+        return $array;
+    }
 }
