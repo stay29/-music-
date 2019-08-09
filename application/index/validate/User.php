@@ -17,7 +17,7 @@ class User extends Validate
         'cellphone'=>'require|max:11|mobile|unique:Users',
         'password'=>'require|length:4,15',
         'repassword'=>'require|confirm:password',
-        'remember'=>'integer|rem_password',
+        'remember'=>'integer|rem_password',//记住密码
         'senfen'=>'require|number',
         'nickname'=>'require',
         'account'=>'require',
@@ -72,7 +72,6 @@ class User extends Validate
              ->remove('password','length');
     }
 
-
     /**
      * @param $is_rem
      * 记住密码
@@ -90,8 +89,6 @@ class User extends Validate
             return true;
         }
     }
-
-
 }
 
 

@@ -16,7 +16,7 @@ class Curriculums extends Model
     //添加课程
     public static function addcurrl($data)
     {
-        $data['orgid'] = session(md5(MA.'user'))['orgid'];
+        $data['orgid'] = ret_session_name('orgid');
         $res = Curriculums::create($data);
         return $res;
     }
@@ -24,7 +24,7 @@ class Curriculums extends Model
 	public  static  function getall($limit,$where)
     {
             $list = Curriculums::where($where)
-            ->field('cur_id,cur_name,subject,tmethods,ctime,state,orgid,manager,create_time,tqualific,popular,is_del,state')
+            //->field('cur_id,cur_name,subject,tmethods,ctime,state,orgid,manager,create_time,tqualific,popular,is_del,state')
             ->paginate($limit)->each(function($item, $key){
             $where1['sid'] = $item['subject'];
             $item['subject'] = db('subjects')->field('sid,sname,pid')->where($where1)->find();

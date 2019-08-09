@@ -38,8 +38,8 @@ class Login extends Basess{
                       $arr1 = [
                           'id' => $user_login_info['uid'],
                           'cellphone' => $user_login_info['cellphone'],
-                          'orgid' => $user_login_info['organization'],
-                          'nickname' => $user_login_info['nickname'],
+                          //'orgid' => $user_login_info['organization'],
+                          //'nickname' => $user_login_info['nickname'],
                       ];
                      $token =  Users::login_token($arr1,$user_login_info['uid']);
                      $arr['token'] = $token;
@@ -228,4 +228,25 @@ class Login extends Basess{
             $this->return_data(0,50000,$e->getMessage());
         }
     }
+
+
+    /**
+     * @param $is_rem
+     * 记住密码
+     */
+    public function rem_password($is_rem,$data)
+    {
+        if($is_rem == 1){
+            cookie(base64_encode(MA.'userinfo'),[
+                'account'=>base64_encode(MA.trim($data['cellphone'])),
+                'pwd'=>base64_encode(MA.trim($data['password'])),
+            ]);
+            return true;
+        }else{
+            cookie(base64_encode(MA.'userinfo'),null);
+            return true;
+        }
+    }
+
+
 }

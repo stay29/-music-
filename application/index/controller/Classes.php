@@ -45,7 +45,6 @@ class Classes extends BaseController
             $data = [];
         }
         $this->return_data(1, '', '请求成功', $data);
-
     }
 
     /*
@@ -53,6 +52,16 @@ class Classes extends BaseController
      */
     public function add()
     {
+        $class_study = input('class_study');
+        $data = [
+            'class_name'=>input('class_name'),
+            'class_count'=>input('class_count'),
+            'headmaster'=>input('headmaster'),
+            'remarks'=>input('remarks'),
+            'orgid' =>ret_session_name('orgid'),
+        ];
+
+
 
     }
 }

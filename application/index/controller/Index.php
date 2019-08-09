@@ -45,9 +45,13 @@ class Index extends Basess
         );
         Phpexcil::export_tow_aaa('课程列表',$kname,array(),$subjectinfo_list);
     }
+
     //课程薪酬导出
     public  function  pay_export()
     {
+//        $data = input('get.');
+//        print_r($data);
+//        exit();
         $subject = input('subject');
         $cur_name = input('cur_name');
         $where = array();
@@ -55,14 +59,15 @@ class Index extends Basess
             $where[]=['cur_name','like','%'.$cur_name.'%'];
         }
         $orgid = input('orgid');
-        $where[] = ['orgid','=',$orgid];
+        $where[] = ['orgid','=',"$orgid"];
+        $where[] = ['is_del','=',"0"];
         $res = Db::table('erp2_pay_list')->where([$where])->select();
         foreach ($res as $k=>&$v){
             $v['curriculums'] = db('curriculums')->where('cur_id',$v['cur_id'])->find();
-            $v['subjectsall'] = db('subjects')->where('sid',$v['curriculums']['subject'])->find();              $v['pay_info'] = db('pay_info')->where('pay_id_info',$v['p_id'])->find();
+            $v['subjectsall'] = db('subjects')->where('sid',$v['curriculums']['subject'])->find();                       $v['pay_info'] = db('pay_info')->where('pay_id_info',$v['p_id'])->find();
         }
         $res1 = array();
-        if($subject!=0){
+        if($subject!=0 and $subject!=""){
             foreach ($res as $ks=>&$vs){
                 if($vs['subjectsall']['sid']==$subject){
                     $res1[] = $vs;
@@ -209,7 +214,6 @@ class Index extends Basess
 
 
         }
-
     //课程导入模板
     public  function  Import_currm(){
         $kname = ['cur_name', 'subject', 'tmethods', 'ctime', 'describe', 'remarks'];
@@ -247,7 +251,7 @@ class Index extends Basess
             }
         }
         if(!empty($arrcur_name)){
-                $this->return_data(0,10000,'课程名称已经存在',implode(',',$arrcur_name));
+                $this->return_data(0,10000,'课程名称已经存在',$arrcur_name);
         }
         if(empty($infos)){
             $this->return_data(0,10000,'请填写数据后导入');
@@ -277,7 +281,8 @@ class Index extends Basess
            $this->return_data(0,50000,'导入失败');
        }
     }
-    //导出excil
+
+    //导出课程excil
     public  function  currm_export(){
         $suball = db('subjects')->select();
         foreach ($suball as $kll=>&$vll){
@@ -297,7 +302,7 @@ class Index extends Basess
         $tmethods = input('tmethods');
         $status = input('status');
         $orgid  = input('orgid');
-        $moban = input('moban');
+        //$moban = input('moban');
         $where = null;
         if($cur_name){
             $where[]=['cur_name','like','%'.$cur_name.'%'];
@@ -311,13 +316,9 @@ class Index extends Basess
         if($status){
             $where[]=['status','=', $status];
         }
-        if($orgid){
-            $where[]=['orgid','=', $orgid];
-        }
-        if($moban==1){
-            $list = array();
-        }else{
-            $list =  db('curriculums')->where($where)->select();
+        $where[] = ["is_del",'=',"0"];
+        $where[] = ["orgid",'=',"$orgid"];
+        $list =  db('curriculums')->where($where)->select();
             foreach ($list as $k=>&$v)
             {
                  $where1['sid'] = $v['subject'];
@@ -329,7 +330,6 @@ class Index extends Basess
                     $v['tmethods'] = '一对多';
                  }
             }
-        }
         Phpexcil::export_tow_aaa('课程列表',$kname,$list,$subjectinfo_list);
     }
 

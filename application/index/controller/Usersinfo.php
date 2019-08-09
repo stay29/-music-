@@ -13,6 +13,7 @@ use app\index\model\Organization as Organ;
 class Usersinfo extends BaseController
 {
     public  function  addusers(){
+
         $orgid = input('organization');
         $password =input('password');
         $rpassword =input('rpassword');
@@ -26,9 +27,9 @@ class Usersinfo extends BaseController
             'account'=>input('cellphone'),
             'cellphone' =>input('cellphone'),
             'password'=>$password,
-            'organization' =>input('organization'),
+            'organization' =>$orgid,
             'sex'=>input('sex'),
-            'rid'=>input('rid'),
+            'rid'=>implode(',',input('rid')),
             'incumbency'=>1,
             'status'=>1,
             'create_time'=>time(),
@@ -69,16 +70,22 @@ class Usersinfo extends BaseController
             $limit = 10;
         }
         //超级管理员
-        $orgid['organization'] = input('orgid');
-        $orgid['is_del'] = 0;
+        //$orgid['organization'] = input('orgid');
+        $orgid[] = ['organization','=', input('orgid')];
+        $account = input('account');
+        if($account){
+                $orgid[] = ['account','like','%'.$account.'%'];
+        }
+        $orgid[] = ['is_del','=',"0"];
+
         $res = select_find('erp2_users',$orgid,'nickname,uid,cellphone,incumbency,rid,organization,sex,senfen');
         foreach ($res as $k=>&$v){
             $v['orginfo'] = finds('erp2_organizations',['or_id'=>$v['organization']],'or_id,or_name');
             $v['ridinfo'] = $this->exp_name($v['rid'],'role_name');
         }
-
         $res_list = $this->array_page_list_show($limit,$page,$res,1);
-        $this->return_data(1,0,'查询成功',$res);
+        //$res['res_list'] =$res_list;
+        $this->return_data(1,0,'查询成功',$res_list);
     }
 
     public  function  exp_name($da,$name){
@@ -153,7 +160,6 @@ class Usersinfo extends BaseController
     }
 
 
-
     public  function  getoneuser()
     {
         $uid = input('uid');
@@ -165,9 +171,6 @@ class Usersinfo extends BaseController
         //$res['ridinfo'][] = selects('erp2_user_roles',);
         $this->return_data(1,0,'查询成功',$res);
     }
-
-
-
     public function  edituser_info()
     {
         $uid = input('uid');
@@ -199,6 +202,7 @@ class Usersinfo extends BaseController
         }
     }
 
+
     public  function  add_accauth_list()
     {
         $data = [
@@ -207,6 +211,8 @@ class Usersinfo extends BaseController
             'manager' =>input('uid'),
             'orgid' =>input('orgid'),
             'aid' =>implode(',',input('aid')),
+            'remake'=>input('remake'),
+            //'aid' =>implode(',',['1','3']),
             'deflau' =>2,
         ];
         $res = add('erp2_user_roles',$data);
@@ -217,8 +223,49 @@ class Usersinfo extends BaseController
         }
     }
 
+    public  function  edit_accauth_list()
+    {
+        $rid['role_id'] = input('rid');
+        $data = [
+            'role_name' =>input('role_name'),
+            'status' =>1,
+            'manager' =>input('uid'),
+            'orgid' =>input('orgid'),
+            'aid' =>implode(',',input('aid')),
+            //'aid' =>implode(',',['1','3']),
+            'deflau' =>2,
+        ];
+        //$res = add('erp2_user_roles',$data);
+        $res = edit('erp2_user_roles',$rid,$data);
+        if($res){
+            $this->return_data(1,0,'操作成功');
+        }else{
+            $this->return_data(0,10000,'没有任何改变');
+        }
+    }
 
 
+    public function get_auth_orgid_list()
+    {
+        $orgid = ret_session_name('orgid');
+        $list =  selects('erp2_user_roles',['is_del'=>0,'orgid'=>$orgid]);
+        foreach ($list as $k=>&$v)
+        {
+            $v['f'] = "1";
+        }
+        $alist = selects('erp2_user_accesses',['is_del'=>0,'type'=>0]);
+        foreach ($alist as $k1=>&$v1)
+        {
+            $v['f'] = "1";
+            $v1['pidlist'] = selects('erp2_user_accesses',['is_del'=>0,'type'=>1,'pid'=>$v1['access_id']]);
+        }
+        $orlist = finds('erp2_organizations',['is_del'=>0,'status'=>2,'or_id'=>$orgid]);
+        $orlist['f'] = "1";
+        $res['auth'] = $list;
+        $res['orglist'] = $orlist;
+        $res['alist'] = $alist;
+        $this->return_data(1,0,$res);
+    }
 
 
 
