@@ -164,7 +164,7 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=1;";
             'se_id' => input('post.se_id'),
             'cellphone' => input('post.cellphone'),
             'birthday' => input('post.birthday'),
-            'entry_time' => input('post.entry_day'),
+            'entry_time' => input('post.entrytime'),
             'resume' => input('post.resume'),
             'org_id' => input('orgid'),
             'identity_card' => input('post.id_card'),
