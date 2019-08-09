@@ -251,7 +251,7 @@ class Index extends Basess
             }
         }
         if(!empty($arrcur_name)){
-                $this->return_data(0,10000,'课程名称已经存在',$arrcur_name);
+                $this->return_data(0,10000,$arrcur_name.'课程名称已经存在',$arrcur_name);
         }
         if(empty($infos)){
             $this->return_data(0,10000,'请填写数据后导入');

@@ -16,9 +16,6 @@ class Curriculums extends Validate
 //              'listimg' =>    'require',
 //              'infoimg' =>    'require',
 		  ];
-
-
-
     protected $message = [
         'cur_name.require'=>'课程名称不能为空|10000',
         'cur_name.max'=>    '名称最多不能超过12个字符|10001',
