@@ -38,8 +38,6 @@ class Teacher extends Validate
         'cellphone.unique'=>'手机号已存在|20000',
         'id_card.idCard'=>'身份证格式不正确|10001',
         'entry_time.require'=>'请选择入职日期|10000',
-        'entry_time.date'=>'入职日期错误|10001',
-        'birthday.date'=>'生日日期错误|10001',
         'se_id.require'=>'请选择资历|10000',
         'se_id.integer'=>'资历格式不正确|10001',
         'sex.integer'=>'性别格式不正确|10001',

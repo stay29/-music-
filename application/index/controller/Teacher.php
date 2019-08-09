@@ -163,12 +163,17 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=1;";
             'sex' => input('post.sex/d',1),
             'se_id' => input('post.se_id/d'),
             'cellphone' => input('post.cellphone/s'),
-            'birthday' => input('post.birthday/d') / 1000,
-            'entry_time' => input('post.entrytime/d') / 1000,
+            'birthday' => input('post.birthday/d'),
+            'entry_time' => input('post.entrytime/d'),
             'resume' => input('post.resume/s'),
             'org_id' => input('orgid/d'),
             'identity_card' => input('post.id_card/s'),
         ];
+        if($data['entry_time'] < 0 || $data['birthday'] < 0)
+        {
+            $this->return_data(0, '10000', '时间戳参数错误');
+        }
+        file_put_contents('log.txt', $data['birthday']);
         $validate = new \app\index\validate\Teacher();
         if(!$validate->scene('add')->check($data)){
             //为了可以得到错误码
