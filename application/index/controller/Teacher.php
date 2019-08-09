@@ -180,19 +180,23 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=1;";
             $error = explode('|',$validate->getError());
             $this->return_data(0,$error[1],$error[0]);
         }
-
         try{
+            $cur_str = input('cur_list', '');
+            if (empty($cur_str))
+            {
+                $this->return_data('0', '10000', '缺少cur_list参数');
+            }
+            $cur_list = explode(',', $cur_str);
             $teacher = new TeacherModel;
             $teacher->data($data);
             $teacher->allowField(true)->save();
             $t_id = $teacher->t_id;
-            $cur_list = input('cur_list', '');
-            $cur_list = json_encode($cur_list);
             foreach ($cur_list as $k=>$v)
             {
-                $data = ['cur_id'=>$v, 't_id'=>$t_id];
+                $data = ['cur_id'=>intval($v), 't_id'=>$t_id];
                 db('cur_teacher_relations')->data($data)->insert();
             }
+
             $this->return_data(1,0,'教师新增成功');
         }catch (\Exception $e){
             $this->return_data(0,50000,$e->getMessage());
@@ -364,7 +368,6 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=1;";
             $this->return_data(0, '20002', '更换教师失败', false);
         }
     }
-
 
     /*
     * 教师课表
