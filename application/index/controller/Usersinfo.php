@@ -211,6 +211,7 @@ class Usersinfo extends BaseController
             'manager' =>input('uid'),
             'orgid' =>input('orgid'),
             'aid' =>implode(',',input('aid')),
+            'remake'=>input('remake'),
             //'aid' =>implode(',',['1','3']),
             'deflau' =>2,
         ];
@@ -230,7 +231,7 @@ class Usersinfo extends BaseController
             'status' =>1,
             'manager' =>input('uid'),
             'orgid' =>input('orgid'),
-             'aid' =>implode(',',input('aid')),
+            'aid' =>implode(',',input('aid')),
             //'aid' =>implode(',',['1','3']),
             'deflau' =>2,
         ];
@@ -247,13 +248,10 @@ class Usersinfo extends BaseController
     public function get_auth_orgid_list()
     {
         $orgid = ret_session_name('orgid');
-        //$list = selects('erp2_user_accesses',['is_del'=>0,'type'=>0]);
         $list =  selects('erp2_user_roles',['is_del'=>0,'orgid'=>$orgid]);
         foreach ($list as $k=>&$v)
         {
             $v['f'] = "1";
-            // $v['rolelist'] = selects('erp2_user_roles',['is_del'=>0,'orgid'=>$orgid]);
-            //$v['pidlist'] = selects('erp2_user_accesses',['is_del'=>0,'type'=>1,'pid'=>$v['access_id']]);
         }
         $alist = selects('erp2_user_accesses',['is_del'=>0,'type'=>0]);
         foreach ($alist as $k1=>&$v1)
