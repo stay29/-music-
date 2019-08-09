@@ -181,7 +181,7 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=1;";
             $teacher->data($data);
             $teacher->allowField(true)->save();
             $t_id = $teacher->t_id;
-            $cur_list = input('tp', null);
+            $cur_list = input('cur_list', null);
             foreach ($cur_list as $k=>$v)
             {
                 $data = ['cur_id'=>$v, 't_id'=>$t_id];
