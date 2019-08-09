@@ -158,16 +158,16 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=1;";
     public function add(){
 
         $data = [
-            't_name' => input('post.t_name'),
-            'avator' => input('post.avator'),
-            'sex' => input('post.sex',1),
-            'se_id' => input('post.se_id'),
-            'cellphone' => input('post.cellphone'),
-            'birthday' => input('post.birthday'),
-            'entry_time' => input('post.entrytime'),
-            'resume' => input('post.resume'),
-            'org_id' => input('orgid'),
-            'identity_card' => input('post.id_card'),
+            't_name' => input('post.t_name/s'),
+            'avator' => input('post.avator/s'),
+            'sex' => input('post.sex/d',1),
+            'se_id' => input('post.se_id/d'),
+            'cellphone' => input('post.cellphone/s'),
+            'birthday' => input('post.birthday/d') / 1000,
+            'entry_time' => input('post.entrytime/d') / 1000,
+            'resume' => input('post.resume/s'),
+            'org_id' => input('orgid/d'),
+            'identity_card' => input('post.id_card/s'),
         ];
         $validate = new \app\index\validate\Teacher();
         if(!$validate->scene('add')->check($data)){
