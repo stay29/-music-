@@ -21,6 +21,30 @@ class BaseController extends Controller
         if ($token['token'] != $tokenall['token']) {
             return $this->return_data(0, 10005, '请重新登录');
         }
+<?php
+/**
+ * 基础控制器
+ * User: antony
+ * Date: 2019/7/10
+ * Time: 15:03
+ */
+namespace app\index\controller;
+use think\Controller;
+use think\facade\Request;
+use think\Db;
+use think\facade\Session;
+use Firebase\JWT\JWT;//引入验证类
+class BaseController extends Controller
+{
+    public function initialize()
+    {
+        parent::initialize();
+        $tokenall =  $this->checkToken();
+        $token = db('Token_user')->where('uid',$tokenall['uid'])->find();
+        if ($token['token'] != $tokenall['token']) {
+            return $this->return_data(0, 10005, '请重新登录');
+        }
+        $this->auth_get_token();
     }
     // protected $beforeActionList = [
     //     'first',
