@@ -192,11 +192,9 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 {
                     $this->returnError('10000', '教室人数和教室名称不能为空。');
                 }
-                if(empty($data['status']) || !is_numeric($data['status']))
-                {
+                if (!empty($val[2] and is_numeric($val[2]))) {
                     $data['status'] = $val[2];
-                }
-                else
+                }else
                 {
                     $data['status'] = 1;
                 }
