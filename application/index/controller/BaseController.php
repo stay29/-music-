@@ -15,22 +15,21 @@ class BaseController extends Controller
 {
     public function initialize()
     {
-          parent::initialize();
-//        $tokenall =  $this->checkToken();
-//        $token = db('Token_user')->where('uid',$tokenall['uid'])->find();
-//        if ($token['token'] != $tokenall['token']) {
-//            return $this->return_data(0, 10005, '请重新登录');
-//        }
+        parent::initialize();
+        $tokenall =  $this->checkToken();
+        $token = db('Token_user')->where('uid',$tokenall['uid'])->find();
+        if ($token['token'] != $tokenall['token']) {
+            return $this->return_data(0, 10005, '请重新登录');
+        }
+        $this->auth_get_token();
     }
-
-//    protected $beforeActionList = [
-//        'first',
-//    ];
-    //protected function first()
-    //{
-        //$this->auth_get_token();
-    //}
-
+    protected $beforeActionList = [
+        'first',
+    ];
+    protected function first()
+    {
+        $this->auth_get_token();
+    }
     /*
      *权限效验
      *没有添加的节点不限制
@@ -44,14 +43,16 @@ class BaseController extends Controller
         $res = finds('erp2_user_accesses',$mup);
         $uid = ret_session_name('uid');
         $auth = $this->get_aid_role111($uid);
-        $a = json_decode($auth,true);
+        $a = json_decode($auth);
         if($res){
             if(!in_array($res['access_id'],$a)){
                 $this->return_data(0,0,'你没有改权限,请联系管理员');
-
+                die();
             }
         }
     }
+
+
 
     //获取当前用户的最终权限
     public  function  get_aid_role111($uid)
@@ -59,8 +60,8 @@ class BaseController extends Controller
        // $uid = input('uid');
         $userinfo = finds('erp2_users',['uid'=>$uid]);
         $rid = explode(',',$userinfo['rid']);
-            $array = [];
-            foreach ($rid as $k=>$v){
+        $array = [];
+        foreach ($rid as $k=>$v){
             $array[] = finds('erp2_user_roles',['role_id'=>$v]);
         }
         $arr = [];
@@ -160,7 +161,7 @@ class BaseController extends Controller
     public function checkToken()
     {
         $header = Request::instance()->header();
-        //print_r($header);exit();
+        //print_r($header);
         if(array_key_exists('x-token',$header)){
         if ($header['x-token'] == 'null'){
             $this->return_data('0', '10006', 'Token不存在，拒绝访问');

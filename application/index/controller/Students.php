@@ -14,8 +14,6 @@ use app\index\model\StuBalance;
 /*
  * Student-related Functional Controller.
  */
-
-
 class Students extends BaseController
 {
     /*
