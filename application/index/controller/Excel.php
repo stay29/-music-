@@ -188,7 +188,18 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 {
                     $this->returnError('10001', '数据有误');
                 }
-                $data['status'] = $val[2];
+                if(empty($data['room_name'] || $data['room_count']))
+                {
+                    $this->returnError('10000', '教室人数和教室名称不能为空。');
+                }
+                if(empty($data['status']) || !is_numeric($data['status']))
+                {
+                    $data['status'] = $val[2];
+                }
+                else
+                {
+                    $data['status'] = 1;
+                }
                 $data['manager'] = $uid;
                 $data['or_id'] = $org_id;
 
