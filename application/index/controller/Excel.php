@@ -253,9 +253,9 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                     $this->returnError('10000', '教室名称字符过长');
                     exit();
                 }
-                if ($data['room_count'] > 500)
+                if ($data['room_count'] > 500 || $data['room_count'] == 0)
                 {
-                    $this->returnError('10000', '教室容量不能大于500');
+                    $this->returnError('10000', '教室容量在[1-500]之间');
                     exit();
                 }
                 if ($val[2] == 2)
