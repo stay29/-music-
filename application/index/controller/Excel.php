@@ -313,7 +313,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             $this->returnError('10000', '缺少参数');
         }
         $where[] = ['or_id', '=', $org_id];
-        $where[] = ['status', '=', 0];
+        $where[] = ['is_del', '=', 0];
         $xlsData = db('classrooms')->
                     where($where)->
                     field(' room_name as name, room_count as count, status')->select();
