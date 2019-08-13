@@ -248,7 +248,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                     $this->returnError('10000', '教室人数和教室名称不能为空。');
                     exit();
                 }
-                if(strlen($data['room_name']) > 20)
+                if(strlen($data['room_name']) > 40)
                 {
                     $this->returnError('10000', '教室名称字符过长');
                     exit();
@@ -258,9 +258,11 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                     $this->returnError('10000', '教室容量不能大于500');
                     exit();
                 }
-                if (!empty($val[2] and is_numeric($val[2]))) {
-                    $data['status'] = trim($val[2]);
-                }else
+                if ($val[2] == 2)
+                {
+                    $data['status'] = $val;
+                }
+                else
                 {
                     $data['status'] = 1;
                 }
