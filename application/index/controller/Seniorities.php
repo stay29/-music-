@@ -54,12 +54,9 @@ class Seniorities extends BaseController
             'org_id' => $orgid
         ];
         try{
-            $res = SenModel::create($data);
-            if($res)
-            {
-                $this->return_data(1,'', '创建成功');
-            }
-            $this->return_data('0', '20001', '插入资历失败');
+            SenModel::create($data);
+
+            $this->return_data(1,'', '添加成功');
         }catch (Exception $e)
         {
             $this->return_data(0, '50000', '服务器错误');
@@ -81,7 +78,7 @@ class Seniorities extends BaseController
         try{
             $where[] = ['seniority_id', '=', $s_id];
             $where[] = ['is_del', '=', 0];
-            $where[] = ['or_id', '=', $orgid];
+            $where[] = ['org_id', '=', $orgid];
             SenModel::where($where)->update(['is_del'=>1]);
             $this->return_data(1,'','删除成功');
         }catch (Exception $e)
