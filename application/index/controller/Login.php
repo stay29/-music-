@@ -143,6 +143,55 @@ class Login extends Basess{
         }
         return $res;
     }
+
+    //获取当前用户的最终权限
+    public  function  get_aid_role111($uid)
+    {
+        $userinfo = finds('erp2_users',['uid'=>$uid]);
+        $rid = explode(',',is_string($userinfo['rid']));
+        $array = [];
+        foreach ($rid as $k=>$v){
+            $array[] = finds('erp2_user_roles',['role_id'=>$v]);
+        }
+        $arr = [];
+        foreach ($array as $k1=>$v1){
+
+            $arr []= explode(',',$v1['aid']);
+        }
+        $a = $this->array_heb($arr);
+        $b =   $this->a_array_unique($a);
+        return json_encode($b);
+    }
+
+
+    public  function array_heb($arrs)
+    {
+        static $arrays  = array();
+        foreach ($arrs as $key=>$value)
+        {
+            if(is_array($value)){
+                $this->array_heb($value);
+            }else{
+                $arrays[]= $value;
+            }
+        }
+        return $arrays;
+    }
+
+    public function a_array_unique($array)//写的比较好
+    {
+        $out = array();
+        foreach ($array as $key=>$value) {
+            if (!in_array($value, $out))
+            {
+                $out[$key] = $value;
+            }
+        }
+        return $out;
+    }
+
+
+
     public function register_users()
     {
         $data = [
@@ -178,14 +227,12 @@ class Login extends Basess{
             $this->return_data(0,50000,$e->getMessage());
         }
     }
-
     //退出登录
     public  function  logout()
     {
         session(null);
         $this->return_data(1,0,'退出登录');
     }
-
      //验证码获取
     public  function  get_vieryie()
     {
@@ -270,51 +317,6 @@ class Login extends Basess{
     }
 
 
-    //获取当前用户的最终权限
-    public  function  get_aid_role111($uid)
-    {
-        // $uid = input('uid');
-        $userinfo = finds('erp2_users',['uid'=>$uid]);
-        $rid = explode(',',$userinfo['rid']);
-        $array = [];
-        foreach ($rid as $k=>$v){
-            $array[] = finds('erp2_user_roles',['role_id'=>$v]);
-        }
-        $arr = [];
-        foreach ($array as $k1=>$v1){
-
-            $arr []= explode(',',$v1['aid']);
-        }
-        $a = $this->array_heb($arr);
-        $b =   $this->a_array_unique($a);
-        return json_encode($b);
-    }
-
-    public  function array_heb($arrs)
-    {
-        static $arrays  = array();
-        foreach ($arrs as $key=>$value)
-        {
-            if(is_array($value)){
-                $this->array_heb($value);
-            }else{
-                $arrays[]= $value;
-            }
-        }
-        return $arrays;
-    }
-
-    public function a_array_unique($array)//写的比较好
-    {
-        $out = array();
-        foreach ($array as $key=>$value) {
-            if (!in_array($value, $out))
-            {
-                $out[$key] = $value;
-            }
-        }
-        return $out;
-    }
 
 
 }

@@ -35,29 +35,29 @@ class BaseController extends Controller
      *没有添加的节点不限制
      * */
  
-        public function  auth_get_token_del()
-        {   
-        $header = Request::instance()->header();
-        if ($header['x-token'] == 'null'){
-        $this->return_data('0', '10006', 'Token不存在，拒绝访问');
-        }else{
-        $checkJwtToken = $this->verifyJwt($header['x-token']);
-        $uid = $header['x-uid'];
-        $mup['a_home'] = Request::instance()->module();
-        $mup['a_coller'] = Request::instance()->controller();
-        $mup['a_action'] = Request::instance()->action();
-        $mup['is_del'] = 0;
-        $res = finds('erp2_user_accesses',$mup);
-       // $uid = ret_session_name('uid');
-        $auth = $this->get_aid_role111($uid);
-        $a = json_decode($auth,true);
-        if($res){
-            if(!in_array($res['access_id'],$a)){
-                $this->return_data(0,0,'你没有改权限,请联系管理员');
-            }
-        }
-      }  
-    }
+    //     public function  auth_get_token_del()
+    //     {   
+    //     $header = Request::instance()->header();
+    //     if ($header['x-token'] == 'null'){
+    //     $this->return_data('0', '10006', 'Token不存在，拒绝访问');
+    //     }else{
+    //     $checkJwtToken = $this->verifyJwt($header['x-token']);
+    //     $uid = $header['x-uid'];
+    //     $mup['a_home'] =   Request::instance()->module();
+    //     $mup['a_coller'] = Request::instance()->controller();
+    //     $mup['a_action'] = Request::instance()->action();
+    //     $mup['is_del'] = 0;
+    //     $res = finds('erp2_user_accesses',$mup);
+    //    // $uid = ret_session_name('uid');
+    //     $auth = $this->get_aid_role111($uid);
+    //     $a = json_decode($auth,true);
+    //     if($res){
+    //         if(!in_array($res['access_id'],$a)){
+    //             $this->return_data(0,0,'你没有改权限,请联系管理员');
+    //         }
+    //     }
+    //   }  
+    // }
 
     public function auth_get_token()
     {
@@ -80,21 +80,36 @@ class BaseController extends Controller
                 $this->return_data(0,0,'你没有改权限,请联系管理员');
                 }
             }
+        }else{
+            $mup['create_time'] = time();
+            $mup['update_time'] = time();
+            $mup['sort'] = 1;
+            $mup['status'] = 2;
+            $mup['manager'] = '0';
+            add('erp2_user_accesses',$mup);
         }
+
+
+
+
+
     }
     //获取当前用户的最终权限
     public  function  get_aid_role111($uid)
     {
-       // $uid = input('uid');
         $userinfo = finds('erp2_users',['uid'=>$uid]);
-        $rid = explode(',',$userinfo['rid']);
+        if($userinfo){
+            $rid = explode(',',is_string($userinfo['rid']));
             $array = [];
             foreach ($rid as $k=>$v){
-            $array[] = finds('erp2_user_roles',['role_id'=>$v]);
+             $iii =  finds('erp2_user_roles',['role_id'=>$v]);
+             if($iii){
+                 $array[] = $iii;
+             }
+        }
         }
         $arr = [];
         foreach ($array as $k1=>$v1){
-
             $arr []= explode(',',$v1['aid']);
         }
         $a = $this->array_heb($arr);

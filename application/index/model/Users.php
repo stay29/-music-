@@ -16,6 +16,7 @@ class Users extends Model
     {
         return $this->belongsTo('Curriculums','uid');
     }
+    
     public  static  function  login_token($arr,$uid)
     {
         $Jwttoken =  new Jwttoken;
@@ -66,7 +67,8 @@ class Users extends Model
 
 
     public  static function  addusers($data)
-    {
+    {   
+        $data['rid'] = 2;
         $res = Users::create($data, true);
         $suid = session(md5(MA.'user'))['id'];
         Users::where(['uid'=>$res->uid])
