@@ -7,11 +7,9 @@ use think\Db;
 use think\Exception;
 use PHPExcel;
 use think\Log;
-
 /*
 * Basic Controller Provides Information Interface for Import, Export and Return
 */
-
 class ExcelBase extends Controller
 {
     /**
@@ -337,6 +335,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
     // Teacher Information Exporting Method
     public function teacher_ept(){
         $org_id = input('org_id', '');
+
         if(empty($org_id))
         {
             $this->returnError('10000', '缺少参数org_id');

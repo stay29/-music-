@@ -86,7 +86,7 @@ class Login extends Basess{
                 //查询判断新用户还是爱琴家用
                 $mup['cellphone'] = $data['cellphone'];
                 $mup['password'] = md5_return($data['password']);
-                $user_login_info =    Users::where($mup)->find();
+                $user_login_info = Users::where($mup)->find();
                 //判断是不是重复登陆
                 $arr_sess = Session::get($user_login_info['uid']);
                 if($arr_sess!=null){
@@ -135,11 +135,14 @@ class Login extends Basess{
         foreach ($res as $k=>&$v)
         {
             $v['pidinfo'] = Db::table("erp2_user_accesses") ->where('access_id', 'in', $a)->where('pid',$v['access_id'])->where('type',1)->select();
+            if(!empty($v['pidinfo'])){
+            foreach ($v['pidinfo'] as $k1 => &$v1) {
+                 $v1['pidinfos'] = Db::table("erp2_user_accesses") ->where('access_id', 'in', $a)->where('pid',$v1['access_id'])->where('type',2)->select();   
+            }
+            }
         }
         return $res;
     }
-
-
     public function register_users()
     {
         $data = [

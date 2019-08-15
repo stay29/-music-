@@ -14,15 +14,15 @@ use Firebase\JWT\JWT;//引入验证类
 class BaseController extends Controller
 {
     public function initialize()
-    {
-          parent::initialize();
+    {   
+        parent::initialize();
         $tokenall =  $this->checkToken();
         $token = db('Token_user')->where('uid',$tokenall['uid'])->find();
         if ($token['token'] != $tokenall['token']) {
             return $this->return_data(0, 10005, '请重新登录');
         }
+        
     }
-
 //    protected $beforeActionList = [
 //        'first',
 //    ];
@@ -34,20 +34,51 @@ class BaseController extends Controller
      *权限效验
      *没有添加的节点不限制
      * */
-    public function  auth_get_token()
+ 
+        public function  auth_get_token_del()
+        {   
+        $header = Request::instance()->header();
+        if ($header['x-token'] == 'null'){
+        $this->return_data('0', '10006', 'Token不存在，拒绝访问');
+        }else{
+        $checkJwtToken = $this->verifyJwt($header['x-token']);
+        $uid = $header['x-uid'];
+        $mup['a_home'] = Request::instance()->module();
+        $mup['a_coller'] = Request::instance()->controller();
+        $mup['a_action'] = Request::instance()->action();
+        $mup['is_del'] = 0;
+        $res = finds('erp2_user_accesses',$mup);
+       // $uid = ret_session_name('uid');
+        $auth = $this->get_aid_role111($uid);
+        $a = json_decode($auth,true);
+        if($res){
+            if(!in_array($res['access_id'],$a)){
+                $this->return_data(0,0,'你没有改权限,请联系管理员');
+            }
+        }
+      }  
+    }
+
+    public function auth_get_token()
     {
         $mup['a_home'] = Request::instance()->module();
         $mup['a_coller'] = Request::instance()->controller();
         $mup['a_action'] = Request::instance()->action();
         $mup['is_del'] = 0;
         $res = finds('erp2_user_accesses',$mup);
-        $uid = ret_session_name('uid');
-        $auth = $this->get_aid_role111($uid);
-        $a = json_decode($auth,true);
-
         if($res){
-            if(!in_array($res['access_id'],$a)){
+            $header = Request::instance()->header();
+            if ($header['x-token'] == 'null'){
+                $this->return_data('0', '10006', 'Token不存在，拒绝访问');
+            }else{
+                $checkJwtToken = $this->verifyJwt($header['x-token']);
+                $uid = $header['x-uid'];
+                $auth = $this->get_aid_role111($uid);
+                $a = json_decode($auth,true);
+                if(!in_array($res['access_id'],$a))
+                {
                 $this->return_data(0,0,'你没有改权限,请联系管理员');
+                }
             }
         }
     }
@@ -200,9 +231,4 @@ class BaseController extends Controller
             $this->return_data(0, '50000', '未知错误，请检查');
         }
     }
-
-
-
-
-
 }

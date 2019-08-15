@@ -252,6 +252,8 @@ class Usersinfo extends BaseController
             'remake'=>input('remake'),
             //'aid' =>implode(',',['1','3']),
             'deflau' =>2,
+            'create_time'=>time(),
+            'update_time'=>time(),
         ];
         $res = add('erp2_user_roles',$data);
         if($res){

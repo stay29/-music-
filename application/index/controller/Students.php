@@ -9,6 +9,7 @@ use think\Exception;
 use think\Request;
 use app\index\validate\Students as StuValidate;
 use app\index\model\Students as StuModel;
+use app\index\model\StuBalance;
 
 /*
  * Student-related Functional Controller.
@@ -20,6 +21,9 @@ class Students extends BaseController
      */
     public function index()
     {
+        /*
+         * 缺少购课记录，　排课记录
+         */
         $status = input('status', '');
         $org_id = input('org_id', '');
         $limit = input('limit', 10);
@@ -87,6 +91,9 @@ class Students extends BaseController
      */
     public function del()
     {
+        /*
+         * 缺少验证余额是否清空.
+         */
         $stu_id = input('stu_id', '');
         $org_id = input('org_id', '');
         if(empty($stu_id) || empty($org_id))
@@ -173,13 +180,24 @@ class Students extends BaseController
 //            var_dump($error);
             $this->return_data(0, $error[1], $error[0]);
         }
+        Db::startTrans();
         try
         {
-            $stu = StuModel::create($data);
-            $stu->save();
+            $stu_id = Db::table('erp2_students')->insertGetId($data);
+            $data  = [
+                'stu_id' => $stu_id,
+                'gift_balance' => 0.00,
+                'recharge balance' => 0.00,
+                'create_time' => 0.00,
+                'update_time' => 0.00
+            ];
+            // 创建用户余额表
+            Db::table('erp2_stu_balance')->insert($data);
+            Db::commit();
             $this->return_data(1, '', '添加学生成功', true);
         }catch (Exception $e)
         {
+            Db::rollback();
             $this->return_data(0, 50000, '服务器错误', false);
         }
     }
@@ -205,13 +223,119 @@ class Students extends BaseController
         if (empty($stu_id)) {
             $this->return_data('10000', '缺少参数');
         }
+
     }
 
     /*
      * Buying Lesson
+     * 用jwt是不需要传用户id的，没办法另外那个php是要这么搞，我只能迎合他。
      */
-    public function buyLesson(){
+    public function buyLesson()
+    {
+        $data = [
+            'stu_id' => input('post.stu_id/d', ''),
+            'uid'   => input('post.uid/d', ''),
+            't_id'    => input('post.t_id/d', ''),
+            'sen_id'  => input('post.sen_id/d', ''),
+            'pay_id'  => input('post.pay_id/d', ''),
+            'single_price' => input('post.single_price/f', ''),
+            'type'      => input('post.type/d', ''),
+            'type_num'  => input('post.type_num/d', ''),
+            'give_class' => input('post.give_class/d', ''),
+            'class_hour' => input('post.class_hour/d', ''),
+            'original_price' => input('post.original/f', ''),
+            'after_price'   => input('post.after_price/f', ''),
+            'real_price'    => input('post.real_price/f', ''),
+            'valid_day'   => input('post.real_price/f', ''),
+            'buy_time'      => input('post.buy_time/d', ''),
+        ];
+        foreach ($data as $key => $val)
+        {
+            if (empty($val))
+            {
+                $this->return_data('0', '10000', $key."不能为空");
+            }
+        }
+        $classify = input('post.classify/d', '');   // 购课类型
+        $cur_id = input('post.cur_id/d', '');  // 课程id
+        $meal_id = input('post.meal_id/d', ''); // 套餐id
+        $remarks = input('post.remarks/s', '');
+        if (empty($classify)) {
+            $this->return_data(0, '10000', '缺少classify参数');
+        }
 
+        if ($classify == 1 and empty($cur_id))  // 普通购课
+        {
+            $this->return_data('0', '10000', '普通购课cur_id不能为空');
+        }
+        if ($classify == 2 and empty($meal_id)) //套餐购课
+        {
+            $this->return_data('0', '10000', '普通购课meal_id不能为空');
+        }
+        $data['cur_id'] = $cur_id;
+        $data['meal_id'] = $meal_id;
+        $data['remarks'] = $remarks;
+        $data['manager'] = $data['uid'];
+        unset($data['uid']);
+        $data['buy_time'] = time();
+        $data['create_time'] = time();
+        Db::startTrans();
+        try
+        {
+
+            Db::table('erp2_purchase_lessons')->insert($data);
+            Db::commit();
+            $this->return_data('1', '', '购课成功', true);
+        }catch (Exception $e)
+        {
+            Db::rollback();
+            $this->return_data('0', '', '购课失败', false);
+        }
+    }
+
+    /*
+     * 学生充值
+     */
+    public function recharge()
+    {
+        $recharge_amount = input('recharge/f', 0.00);
+        $give_amount = input('give/f', 0.00);
+        $remark = input('remark/s', '');
+        $stu_id = input('stu_id', '');
+        if (empty($stu_id))
+        {
+            $this->return_data('0', '10000', '缺少stu_id', false);
+        }
+        Db::startTrans();
+        try{
+            $data = Db::where(['stu_id' => $stu_id])->find();
+            if (empty($data))
+            {   // 未创建钱包的用户
+                $this->return_data('0', '50000', '系统错误');
+            }
+            $data['gift_balance'] += $give_amount;
+            $data['recharge balance'] += $recharge_amount;
+            Db::table('erp2_stu_balance')->where(['stu_id'=>$stu_id])->update($data);
+            //　充值记录，　账号明细需求是有个充值余额和赠送余额的概念，保持一至。
+            $recharge_log = [
+                'stu_id' => $stu_id,
+                'recharge_amount' => $recharge_amount,
+                'give_amount' => $give_amount,
+                'recharge_balance' => $data['gift_balance'],
+                'give_balance' => $data['give_balance'],
+                'remark' => $remark,
+                'is_del' => 0,
+                'create_time' => time(),
+                'update_time' => time()
+            ];
+            Db::table('ero2_stu_recharges')->insert($recharge_log);
+            Db::commit();
+            $this->return_data('0', '', '充值成功', true);
+        }catch (Exception $e)
+        {
+            Db::rollback();
+            $this->return_data('0', '50000', '服务器错误');
+        }
     }
 
 }

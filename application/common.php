@@ -89,7 +89,6 @@ function  md5_return_aqj($password){
     foreach($array as $k=>$v) {
         $new_array[$k] = array_combine($key,$v);
     }
-
     return $new_array;
 }
 
@@ -148,6 +147,17 @@ function getname($dataName,$where,$getname){
     return $aaa[$getname];
 }
 
+function getnameselect($dataName,$where,$getname){
+    $aaa = Db::table($dataName)->where($where)->select();
+    $fff = [];
+    foreach ($aaa as $k=>$v){
+        $fff[] = $v[$getname];
+    }
+    return $fff;
+}
+
+
+
 //通用单条查询
 function finds($dataName,$where,$field=''){
     return Db::table($dataName)->field($field)->where($where)->find();
@@ -155,7 +165,6 @@ function finds($dataName,$where,$field=''){
 //通用筛选查询
 function select_find($dataName,$where,$field='')
 {
-
      return Db::table($dataName)->field($field)->where($where)->select();
 }
 
@@ -185,11 +194,3 @@ function edit($dataName,$where,$data){
 function getsql($dataName){
     return Db::table($dataName)->getLastSql();
 }
-
-
-
-
-
-
-
-
