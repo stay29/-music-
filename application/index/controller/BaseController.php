@@ -235,9 +235,4 @@ class BaseController extends Controller
             $this->return_data(0, '50000', '未知错误，请检查');
         }
     }
-
-
-
-
-
 }

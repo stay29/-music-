@@ -240,6 +240,7 @@ class Usersinfo extends BaseController
         }
     }
 
+
     public  function  add_accauth_list()
     {
         $data = [

@@ -4,15 +4,7 @@ use think\Controller;
 use think\Exception;
 use app\index\model\Curriculums;
 class Currm extends BaseController
-{   
-    // public function initialize()
-    // {
-    //    parent::initialize();
-    //    $res = $this->auth_get_token();
-    //    if($res==0){
-    //          //return $this->return_data(0, 10000, '请联系管理 添加权限');
-    //    }
-    // }
+{
     //课程列表
     public function index()
     {
