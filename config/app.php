@@ -15,13 +15,13 @@
 
 return [
     // 应用名称
-    'app_name'               => '',
+    'app_name'               => '111.230.107.117',
     // 应用地址
-    'app_host'               => '127.0.0.1',
+    'app_host'               => '111.230.107.117',
     // 应用调试模式
     'app_debug'              => true,
     // 应用Trace
-    'app_trace'              => false,
+    'app_trace'              => true,
     // 是否支持多模块
     'app_multi_module'       => true,
     // 入口自动绑定模块
@@ -54,7 +54,7 @@ return [
     // +----------------------------------------------------------------------
 
     // 默认模块名
-    'default_module'         => 'admin',
+    'default_module'         => 'index',
     // 禁止访问模块
     'deny_module_list'       => ['common'],
     // 默认控制器名

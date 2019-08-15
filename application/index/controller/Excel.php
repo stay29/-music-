@@ -7,15 +7,11 @@ use think\Db;
 use think\Exception;
 use PHPExcel;
 use think\Log;
-
 /*
 * Basic Controller Provides Information Interface for Import, Export and Return
 */
-
 class ExcelBase extends Controller
 {
-
-
     /**
      * Return error's code and error's message.
      * @param $error_code

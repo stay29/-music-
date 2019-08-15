@@ -12,17 +12,18 @@ use app\index\model\PayInfo as payinfos;
 use app\validate\PayList as pays;//同名会引起报错 启用别名
 class Index extends Basess
 {
-    protected $beforeActionList = [
-        'first',
-    ];
 
-    protected function first()
-    {
-       new Phpexcil();
-    }
+   protected $beforeActionList = [
+       'first',
+   ];
+
+   protected function first()
+   {
+      new Phpexcil();
+   }
 
     public  function  index(){
-        return view();
+      return view();
     }
 
     //测试端口
@@ -220,7 +221,6 @@ class Index extends Basess
         $uid = input('uid');
         $orgid = input('orgid');
         $res = Phpexcil::import($kname);
-        //print_r($res);exit();
         $infos = array();
         foreach ($res as $ks=>&$vs) {
             if($vs['cur_name']!=null){
@@ -245,7 +245,7 @@ class Index extends Basess
             $v['state'] = 2;
             $v['popular'] = 2;
             $v['tqualific'] = '0/0';
-            $cur_name_get_ilo = finds('erp2_curriculums',['cur_name'=>$v['cur_name']]);
+            $cur_name_get_ilo = finds('erp2_curriculums',['cur_name'=>$v['cur_name'],'orgid'=>$orgid]);
             if(!empty($cur_name_get_ilo)){
                 $arrcur_name = $cur_name_get_ilo['cur_name'];
             }

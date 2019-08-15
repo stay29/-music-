@@ -47,7 +47,6 @@ class Currm extends BaseController
             $this->return_data(0,50000,$e->getMessage());
         }
     }
-
     //添加课程
  	public function  addcurrmon()
     {
