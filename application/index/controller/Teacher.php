@@ -129,36 +129,94 @@ class Teacher extends BaseController
         {
             $this->return_data(0, '10000', '缺少参数');
         }
-        //Inquiry for Teacher Details
-        $teacher_sql = "SELECT B.seniority_id as se_id, B.seniority_name as se_name, A.avator AS avator,
-                    A.identity_card as id_card,
-	                A.t_id as tid, A.t_name as name, A.sex, A.cellphone, A.birthday, A.entry_time, A.status,  A.resume
-                    FROM erp2_teachers AS A INNER JOIN 
-                        erp2_seniorities AS B ON A.se_id=B.seniority_id WHERE A.t_id={$t_id} AND A.is_del=0;";
 
-        // Inquire about the courses taught by teachers
-        $teacher_cur_sql = "SELECT B.cur_id, B.cur_name, B.tmethods as cur_type FROM erp2_cur_teacher_relations 
-                        AS A INNER JOIN erp2_curriculums AS B ON A.cur_id=B.cur_id 
-                        WHERE A.t_id={$t_id} AND B.is_del=0;";
+        // 教师详细信息
+        $teacher_details = db('teachers')->alias('A')
+                            ->join('erp2_seniorities B', 'A.se_id=B.seniority_id')
+                             ->field(' B.seniority_id as se_id, B.seniority_name as se_name,
+                                            A.avator AS avator, A.identity_card as id_card, A.t_id as tid, 
+                                            A.t_name as name, A.sex, A.cellphone, A.birthday, A.entry_time, 
+                                            A.status,  A.resume')
+                            ->where('A.t_id', '=', $t_id)
+                            ->find();
+        // 查询教师班级ID列表
+        $teacher_classes = db('classes_teachers_realations')->field('cls_id')->where('t_id', '=', $t_id)->select();
+//        $this->return_data('１', '', '', $teacher_classes);
+//        exit();
+        foreach ($teacher_classes as $k=>$v)
+        {
+            // 补充班级名称和班级满班率
+            $cls_id = $v['cls_id'];
+            $sql = "SELECT A.class_name AS cls_name, count(B.class_id)/A.class_count AS cls_rate FROM erp2_classes AS A
+                    LEFT JOIN erp2_class_student_relations AS B ON A.class_id=B.class_id 
+                    WHERE A.class_id={$cls_id} GROUP BY A.class_name LIMIT 1";
+            $temp = Db::query($sql);
 
-        // Inquire about the students brought by the teachers
-        $teacher_stu_sql = "SELECT C.stu_id, C.truename as stu_name FROM (erp2_classes_teachers_realations AS A INNER JOIN 
-erp2_class_student_relations AS B ON A.cls_id=B.class_id) INNER JOIN erp2_students AS C
-ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=0;";
+            $temp['cls_id'] = $v['cls_id'];
+            $teacher_classes[$k] = $temp;
+            unset($temp, $cls_id, $sql);
+        }
 
-        // Inquire about the full attendance rate of the teacher's class
-        $full_rate_sql = "SELECT B.class_name, count(C.stu_id)/B.class_count AS fullrat FROM (erp2_classes_teachers_realations AS A INNER JOIN erp2_classes AS B ON A.cls_id=B.class_id)
-	INNER JOIN erp2_class_student_relations AS C ON B.class_id=C.class_id WHERE t_id={$t_id} GROUP BY C.stu_id AND A.is_del=0;";
+        // 查找教师所带的学生
+        $teacher_students = array();
+        foreach ($teacher_classes as $k=>$v)
+        {
+            $cls_id = $v['cls_id'];
+            $sql = "SELECT  B.stu_id, B.truename AS stu_name FROM erp2_class_student_relations AS A 
+                    INNER JOIN erp2_students AS B ON A.stu_id=B.stu_id WHERE A.class_id={$cls_id}";
+            $temp = Db::query($sql);
+            $teacher_students = array_merge($teacher_students, $temp);
+            $teacher_students = array_unique($teacher_students);
+            unset($temp);
+        }
 
-        $teacher = Db::query($teacher_sql);
-        $teacher_cur = Db::query($teacher_cur_sql);
-        $teacher_stu = Db::query($teacher_stu_sql);
-        $full_rate = Db::query($full_rate_sql);
+        // 查询教师薪酬基本信息
+        $teacher_salary = db('teacher_salary')->field('s_id, basic_wages, wages_type')
+                        ->where('t_id', '=', $t_id)->find();
+
+
+        // 教师课程列表，　已设置课程薪酬
+        $teacher_courses_salary = db('teacher_salary_cur')
+                                    ->field('cur_id, p_id, p_num')
+                                    ->where('s_id', '=', $teacher_salary['s_id'])
+                                    ->select();
+        foreach ($teacher_courses_salary as $k=>$v)
+        {
+            $cur_id = $v['cur_id'];
+            $p_id = $v['p_id'];
+            $p_num = $v['p_num'];
+            $cur_name = db('curriculums')->where('cur_id', '=', $cur_id)->value('cur_name');
+            $temp = db('pay_id_info')->field('pay_name as p_name, cpany as p_unit')
+                        ->where('pay_id_info', '=', $p_id)->find();
+            $p_name = $temp['p_name'];
+            $p_unit = $temp['p_unit'];
+
+            // 详细课程薪酬列表
+            $teacher_salary['courses'][] = [
+                'p_id' => $p_id,
+                'p_name' => $p_name,
+                'p_num' => $p_num,
+                'p_unit' => $p_unit,
+                'cur_id' => $cur_id,
+                'cur_name' => $cur_name
+            ];
+            unset($p_id, $p_name, $p_num, $p_unit, $cur_id, $cur_name);
+        }
+
+        // 教师课程列表, 未设置教程薪酬
+        $teacher_course_list = db('cur_teacher_relations')->
+                                field('cur_id')->where('t_id', '=', $t_id)->select();
+
+        foreach ($teacher_course_list as $k=>$v)
+        {
+            
+        }
+
         $data = [
-            'teacher' => $teacher,
-            'curriculums' => $teacher_cur,
-            'students' => $teacher_stu,
-            'classes' => $full_rate
+            'teacher' => $teacher_details,
+            'salary' => $teacher_salary,
+            'students' => $teacher_students,
+            'classes' => $teacher_classes,
         ];
         $this->return_data(1, '', '请求成功', $data);
     }
@@ -320,32 +378,6 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=0;";
     }
 
 
-//    /**
-//     * 教师薪酬设置
-//     */
-//    public function salary()
-//    {
-//        $t_id = input('t_id', null);
-//        if (!isset($t_id))
-//        {
-//            $this->return_data(0, '10000', '缺少参数');
-//        }
-//        if ($this->request->isGet())
-//        {
-//            $data = [];
-//            $this->return_data(1, '', '', $data);
-//        }
-//        elseif($this->request->isPost())
-//        {
-//            $data = [];
-//            $this->return_data(1, '', '', $data);
-//        }
-//        else
-//        {
-//            $this->return_data(0, '10001', '请求非法');
-//        }
-//    }
-
     /**
      * 教师调度
      */
@@ -455,7 +487,7 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=0;";
         $type = input('type', 1);  // 默认是全部
         $courseId = input('courseId', null); // 通过课程ID筛选
         $page = input('page', 1);
-        $pageSize = input('size', 10);
+        $pageSize = input('limit', 10);
         if (!isset($tid))
         {
             $this->return_data(0, '10000', '缺少参数');
