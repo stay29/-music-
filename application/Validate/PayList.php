@@ -17,7 +17,7 @@ class PayList extends  Validate
         'pless_id'  =>   'require|number',
         'p_id'  =>       'require|number',
         'bay_paich'  =>  'require|number',
-        'remake'  =>     'max:200',
+        'remake'  =>     'max:500',
         'orgid'  =>      'require|number',
         'manager'  =>    'require|number',
     ];
@@ -42,7 +42,7 @@ class PayList extends  Validate
         'bay_paich.number'=>    '结算金额必须为数字|10001',
 
         //'remake.require'=>      '备注不能为空|10000',
-        'remake.max'=>          '备注必须不能超过200个字|10001',
+        'remake.max'=>          '备注必须不能超过500个字|10001',
 
             'orgid.require'=>   '机构id不能为空|10000',
             'orgid.number'=>    '机构id必须为数字|10001',

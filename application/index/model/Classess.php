@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+﻿<?php
+=======
 <?php
+>>>>>>> 97100adcee1cabe1131105d57e72be7e3f7cf7b8
 /**
  * Created by PhpStorm.
  * User: ly

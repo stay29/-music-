@@ -6,8 +6,6 @@
  */
 
 namespace app\index\validate;
-
-
 use think\Validate;
 
 class Classroom extends Validate

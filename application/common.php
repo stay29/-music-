@@ -89,7 +89,6 @@ function  md5_return_aqj($password){
     foreach($array as $k=>$v) {
         $new_array[$k] = array_combine($key,$v);
     }
-
     return $new_array;
 }
 
@@ -195,11 +194,3 @@ function edit($dataName,$where,$data){
 function getsql($dataName){
     return Db::table($dataName)->getLastSql();
 }
-
-
-
-
-
-
-
-

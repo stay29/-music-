@@ -12,7 +12,7 @@ class Meals  extends Validate
 
 
     protected  $rule = [
-        'meal_name'  =>  'require|max:12',
+        'meal_name'  =>  'require|max:30',
         'value' =>       'require|number',
         'price' =>       'require|number',
         'cur_state' =>   'require|number',
@@ -27,7 +27,7 @@ class Meals  extends Validate
 
     protected $message = [
         'meal_name.require'=>'套餐名称不能为空|10000',
-        'meal_name.max'=>'套餐名称最长12个字|10001',
+        'meal_name.max'=>'套餐名称最长30个字|10001',
         'value.require'=>'套餐价值不能为空|10000',
         'value.number'=>'套餐价值必须为数字|10001',
         'price.require'=>'套餐金额不能为空|10000',
