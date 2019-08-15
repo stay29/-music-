@@ -15,6 +15,9 @@ use think\Controller;
 class Purchase extends Controller
 {
 
+    /*
+     * 获取子分类
+     */
     public function get_cate($array, $pid=0, $level=0)
     {
         static $list = array();

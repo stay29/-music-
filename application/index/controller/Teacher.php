@@ -261,19 +261,31 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=0;";
     /**
      * 删除教师课程
      */
-    public function lessonDelete()
+    public function lessonDel()
     {
-        $org_id = input('orgid');
+//        $org_id = input('orgid');
         if(!$this->request->isPost())
         {
             $this->return_data(0, '10002', '请用POST方法提交');
         }
         $t_id = input('t_id'); // 教师ID
         $cur_id = input('cur_id'); //课程ID
+        if (empty($t_id) || empty($cur_id))
+        {
+            $this->return_data(0, '10000', '缺少参数', false);
+        }
         try
         {
-            db('cur_teacher_relations')->where(['t_id'=>$t_id, 'cur_id'=>$cur_id])->update(['is_del'=>1]);
-            $this->return_data(1, '', '删除成功', '');
+            $cur_count = db('cur_teacher_relations')->where(['t_id'=>$t_id])->count();
+            if ($cur_count > 1)
+            {
+                db('cur_teacher_relations')->where(['t_id'=>$t_id, 'cur_id'=>$cur_id])->delete();
+                $this->return_data(1, '', '删除成功', '');
+            }
+            else
+            {
+                $this->return_data(0, '', '删除失败, 至少保留一门课程。', '');
+            }
         }catch (Exception $e)
         {
             $this->return_data(0, '20003', '删除失败');
@@ -289,9 +301,13 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=0;";
         {
             $this->return_data(0, '10002', '请用POST方法提交');
         }
-        $org_id = input('orgid', '');
-        $t_id = input('t_id'); // 教师ID
-        $cur_id = input('cur_id'); //课程ID
+//        $org_id = input('orgid', '');
+        $t_id = input('t_id', ''); // 教师ID
+        $cur_id = input('cur_id', ''); //课程ID
+        if (empty($t_id) || empty($cur_id))
+        {
+            $this->return_data(0, '10000', '缺少参数', false);
+        }
         try
         {
             $data = ['cur_id'=>$cur_id, 't_id'=>$t_id];
@@ -304,31 +320,31 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=0;";
     }
 
 
-    /**
-     * 教师薪酬设置
-     */
-    public function salary()
-    {
-        $t_id = input('t_id', null);
-        if (!isset($t_id))
-        {
-            $this->return_data(0, '10000', '缺少参数');
-        }
-        if ($this->request->isGet())
-        {
-            $data = [];
-            $this->return_data(1, '', '', $data);
-        }
-        elseif($this->request->isPost())
-        {
-            $data = [];
-            $this->return_data(1, '', '', $data);
-        }
-        else
-        {
-            $this->return_data(0, '10001', '请求非法');
-        }
-    }
+//    /**
+//     * 教师薪酬设置
+//     */
+//    public function salary()
+//    {
+//        $t_id = input('t_id', null);
+//        if (!isset($t_id))
+//        {
+//            $this->return_data(0, '10000', '缺少参数');
+//        }
+//        if ($this->request->isGet())
+//        {
+//            $data = [];
+//            $this->return_data(1, '', '', $data);
+//        }
+//        elseif($this->request->isPost())
+//        {
+//            $data = [];
+//            $this->return_data(1, '', '', $data);
+//        }
+//        else
+//        {
+//            $this->return_data(0, '10001', '请求非法');
+//        }
+//    }
 
     /**
      * 教师调度
@@ -401,24 +417,27 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=0;";
             $temp = db('curriculums')->
             field('cur_id, cur_name')->
             where(['orgid'=>$org_id, 'subject'=>$v['sid']])->select();
-            $where = [
-                ['t_id', '=', $t_id],
-                ['cur_id', '=', $temp['cur_id']],
-                ['is_del', '=', 0]
-            ];
-            $res = db('cur_teacher_relations')->where($where)->count();
-            if ($res > 0)
+            for($i=0; $i<count($temp); $i++)
             {
-                $temp['status'] = 1;
-            }
-            else
-            {
-                $temp['status'] = 0;
+                $where = [
+                    ['t_id', '=', $t_id],
+                    ['cur_id', '=', $temp[$i]['cur_id']],
+                    ['is_del', '=', 0]
+                ];
+                $res = db('cur_teacher_relations')->where($where)->count();
+                if ($res > 0)
+                {
+                    $temp[$i]['status'] = 1;
+                }
+                else
+                {
+                    $temp[$i]['status'] = 0;
+                }
             }
             $data[$k]['courses']= $temp;
             unset($temp);
         }
-        $this->return_data(1, '', '请求成功', true);
+        $this->return_data(1, '', '请求成功', $data);
     }
 
 
