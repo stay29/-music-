@@ -455,7 +455,7 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=0;";
         $type = input('type', 1);  // 默认是全部
         $courseId = input('courseId', null); // 通过课程ID筛选
         $page = input('page', 1);
-        $pageSize = input('size', 10);
+        $pageSize = input('limit', 10);
         if (!isset($tid))
         {
             $this->return_data(0, '10000', '缺少参数');
