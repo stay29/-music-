@@ -85,6 +85,7 @@ class BaseController extends Controller
             $mup['update_time'] = time();
             $mup['sort'] = 1;
             $mup['status'] = 2;
+            $mup['manager'] = '0';
             add('erp2_user_accesses',$mup);
         }
 
