@@ -26,24 +26,24 @@ class Teacher extends BaseModel
             return 0;
         }
     }
-    //入职日期
-    protected function setEntryTimeAttr($data){
-        $is_date=strtotime($data)?strtotime($data):false;
-        if($is_date===false){//非法格式
-            return $data;
-        }else{//合法格式
-            return strtotime($data);
-        }
-    }
-    //生日
-    protected function setBirthdayAttr($data){
-        $is_date=strtotime($data)?strtotime($data):false;
-        if($is_date===false){//非法格式
-            return $data;
-        }else{//合法格式
-            return strtotime($data);
-        }
-    }
+//    //入职日期
+//    protected function setEntryTimeAttr($data){
+//        $is_date=strtotime($data)?strtotime($data):false;
+//        if($is_date===false){//非法格式
+//            return $data;
+//        }else{//合法格式
+//            return strtotime($data);
+//        }
+//    }
+//    //生日
+//    protected function setBirthdayAttr($data){
+//        $is_date=strtotime($data)?strtotime($data):false;
+//        if($is_date===false){//非法格式
+//            return $data;
+//        }else{//合法格式
+//            return strtotime($data);
+//        }
+//    }
 
     //资历
      function getSeniorityNameAttr($value, $data){

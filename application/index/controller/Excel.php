@@ -57,7 +57,7 @@ class ExcelBase extends Controller
 
         $xlsTitle = iconv('utf-8', 'gb2312', $expTitle);
 
-        $fileName = $xlsTitle . date('_YmdHis');
+        $fileName = $xlsTitle . date('_YmdHis') . '.xlsx';
 
         $cellNum = count($expCellName);
         $dataNum = count($expTableData);
@@ -112,6 +112,62 @@ class ExcelBase extends Controller
         $data = $excel->getSheet(0)->toArray();
         array_shift($data);
         return $data;
+    }
+
+    //通用导出方法
+    public function export($filename,$expCellName,$expTableData){
+        //1.从数据库中取出数据
+        //3.实例化PHPExcel类
+        $objPHPExcel = new PHPExcel();
+        //4.激活当前的sheet表
+        $objPHPExcel->setActiveSheetIndex(0);
+        //5.设置表格头（即excel表格的第一行）
+        $cellName = array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI','AJ','AK','AL','AM','AN','AO','AP','AQ','AR','AS','AT','AU','AV','AW','AX','AY','AZ');
+
+        $cellNum = count($expCellName);
+        $dataNum = count($expTableData);
+        //创建颜色对象，设置颜色像css那样简单的传个色值，需要传对象
+        $styleArray = array(
+            'font'  => array(
+                'bold'  => true,
+                'color' => array('rgb' => 'FF0000'),
+                'size'  => 15,
+                'name'  => 'Verdana'
+            ));
+        for($i=0;$i<$cellNum;$i++){
+            $objPHPExcel->getActiveSheet()->setCellValue($cellName[$i].'1', $expCellName[$i][1]);
+            $objPHPExcel->getActiveSheet()->getStyle($cellName[$i].'1')->applyFromArray($styleArray);
+        }
+        //设置宽高
+        for($i=0;$i<$cellNum;$i++){
+            $objPHPExcel->getActiveSheet()->getRowDimension($i)->setRowHeight(20);
+            $objPHPExcel->getActiveSheet()->getColumnDimension($cellName[$i])->setWidth(30);
+        }
+        //设置第二行内容
+//        for($i=0;$i<$cellNum;$i++){
+//            $objPHPExcel->setActiveSheetIndex(0)->setCellValue($cellName[$i].'2', $expCellName[$i][0]);
+//        }
+        //循环刚取出来的数组，将数据逐一添加到excel表格。
+        for($i=0;$i<$dataNum;$i++) {
+            for ($j = 0; $j < $cellNum; $j++) {
+                $objPHPExcel->getActiveSheet(0)->setCellValue($cellName[$j] . ($i + 2), $expTableData[$i][$expCellName[$j][0]]);
+            }
+        }
+
+        //7.设置保存的Excel表格名称
+        $filename = $filename.date('ymd',time()).'.xls';
+        //8.设置当前激活的sheet表格名称；
+        $objPHPExcel->getActiveSheet()->setTitle('学生信息');
+        //9.设置浏览器窗口下载表格
+        header("Content-Type: application/force-download");
+        header("Content-Type: application/octet-stream");
+        header("Content-Type: application/download");
+        header('Content-Disposition:inline;filename="'.$filename.'"');
+        //生成excel文件
+        $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+        //下载文件在浏览器窗口
+        $objWriter->save('php://output');
+        exit;
     }
 
     /*
@@ -179,12 +235,35 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             foreach ($excel_data as $val)
             {
                 $data['room_name'] = trim($val[0]);
-                $data['room_count'] = $val[1];
-                if(!is_numeric($data['room_count']) || !is_numeric($data['room_count']))
+                $data['room_count'] = trim($val[1]);
+                if(!is_numeric($data['room_count']))
                 {
                     $this->returnError('10001', '数据有误');
+                    exit();
                 }
-                $data['status'] = $val[2];
+                if(empty($data['room_name'] || empty($data['room_count'])))
+                {
+                    $this->returnError('10000', '教室人数和教室名称不能为空。');
+                    exit();
+                }
+                if(strlen($data['room_name']) > 40)
+                {
+                    $this->returnError('10000', '教室名称字符过长');
+                    exit();
+                }
+                if ($data['room_count'] > 500 || $data['room_count'] == 0)
+                {
+                    $this->returnError('10000', '教室容量在[1-500]之间');
+                    exit();
+                }
+                if ($val[2] == 2)
+                {
+                    $data['status'] = $val;
+                }
+                else
+                {
+                    $data['status'] = 1;
+                }
                 $data['manager'] = $uid;
                 $data['or_id'] = $org_id;
 
@@ -209,6 +288,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             // 回滚事务
             Db::rollback();
             $this->returnError('20003', '导入失败');
+            exit();
         }
     }
 
@@ -222,7 +302,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             $this->returnError('10000', '缺少参数orgid');
             exit();
         }
-        $xlsName  = "教室信息";
+        $xlsName  = "classroom";
         $xlsCell  = array(
             array('name', '教室名称(必填)'),
             array('count','容纳人数(必填)'),
@@ -232,11 +312,13 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         {
             $this->returnError('10000', '缺少参数');
         }
+        $where[] = ['or_id', '=', $org_id];
+        $where[] = ['is_del', '=', 0];
         $xlsData = db('classrooms')->
-                    where('or_id', $org_id)->
+                    where($where)->
                     field(' room_name as name, room_count as count, status')->select();
 
-        $this->exportExcel($xlsName,$xlsCell,$xlsData);
+        $this->export($xlsName,$xlsCell,$xlsData);
     }
 
 
@@ -253,6 +335,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
     // Teacher Information Exporting Method
     public function teacher_ept(){
         $org_id = input('org_id', '');
+
         if(empty($org_id))
         {
             $this->returnError('10000', '缺少参数org_id');
