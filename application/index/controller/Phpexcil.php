@@ -25,7 +25,7 @@ class Phpexcil extends Basess
         $info = $file->validate(['ext' => 'xlsx,xls'])->move('./upload/file/');
         //数据为空返回错误
         if(empty($info)){
-             self::return_data_sta(0,10000,'导出失败');
+             self::return_data_sta(0,10000,'请上传正确格式的文件');
         }
         //获取文件名
         $exclePath = $info->getSaveName();
@@ -41,10 +41,12 @@ class Phpexcil extends Basess
             $objReader =\PHPExcel_IOFactory::createReader('Excel5');
             $objPHPExcel = $objReader->load($filename, $encode = 'utf-8');
         }
-        $sheet = $objPHPExcel -> getSheet(0);
-        $highestRow = $sheet -> getHighestRow();// 取得总行数
-        $excel_array = $sheet->toArray();//转换为数组格式
-
+        $sheet = $objPHPExcel->getSheet(0);
+        $highestRow = $sheet-> getHighestRow();// 取得总行数
+        $excel_array= $sheet->toArray();//转换为数组格式
+        if(count($excel_array[0])!=count($kname)){
+             self::return_data_sta(0,10000,'请上传正常的模板文件');
+        }
         $fils = array_serch($kname,$excel_array);
         foreach ($fils as $kl=>&$vl){
             if($kl==0){

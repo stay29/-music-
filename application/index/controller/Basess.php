@@ -61,6 +61,9 @@ class Basess extends Controller
     public  function  get_img_del()
     {
         $oldig = input('oldimg');
+        if($oldig==null){
+            $this->return_data(1,0,'删除成功');
+        }
         $res = file_exists($oldig);
         if($res){
             unlink($oldig);

@@ -8,6 +8,7 @@
 
 namespace app\index\controller;
 use app\index\model\Teacher as TeacherModel;
+use app\index\validate\Teachers as TeachersValidate;
 use think\Db;
 use think\Exception;
 use think\Log;
@@ -46,8 +47,8 @@ class Teacher extends BaseController
         }
         $where[] = ['is_del', '=', 0];
         $where[] = ['org_id', '=', $org_id];
-        $teacher = TeacherModel::where($where)->field('t_id as id,t_name as name,
-                sex,cellphone,birthday,entry_time,status, se_id, resume')->paginate(20);
+        $teacher = TeacherModel::where($where)->field('t_id as id,t_name as name, avator,
+                sex,cellphone,birthday,entry_time,status, se_id, resume')->order('create_time DESC')->paginate(20);
         $this->return_data(1, '','', $teacher);
     }
 
@@ -55,10 +56,15 @@ class Teacher extends BaseController
      * Modifying Teacher Information Method
      */
     public function edit(){
-        $t_id = input('post.t_id');
+        $t_id = input('post.t_id', '');
+        $org_id = input('post.orgid', '');
+        if (empty($t_id) || empty($org_id))
+        {
+            $this->return_data(0, '10000', '缺少orgid或者t_id');
+        }
         $data = [
             't_id'=>$t_id,
-            'org_id' => input('post.orgid'),
+            'org_id' => $org_id,
             't_name' => input('post.name'),
             'avator' => input('post.avator'),
             'sex' => input('post.sex',1),
@@ -76,7 +82,7 @@ class Teacher extends BaseController
             $this->return_data(0,$error[1],$error[0]);
         }
         try{
-            \app\index\model\Teacher::update($data,['t_id'=>$data['t_id']]);
+            TeacherModel::update($data,['t_id'=>$data['t_id']]);
             $this->return_data(1,0,'编辑教师成功');
         }catch (\Exception $e){
             $this->return_data(0,50000,$e->getMessage());
@@ -88,18 +94,22 @@ class Teacher extends BaseController
      */
     public function del()
     {
-        $t_id = input('t_id/d', null);
-        if(empty($t_id))
+        $t_id = input('t_id/d', '');
+        $org_id = input('orgid/d', '');
+        if(empty($t_id) || empty($org_id))
         {
-            $this->return_data(0, '10000', '缺少t_id');
+            $this->return_data(0, '10000', '缺少t_id或orgid');
         }
         try {
-            $tmp = db('teach_schedules')->field('t_id')->where('t_id' ,'=', $t_id)->find();
-            if(!empty($tmp))
+            $tmp = db('teach_schedules')->field('t_id')->where('t_id' ,'=', $t_id)->select();
+            if(count($tmp) > 0)
             {
                 $this->return_data(0,'20003', '已排课，删除失败');
             }
-            db('teachers')->where('t_id', '=', $t_id)->update(['is_del'=>1]);
+            $where[] = ['t_id', '=', $t_id];
+            $where[] = ['org_id', '=', $org_id];
+            $where[] = ['is_del', '=', 0];
+            db('teachers')->where($where)->update(['is_del'=>1]);
             $this->return_data(1, '','删除教师成功',true);
 
         }catch (Exception $e)
@@ -120,24 +130,25 @@ class Teacher extends BaseController
             $this->return_data(0, '10000', '缺少参数');
         }
         //Inquiry for Teacher Details
-        $teacher_sql = "SELECT seniority_id as se_id, seniority_name as se_name,
+        $teacher_sql = "SELECT B.seniority_id as se_id, B.seniority_name as se_name, A.avator AS avator,
+                    A.identity_card as id_card,
 	                A.t_id as tid, A.t_name as name, A.sex, A.cellphone, A.birthday, A.entry_time, A.status,  A.resume
                     FROM erp2_teachers AS A INNER JOIN 
-                        erp2_seniorities AS B ON A.se_id=B.seniority_id WHERE A.t_id={$t_id} AND A.is_del=1;";
+                        erp2_seniorities AS B ON A.se_id=B.seniority_id WHERE A.t_id={$t_id} AND A.is_del=0;";
 
         // Inquire about the courses taught by teachers
-        $teacher_cur_sql = "SELECT B.cur_id, B.cur_name FROM erp2_cur_teacher_relations 
+        $teacher_cur_sql = "SELECT B.cur_id, B.cur_name, B.tmethods as cur_type FROM erp2_cur_teacher_relations 
                         AS A INNER JOIN erp2_curriculums AS B ON A.cur_id=B.cur_id 
-                        WHERE A.t_id={$t_id};";
+                        WHERE A.t_id={$t_id} AND B.is_del=0;";
 
         // Inquire about the students brought by the teachers
         $teacher_stu_sql = "SELECT C.stu_id, C.truename as stu_name FROM (erp2_classes_teachers_realations AS A INNER JOIN 
 erp2_class_student_relations AS B ON A.cls_id=B.class_id) INNER JOIN erp2_students AS C
-ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=1;";
+ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=0;";
 
         // Inquire about the full attendance rate of the teacher's class
         $full_rate_sql = "SELECT B.class_name, count(C.stu_id)/B.class_count AS fullrat FROM (erp2_classes_teachers_realations AS A INNER JOIN erp2_classes AS B ON A.cls_id=B.class_id)
-	INNER JOIN erp2_class_student_relations AS C ON B.class_id=C.class_id WHERE t_id={$t_id} GROUP BY C.stu_id AND A.is_del=1;";
+	INNER JOIN erp2_class_student_relations AS C ON B.class_id=C.class_id WHERE t_id={$t_id} GROUP BY C.stu_id AND A.is_del=0;";
 
         $teacher = Db::query($teacher_sql);
         $teacher_cur = Db::query($teacher_cur_sql);
@@ -149,49 +160,64 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=1;";
             'students' => $teacher_stu,
             'classes' => $full_rate
         ];
-        $this->return_data(1, '', $data);
+        $this->return_data(1, '', '请求成功', $data);
     }
 
     /*
      * add teacher information.
      */
+
     public function add(){
 
+        if (!$this->request->isPost())
+        {
+            $this->return_data(0, '40000', '非法请求');
+        }
         $data = [
-            't_name' => input('post.t_name'),
-            'avator' => input('post.avator'),
-            'sex' => input('post.sex',1),
-            'se_id' => input('post.se_id'),
-            'cellphone' => input('post.cellphone'),
-            'birthday' => input('post.birthday'),
-            'entry_time' => input('post.entry_day'),
-            'resume' => input('post.resume'),
-            'org_id' => input('orgid'),
-            'identity_card' => input('post.id_card'),
+            't_name' => input('post.t_name/s', ''),
+            'avator' => input('post.avator/s', ''),
+            'sex' => input('post.sex/d',1),
+            'se_id' => input('post.se_id/d', ''),
+            'cellphone' => input('post.cellphone/s', ''),
+            'birthday' => input('post.birthday/d', ''),
+            'entry_time' => input('post.entrytime/d', ''),
+            'resume' => input('post.resume/s', ''),
+            'org_id' => input('orgid/d', ''),
+            'identity_card' => input('post.id_card/s', ''),
         ];
-        $validate = new \app\index\validate\Teacher();
+        if($data['entry_time'] < 0 || $data['birthday'] < 0)
+        {
+            $this->return_data(0, '10000', '时间戳参数错误');
+        }
+        $validate = new TeachersValidate;
         if(!$validate->scene('add')->check($data)){
             //为了可以得到错误码
-            $error = explode('|',$validate->getError());
-            $this->return_data(0,$error[1],$error[0]);
+            $error = explode('|', $validate->getError());
+            $this->return_data(0, $error[1], $error[0]);
         }
-
         try{
+            $cur_str = input('cur_list/s', '');
+            if (empty($cur_str))
+            {
+                $this->return_data('0', '10000', '缺少cur_list参数', false);
+            }
+            $cur_list = explode(',', $cur_str);
             $teacher = new TeacherModel;
             $teacher->data($data);
-            $teacher->allowField(true)->save();
+            $teacher->save();
             $t_id = $teacher->t_id;
-            $cur_list = input('cur_list', null);
-            foreach ($cur_list as $k=>$v)
+            for($i = 0; $i < count($cur_list); $i++)
             {
-                $data = ['cur_id'=>$v, 't_id'=>$t_id];
+                $data = ['cur_id'=>intval($cur_list[$i]), 't_id'=>$t_id];
                 db('cur_teacher_relations')->data($data)->insert();
             }
-            $this->return_data(1,0,'教师新增成功');
+            $this->return_data(1,0,'教师新增成功', true);
         }catch (\Exception $e){
-            $this->return_data(0,50000,$e->getMessage());
+
+            $this->return_data(0,50000, '服务器错误'. $e->getMessage());
         }
     }
+
 
     /*
      * 教师离职或者复职。 1离职, 2复职。
@@ -235,19 +261,31 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=1;";
     /**
      * 删除教师课程
      */
-    public function lessonDelete()
+    public function lessonDel()
     {
-        $org_id = input('orgid');
+//        $org_id = input('orgid');
         if(!$this->request->isPost())
         {
             $this->return_data(0, '10002', '请用POST方法提交');
         }
         $t_id = input('t_id'); // 教师ID
         $cur_id = input('cur_id'); //课程ID
+        if (empty($t_id) || empty($cur_id))
+        {
+            $this->return_data(0, '10000', '缺少参数', false);
+        }
         try
         {
-            db('cur_teacher_relations')->where(['t_id'=>$t_id, 'cur_id'=>$cur_id])->update(['is_del'=>1]);
-            $this->return_data(1, '', '删除成功', '');
+            $cur_count = db('cur_teacher_relations')->where(['t_id'=>$t_id])->count();
+            if ($cur_count > 1)
+            {
+                db('cur_teacher_relations')->where(['t_id'=>$t_id, 'cur_id'=>$cur_id])->delete();
+                $this->return_data(1, '', '删除成功', '');
+            }
+            else
+            {
+                $this->return_data(0, '', '删除失败, 至少保留一门课程。', '');
+            }
         }catch (Exception $e)
         {
             $this->return_data(0, '20003', '删除失败');
@@ -263,9 +301,13 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=1;";
         {
             $this->return_data(0, '10002', '请用POST方法提交');
         }
-        $org_id = input('orgid', '');
-        $t_id = input('t_id'); // 教师ID
-        $cur_id = input('cur_id'); //课程ID
+//        $org_id = input('orgid', '');
+        $t_id = input('t_id', ''); // 教师ID
+        $cur_id = input('cur_id', ''); //课程ID
+        if (empty($t_id) || empty($cur_id))
+        {
+            $this->return_data(0, '10000', '缺少参数', false);
+        }
         try
         {
             $data = ['cur_id'=>$cur_id, 't_id'=>$t_id];
@@ -278,31 +320,31 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=1;";
     }
 
 
-    /**
-     * 教师薪酬设置
-     */
-    public function salary()
-    {
-        $t_id = input('t_id', null);
-        if (!isset($t_id))
-        {
-            $this->return_data(0, '10000', '缺少参数');
-        }
-        if ($this->request->isGet())
-        {
-            $data = [];
-            $this->return_data(1, '', '', $data);
-        }
-        elseif($this->request->isPost())
-        {
-            $data = [];
-            $this->return_data(1, '', '', $data);
-        }
-        else
-        {
-            $this->return_data(0, '10001', '请求非法');
-        }
-    }
+//    /**
+//     * 教师薪酬设置
+//     */
+//    public function salary()
+//    {
+//        $t_id = input('t_id', null);
+//        if (!isset($t_id))
+//        {
+//            $this->return_data(0, '10000', '缺少参数');
+//        }
+//        if ($this->request->isGet())
+//        {
+//            $data = [];
+//            $this->return_data(1, '', '', $data);
+//        }
+//        elseif($this->request->isPost())
+//        {
+//            $data = [];
+//            $this->return_data(1, '', '', $data);
+//        }
+//        else
+//        {
+//            $this->return_data(0, '10001', '请求非法');
+//        }
+//    }
 
     /**
      * 教师调度
@@ -357,6 +399,45 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=1;";
         {
             $this->return_data(0, '20002', '更换教师失败', false);
         }
+    }
+
+    /*
+     * 返回所有的课程列表，标记老师当前已选的课程。
+     */
+    public function teacher_courses()
+    {
+        $t_id = input('t_id', '');
+        $org_id = input('orgid', '');
+        if (empty($t_id) || empty($org_id))
+        {
+            $this->return_data(0, '10000', '缺少t_id或org_id', false);
+        }
+        $data = db('subjects')->field('sid, sname')->select();
+        foreach ($data as $k=>$v) {
+            $temp = db('curriculums')->
+            field('cur_id, cur_name')->
+            where(['orgid'=>$org_id, 'subject'=>$v['sid']])->select();
+            for($i=0; $i<count($temp); $i++)
+            {
+                $where = [
+                    ['t_id', '=', $t_id],
+                    ['cur_id', '=', $temp[$i]['cur_id']],
+                    ['is_del', '=', 0]
+                ];
+                $res = db('cur_teacher_relations')->where($where)->count();
+                if ($res > 0)
+                {
+                    $temp[$i]['status'] = 1;
+                }
+                else
+                {
+                    $temp[$i]['status'] = 0;
+                }
+            }
+            $data[$k]['courses']= $temp;
+            unset($temp);
+        }
+        $this->return_data(1, '', '请求成功', $data);
     }
 
 
@@ -639,5 +720,27 @@ ON B.stu_id=C.stu_id WHERE A.t_id={$t_id} AND A.is_del=1;";
             $this->return_data(0, '', '服务器错误，　请假失败', true);
         }
     }
+
+    /**
+     * 课程列表
+     */
+    public function course()
+    {
+        $orgid = input('orgid');
+        if (empty($orgid))
+        {
+            $this->return_data('0', '10000', '缺少参数orgid');
+        }
+        $data = db('subjects')->field('sid, sname')->select();
+        foreach ($data as $k=>$v) {
+            $temp = db('curriculums')->
+                    field('cur_id, cur_name')->
+                    where(['orgid'=>$orgid, 'subject'=>$v['sid']])->select();
+            $data[$k]['courses']=$temp;
+            unset($temp);
+        }
+        $this->return_data(1, '', '', $data);
+    }
+
 }
 

@@ -11,11 +11,11 @@ use think\Exception;
 use think\Db;
 use app\index\model\Meals as Mealss;
 use app\index\model\MealCurRelations as Mclmodel;
-
 class Meals extends BaseController
 {
     public  function  addmeals()
     {
+        $this->auth_get_token();
         $data = [
             'meal_name'=>input('post.meal_name'),
             'value'=>input('post.value'),
@@ -49,57 +49,41 @@ class Meals extends BaseController
     }
 
 
-     //添加套餐课程返回套餐课程id
      public  function addmealcur(){
+         //print_r(input('post.'));exit();
          $data = input('mealcurlist');
-//         $data = array(
-//             array(
-//                 'cur_id'=>'561',
-//                 'cur_name'=>'css1',
-//                 'cur_num'=>'',
-//                 'cur_value'=>'222',
-//                 'actual_price'=>'222',
-//                 'course_model'=>'2',
-//             ),
-//             array(
-//                 'cur_id'=>'551',
-//                 'cur_name'=>'css1',
-//                 'cur_num'=>'5',
-//                 'cur_value'=>'222',
-//                 'actual_price'=>'222',
-//                 'course_model'=>'2',
-//             ),
-//         );
-         $res = array();
          $validate = new \app\validate\MealCurRelations;
+         $res = [];
          Db::startTrans();
          try{
          foreach ($data as $k=>&$v){
              if(!$validate->scene('add')->check($v)){
-                 //为了可以得到错误码
                  $error = explode('|',$validate->getError());
                  $this->return_data(0,$error[1],$error[0]);
-                 exit();
-             }else{
-                 $res[] = Mclmodel::create($v);
-             }
-             Db::commit();
-         }
-         }catch (\Exception $e){
-             Db::rollback();
-             $this->return_data(0,50000,$e->getMessage());
-         }
-         foreach ($res as $ks=>&$vs){
-             $resid[] = $vs['id'];
-         }
-         //$resid = implode(',',$resid);
-         $this->return_data(1,0,'添加成功',$resid);
-
+                }
+                }
+                 foreach ($data as $kk=>&$vv)
+                 {
+                     $iiid  =  Db::table('erp2_meal_cur_relations')->insertGetId($vv);
+                     Db::commit();
+                     if($iiid){
+                         $res[]= $iiid;
+                     }
+                 }
+                 if(!empty($res)){
+                     $this->return_data(1,0,'添加成功',$res);
+                 }else{
+                     $this->return_data(0,10000,'添加失败',$res);
+                 }
+                 }catch (\Exception $e){
+                     Db::rollback();
+                     $this->return_data(0,50000,$e->getMessage());
+                 }
      }
-
     //套餐列表
     public function mealss_list()
     {
+        $this->auth_get_token();
         $page = input('page');
         if($page==null){
             $page = 1;
@@ -127,9 +111,11 @@ class Meals extends BaseController
             $this->return_data(0,50000,$e->getMessage());
         }
     }
+
     //套餐修改
     public  function  editmealss()
     {
+        $this->auth_get_token();
         $data = [
             'meal_name'=>input('post.meal_name'),
             'value'=>input('post.value'),
@@ -166,6 +152,7 @@ class Meals extends BaseController
     //套餐详情
     public  function  get_meals_info()
     {
+
         $mid = input('post.meal_id');
         $res = Mealss::where('meal_id',$mid)->find();
         $res['meals_cur'] =  Mealss::get_mealkec_name($res['meals_cur']);
@@ -176,6 +163,7 @@ class Meals extends BaseController
     //修改套餐课程
     public function  edit_meals_mealcur()
     {
+        $this->auth_get_token();
         //print_r(input('post.'));exit();
         $meal_cur_id = input('meal_cur_id');
         $mealcurlist = input('mealcurlist');
@@ -191,9 +179,9 @@ class Meals extends BaseController
             foreach ($cur_array as $k => $v) {
                 $del_info = del('erp2_meal_cur_relations', ['meal_cur_id' => $v]);
             }
-            if(!$del_info){
-                $this->return_data(0,10000,'删除过去课程失败');
-            }
+//            if(!$del_info){
+//                $this->return_data(0,10000,'删除过去课程失败');
+//            }
         }
         Db::startTrans();
         try{
@@ -231,16 +219,17 @@ class Meals extends BaseController
                 if($lll){
                     $this->return_data(1,0,'修改成功');
                 }else{
-                    $this->return_data(0,10000,'修改失败');
+                    $this->return_data(1,10000,'没有任何改变');
                 }
             }
         }else{
-            $this->return_data(0,10000,'修改失败');
+            $this->return_data(1,10000,'没有任何改变');
         }
     }
     //删除套餐课程
     public  function  del_meals_mealcur()
     {
+        $this->auth_get_token();
         $meal_cur_id = input('meal_cur_id');
         Db::startTrans();
         try{

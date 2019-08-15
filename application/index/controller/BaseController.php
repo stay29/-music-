@@ -15,48 +15,21 @@ class BaseController extends Controller
 {
     public function initialize()
     {
-        parent::initialize();
+          parent::initialize();
         $tokenall =  $this->checkToken();
         $token = db('Token_user')->where('uid',$tokenall['uid'])->find();
         if ($token['token'] != $tokenall['token']) {
             return $this->return_data(0, 10005, '请重新登录');
         }
-<?php
-/**
- * 基础控制器
- * User: antony
- * Date: 2019/7/10
- * Time: 15:03
- */
-namespace app\index\controller;
-use think\Controller;
-use think\facade\Request;
-use think\Db;
-use think\facade\Session;
-use Firebase\JWT\JWT;//引入验证类
-class BaseController extends Controller
-{
-    public function initialize()
-    {
-        parent::initialize();
-        $tokenall =  $this->checkToken();
-        $token = db('Token_user')->where('uid',$tokenall['uid'])->find();
-        if ($token['token'] != $tokenall['token']) {
-            return $this->return_data(0, 10005, '请重新登录');
-        }
-        $this->auth_get_token();
-    }
-    // protected $beforeActionList = [
-    //     'first',
-    // ];
-    protected function first()
-    {
-       $res = $this->auth_get_token();
-       if(!$res){
-             return $this->return_data(0, 10000, '请联系管理 添加权限');
-       }
     }
 
+//    protected $beforeActionList = [
+//        'first',
+//    ];
+    //protected function first()
+    //{
+        //$this->auth_get_token();
+    //}
     /*
      *权限效验
      *没有添加的节点不限制
@@ -70,24 +43,22 @@ class BaseController extends Controller
         $res = finds('erp2_user_accesses',$mup);
         $uid = ret_session_name('uid');
         $auth = $this->get_aid_role111($uid);
-        $a = json_decode($auth);
+        $a = json_decode($auth,true);
+
         if($res){
             if(!in_array($res['access_id'],$a)){
-               return 0;
+                $this->return_data(0,0,'你没有改权限,请联系管理员');
             }
         }
     }
-
-
-
     //获取当前用户的最终权限
     public  function  get_aid_role111($uid)
     {
        // $uid = input('uid');
         $userinfo = finds('erp2_users',['uid'=>$uid]);
         $rid = explode(',',$userinfo['rid']);
-        $array = [];
-        foreach ($rid as $k=>$v){
+            $array = [];
+            foreach ($rid as $k=>$v){
             $array[] = finds('erp2_user_roles',['role_id'=>$v]);
         }
         $arr = [];
@@ -187,7 +158,7 @@ class BaseController extends Controller
     public function checkToken()
     {
         $header = Request::instance()->header();
-        //print_r($header);
+        //print_r($header);exit();
         if(array_key_exists('x-token',$header)){
         if ($header['x-token'] == 'null'){
             $this->return_data('0', '10006', 'Token不存在，拒绝访问');
@@ -235,4 +206,3 @@ class BaseController extends Controller
 
 
 }
-

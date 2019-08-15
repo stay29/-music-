@@ -4,18 +4,11 @@ use think\Controller;
 use think\Exception;
 use app\index\model\Curriculums;
 class Currm extends BaseController
-{   
-    // public function initialize()
-    // {
-    //    parent::initialize();
-    //    $res = $this->auth_get_token();
-    //    if($res==0){
-    //          //return $this->return_data(0, 10000, '请联系管理 添加权限');
-    //    }
-    // }
+{
     //课程列表
     public function index()
     {
+        $this->auth_get_token();
         $page = input('page');
         if($page==null){
           $page = 1;
@@ -29,6 +22,9 @@ class Currm extends BaseController
         $tmethods = input('tmethods');
         $status = input('status');
         $orgid  = input('orgid');
+        if(!$orgid){
+            $orgid = ret_session_name('orgid');
+        }
         $where = null;
         if($cur_name){
             $where[]=['cur_name','like','%'.$cur_name.'%'];
@@ -54,8 +50,9 @@ class Currm extends BaseController
     //添加课程
  	public function  addcurrmon()
     {
+        $this->auth_get_token();
  		$data = input('post.');
- 		$data['manager'] = session(md5(MA.'user'))['id'];
+ 		$data['manager'] = ret_session_name('uid');
         $validate = new \app\validate\Curriculums;
         if(!$validate->scene('add')->check($data)){
             //为了可以得到错误码
@@ -73,6 +70,7 @@ class Currm extends BaseController
     //修改课程
     public function editcurrm()
     {
+        $this->auth_get_token();
         $currid = input('post.cur_id');
         $data = input('post.');
         $validate = new \app\validate\Curriculums;
@@ -89,10 +87,10 @@ class Currm extends BaseController
         }
     }
 
-
     //删除课程
     public function delcurrmon()
     {
+        $this->auth_get_token();
         $where['cur_id'] = input('cur_id');
         $data['is_del'] = 1;
         if($where==null){
@@ -116,6 +114,7 @@ class Currm extends BaseController
 
     //设置热门 1为热门 2为取消热门
     public function  edit_popular(){
+        $this->auth_get_token();
         $currid  =   input('cur_id');
         $where['orgid'] = session(md5(MA.'user'))['orgid'];
         $data2['popular'] = 2;
@@ -155,6 +154,7 @@ class Currm extends BaseController
     //全部搜索课程列表
     public  function  all_list_currm()
     {
+        $this->auth_get_token();
         $cur_name = input('cur_name');
         $orgid  =  input('orgid');
         $where = null;

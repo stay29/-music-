@@ -38,14 +38,16 @@ class Login extends Basess{
                       $arr1 = [
                           'id' => $user_login_info['uid'],
                           'cellphone' => $user_login_info['cellphone'],
-                          'orgid' => $user_login_info['organization'],
-                          'nickname' => $user_login_info['nickname'],
+                          //'orgid' => $user_login_info['organization'],
+                          //'nickname' => $user_login_info['nickname'],
                       ];
                      $token =  Users::login_token($arr1,$user_login_info['uid']);
                      $arr['token'] = $token;
                      $time = time();
                      $uid = $user_login_info['uid'];
                      Db::query("UPDATE erp2_users SET login_time=$time WHERE uid=$uid");
+                     $r =  $this->get_role_a($uid);
+                     $arr['rolelist'] = $r;
                      $this->return_data(1,0,'登录成功',$arr);
                  }else{
                          $mup1['cellphone'] = $data['cellphone'];
@@ -64,6 +66,8 @@ class Login extends Basess{
             $this->return_data(0,50000,$e->getMessage());
         }
     }
+
+
 
 
     public function for_login_old()
@@ -123,6 +127,19 @@ class Login extends Basess{
         }
     }
 
+
+    public function  get_role_a($uid)
+    {
+        $a =   json_decode($this->get_aid_role111($uid));
+        $res = Db::table("erp2_user_accesses") ->where('access_id', 'in', $a)->where('pid',0)->select();
+        foreach ($res as $k=>&$v)
+        {
+            $v['pidinfo'] = Db::table("erp2_user_accesses") ->where('access_id', 'in', $a)->where('pid',$v['access_id'])->where('type',1)->select();
+        }
+        return $res;
+    }
+
+
     public function register_users()
     {
         $data = [
@@ -158,6 +175,7 @@ class Login extends Basess{
             $this->return_data(0,50000,$e->getMessage());
         }
     }
+
     //退出登录
     public  function  logout()
     {
@@ -228,4 +246,72 @@ class Login extends Basess{
             $this->return_data(0,50000,$e->getMessage());
         }
     }
+
+
+    /**
+     * @param $is_rem
+     * 记住密码
+     */
+    public function rem_password($is_rem,$data)
+    {
+        if($is_rem == 1){
+            cookie(base64_encode(MA.'userinfo'),[
+                'account'=>base64_encode(MA.trim($data['cellphone'])),
+                'pwd'=>base64_encode(MA.trim($data['password'])),
+            ]);
+            return true;
+        }else{
+            cookie(base64_encode(MA.'userinfo'),null);
+            return true;
+        }
+    }
+
+
+    //获取当前用户的最终权限
+    public  function  get_aid_role111($uid)
+    {
+        // $uid = input('uid');
+        $userinfo = finds('erp2_users',['uid'=>$uid]);
+        $rid = explode(',',$userinfo['rid']);
+        $array = [];
+        foreach ($rid as $k=>$v){
+            $array[] = finds('erp2_user_roles',['role_id'=>$v]);
+        }
+        $arr = [];
+        foreach ($array as $k1=>$v1){
+
+            $arr []= explode(',',$v1['aid']);
+        }
+        $a = $this->array_heb($arr);
+        $b =   $this->a_array_unique($a);
+        return json_encode($b);
+    }
+
+    public  function array_heb($arrs)
+    {
+        static $arrays  = array();
+        foreach ($arrs as $key=>$value)
+        {
+            if(is_array($value)){
+                $this->array_heb($value);
+            }else{
+                $arrays[]= $value;
+            }
+        }
+        return $arrays;
+    }
+
+    public function a_array_unique($array)//写的比较好
+    {
+        $out = array();
+        foreach ($array as $key=>$value) {
+            if (!in_array($value, $out))
+            {
+                $out[$key] = $value;
+            }
+        }
+        return $out;
+    }
+
+
 }
