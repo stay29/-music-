@@ -16,6 +16,7 @@ class Users extends Model
     {
         return $this->belongsTo('Curriculums','uid');
     }
+    
     public  static  function  login_token($arr,$uid)
     {
         $Jwttoken =  new Jwttoken;

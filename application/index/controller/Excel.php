@@ -335,7 +335,8 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
     // Teacher Information Exporting Method
     public function teacher_ept(){
         $org_id = input('org_id', '');
-
+        $se_id = input('se_id', '');
+        $status = input('status', '');
         if(empty($org_id))
         {
             $this->returnError('10000', '缺少参数org_id');
@@ -358,6 +359,14 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             A.resume AS t_resume FROM erp2_teachers AS A 
             INNER JOIN erp2_seniorities AS B ON A.se_id=B.seniority_id
             WHERE org_id={$org_id}";
+        if (!empty($se_id))
+        {
+            $sql .= " AND A.se_id={$se_id}";
+        }
+        if(!empty($status))
+        {
+            $sql .= " AND A.status={$status}";
+        }
         try{
             $xlsData = Db::query($sql);
             $this->exportExcel($xlsName,$xlsCell,$xlsData);
