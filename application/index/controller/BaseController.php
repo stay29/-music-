@@ -80,12 +80,22 @@ class BaseController extends Controller
                 $this->return_data(0,0,'你没有改权限,请联系管理员');
                 }
             }
+        }else{
+            $mup['create_time'] = time();
+            $mup['update_time'] = time();
+            $mup['sort'] = 1;
+            $mup['status'] = 2;
+            add('erp2_user_accesses',$mup);
         }
+
+
+
+
+
     }
     //获取当前用户的最终权限
     public  function  get_aid_role111($uid)
     {
-       
         $userinfo = finds('erp2_users',['uid'=>$uid]);
         if($userinfo){
             $rid = explode(',',is_string($userinfo['rid']));

@@ -67,7 +67,8 @@ class Users extends Model
 
 
     public  static function  addusers($data)
-    {
+    {   
+        $data['rid'] = 2;
         $res = Users::create($data, true);
         $suid = session(md5(MA.'user'))['id'];
         Users::where(['uid'=>$res->uid])

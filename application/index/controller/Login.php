@@ -144,8 +144,6 @@ class Login extends Basess{
         return $res;
     }
 
-
-
     //获取当前用户的最终权限
     public  function  get_aid_role111($uid)
     {
@@ -229,14 +227,12 @@ class Login extends Basess{
             $this->return_data(0,50000,$e->getMessage());
         }
     }
-
     //退出登录
     public  function  logout()
     {
         session(null);
         $this->return_data(1,0,'退出登录');
     }
-
      //验证码获取
     public  function  get_vieryie()
     {
