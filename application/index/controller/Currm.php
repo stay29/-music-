@@ -161,9 +161,7 @@ class Currm extends BaseController
         if($cur_name){
             $where[]=['cur_name','like','%'.$cur_name.'%'];
         }
-        if($orgid){
-            $where[]=['orgid','=', $orgid];
-        }
+        $where[]=['orgid','=', $orgid];
         $where[]=['is_del','=', 0];
         try{
             $res = Curriculums::get_all($where);

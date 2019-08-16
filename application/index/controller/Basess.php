@@ -57,6 +57,7 @@ class Basess extends Controller
         $this->return_data(1,0,$imgpath);
     }
 
+
     //删除图片
     public  function  get_img_del()
     {
@@ -69,7 +70,7 @@ class Basess extends Controller
             unlink($oldig);
             $this->return_data(1,0,'删除成功');
         }else{
-            $this->return_data(0,50000,'删除失败');
+           $this->return_data(1,0,'删除成功');
         }
     }
 }

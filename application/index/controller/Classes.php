@@ -8,48 +8,14 @@
 namespace app\index\controller;
 use think\Controller;
 use think\Db;
-
-
 class Classes extends BaseController
 {
-    /*
-     * 班级列表
-     */
-    public function index()
-    {
-        $cls_name = input('cls_name/s', '');
-        $limit = input('limit/d', 10);
-        $page = input('page/d', 1);
-        $start = ($page - 1) * $limit;
-        if (!empty($cls_name))
-        {
-            $key = '%' . $cls_name . '%';
-        }
-        else
-        {
-            $key = '%';
-        }
-        $sql = "SELECT A.class_id AS cls_id, A.class_name,C.cur_name, A.class_count,
-                count(D.class_id) AS cur_count, F.t_name AS headmaster, A.remarks
-                FROM (erp2_classes AS A
-                INNER JOIN erp2_class_cur AS B ON A.class_id=B.cls_id)
-                LEFT JOIN erp2_curriculums AS C ON B.cur_id=C.cur_id
-                LEFT JOIN erp2_class_student_relations AS D ON A.class_id=D.class_id
-                INNER join erp2_teachers AS F ON A.headmaster = F.t_id
-                WHERE A.class_name LIKE {$key} AND A.is_del=0 LIMIT {$start}, {$limit};";
-        $data = Db::query($sql);
-        if (count($data) == 1 && empty($data[0]['cls_id']))
-        {
-            $data = [];
-        }
-        $this->return_data(1, '', '请求成功', $data);
-    }
-
     /*
      * 添加班级
      */
     public function addclasses()
-    {
+    {   
+        //$this->auth_get_token();
         $cls_id = input('cls_id');
         $stu_id = input('stu_id');
         $data = [
@@ -65,10 +31,13 @@ class Classes extends BaseController
         ];
          Db::startTrans();
          try{
-
-            
+        $validate = new \app\index\validate\Classes();
+        if(!$validate->scene('add')->check($data)){
+            //为了可以得到错误码
+            $error = explode('|',$validate->getError());
+            $this->return_data(0,$error[1],$error[0]);
+        }        
         $res = add('erp2_classes',$data,2);
-
          Db::commit();
         if($res){
         $data1 = [
@@ -104,10 +73,82 @@ class Classes extends BaseController
     }
 
     public function  classes_list()
-    {
-            echo "111";exit();
+    {  
+       $where[] = ['status','=',1];
+       $where[] = ['orgid','=',input('orgid')];
+       $where[] = ['is_del','=',0];
+       $class_name = input('class_name');
+       $res = selects('erp2_classes',$where);
+       foreach ($res as $k => &$v) {
+          $v['headmasterinfo'] = finds('erp2_teachers',['t_id'=>$v['headmaster']]);
+          $cls_id = $v['class_id'];
+          $sql = "select c.cur_id , cu.cur_name from erp2_class_cur as c,erp2_curriculums as cu
+           where c.cls_id={$cls_id}
+           INNER JOIN c.cur_id=cu.cur_id";
+          $v['curid'] = Db::query($sql);
+       }
     }
 
+    public  function  edit_classes()
+    {
+        $where['class_id'] = input('class_id');
+        $data = [
+            'class_name'=>input('class_name'),
+            'headmaster'=>input('headmaster'),
+            'class_count'=>input('class_count'),
+            'remarks'=>input('remarks'),
+        ];
+        $res = edit('erp2_classes',$where,$data);
+        if($res){
+            $this->return_data(1,0,'修改成功');
+        }else{
+            $this->return_data(0,10000,'修改失败');
+        }
+    }
+
+    public  function  edit_classes_curs()
+    {
+        $where['class_id'] = input('class_id');
+        $stu_id = input('stu_id');
+        $arr = [];
+        foreach ($stu_id as $k=>$v)
+        {
+            $arr['stu_id'] = $v;
+            $arr['class_id'] = input('class_id');
+            $arr['is_del']  = 0;
+        }
+        $a = del('erp2_class_student_relations',$where);
+        $b = Db::name('erp2_class_student_relations')->insertAll($arr);
+        if($b){
+            $this->return_data(1,0,'修改成功');
+        }else{
+            $this->return_data(0,10000,'修改失败');
+        }
+    }
+
+    public  function  edit_curr()
+    {
+        $where['class_id'] = input('class_id');
+        $data = ['cur_id','=',input('cur_id')];
+        $res = edit('erp2_class_cur',$where,$data);
+        if($res){
+            $this->return_data(1,0,'修改成功');
+        }else{
+            $this->return_data(0,10000,'修改失败');
+        }
+    }
+
+    public  function  del_classes()
+    {
+        $data['is_del'] = 1;
+        $where['class_id'] = input('class_id');
+        $res = edit('erp2_classes',$where,$data);
+        if($res){
+            $this->return_data(1,0,'修改成功');
+        }else{
+            $this->return_data(0,10000,'修改失败');
+        }
+    }
 
 
 
