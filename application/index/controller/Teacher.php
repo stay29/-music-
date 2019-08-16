@@ -10,6 +10,7 @@ namespace app\index\controller;
 use app\index\model\Teacher as TeacherModel;
 use app\index\validate\Teachers as TeachersValidate;
 use think\Db;
+use think\db\Where;
 use think\Exception;
 use think\Log;
 
@@ -139,10 +140,15 @@ class Teacher extends BaseController
                                             A.status,  A.resume')
                             ->where('A.t_id', '=', $t_id)
                             ->find();
+        if (empty($teacher_details))
+        {
+            $this->return_data(0, '20000', '教师不存在', '');
+        }
         // 查询教师班级ID列表
         $teacher_classes = db('classes_teachers_realations')->field('cls_id')->where('t_id', '=', $t_id)->select();
 //        $this->return_data('１', '', '', $teacher_classes);
 //        exit();
+        $teacher_classes_data = array();
         foreach ($teacher_classes as $k=>$v)
         {
             // 补充班级名称和班级满班率
@@ -151,9 +157,13 @@ class Teacher extends BaseController
                     LEFT JOIN erp2_class_student_relations AS B ON A.class_id=B.class_id 
                     WHERE A.class_id={$cls_id} GROUP BY A.class_name LIMIT 1";
             $temp = Db::query($sql);
-
             $temp['cls_id'] = $v['cls_id'];
-            $teacher_classes[$k] = $temp;
+
+            $teacher_classes_data[] = [
+                'cls_id' => $cls_id,
+                'cls_name' => $temp[0]['cls_name'],
+                'cls_rate' => $temp[0]['cls_rate']
+            ];
             unset($temp, $cls_id, $sql);
         }
 
@@ -175,21 +185,39 @@ class Teacher extends BaseController
                         ->where('t_id', '=', $t_id)->find();
 
 
-        // 教师课程列表，　已设置课程薪酬
-        $teacher_courses_salary = db('teacher_salary_cur')
-                                    ->field('cur_id, p_id, p_num')
-                                    ->where('s_id', '=', $teacher_salary['s_id'])
-                                    ->select();
-        foreach ($teacher_courses_salary as $k=>$v)
+        $teacher_course_list = db('cur_teacher_relations')->
+        field('cur_id')->where('t_id', '=', $t_id)->select();
+
+        foreach ($teacher_course_list as $k=>$v)
         {
+
             $cur_id = $v['cur_id'];
-            $p_id = $v['p_id'];
-            $p_num = $v['p_num'];
+            $where = [
+                ['s_id', '=', $teacher_salary['s_id']],
+                ['cur_id', '=', $cur_id]
+            ];
+            $salary = db('teacher_salary_cur')
+                ->field('cur_id, p_id, p_num')
+                ->where($where)
+                ->find();
+            if (!isset($salary['cur_id']))
+            {
+                $p_id = 1;
+                $p_num = 0;
+                $p_name = '按出勤人数';
+                $p_unit = '元/人';
+            }
+            else
+            {
+                $p_id = $salary['cur_id'];
+                $p_num = $salary['p_num'];
+                $temp = db('pay_id_info')->field('pay_name as p_name, cpany as p_unit')
+                    ->where('pay_id_info', '=', $p_id)->find();
+                $p_name = $temp['p_name'];
+                $p_unit = $temp['p_unit'];
+            }
+
             $cur_name = db('curriculums')->where('cur_id', '=', $cur_id)->value('cur_name');
-            $temp = db('pay_id_info')->field('pay_name as p_name, cpany as p_unit')
-                        ->where('pay_id_info', '=', $p_id)->find();
-            $p_name = $temp['p_name'];
-            $p_unit = $temp['p_unit'];
 
             // 详细课程薪酬列表
             $teacher_salary['courses'][] = [
@@ -203,20 +231,13 @@ class Teacher extends BaseController
             unset($p_id, $p_name, $p_num, $p_unit, $cur_id, $cur_name);
         }
 
-        // 教师课程列表, 未设置教程薪酬
-        $teacher_course_list = db('cur_teacher_relations')->
-                                field('cur_id')->where('t_id', '=', $t_id)->select();
-
-        foreach ($teacher_course_list as $k=>$v)
-        {
-            
-        }
+        unset($teacher_salary['s_id']);
 
         $data = [
             'teacher' => $teacher_details,
             'salary' => $teacher_salary,
             'students' => $teacher_students,
-            'classes' => $teacher_classes,
+            'classes' => $teacher_classes_data,
         ];
         $this->return_data(1, '', '请求成功', $data);
     }
@@ -269,6 +290,8 @@ class Teacher extends BaseController
                 $data = ['cur_id'=>intval($cur_list[$i]), 't_id'=>$t_id];
                 db('cur_teacher_relations')->data($data)->insert();
             }
+            // 添加教师薪酬ID
+            Db::name('teacher_salary')->insert(['t_id'=>$t_id]);
             $this->return_data(1,0,'教师新增成功', true);
         }catch (\Exception $e){
 
@@ -479,52 +502,71 @@ class Teacher extends BaseController
     public function schedule()
     {
         $allCode = 1;  // 全部
+        $org_id = input('orgid/d', '');
         $curYearCode = 2; // 本年
         $curMonthCode = 3;  // 本月
-        $tid = input('t_id', null);
-        $startTime = input('startTime', null);
-        $endTime = input('endTime', null);
-        $type = input('type', 1);  // 默认是全部
-        $courseId = input('courseId', null); // 通过课程ID筛选
-        $page = input('page', 1);
-        $pageSize = input('limit', 10);
-        if (!isset($tid))
+        $tid = input('t_id/d', '');
+        $startTime = input('startTime/d', '');
+        $endTime = input('endTime/d', '');
+        $type = input('type/d', 1);  // 默认是全部
+        $courseId = input('courseId/d', ''); // 通过课程ID筛选
+        $page = input('page/d', 1);
+        $limit = input('limit/d', 10);
+        if (empty($tid) || empty($org_id))
         {
             $this->return_data(0, '10000', '缺少参数');
         }
-        // 查询课表数据
-        $sql = "SELECT A.sc_id, A.t_id,A.cur_time, D.cur_name, B.stu_id, B.truename AS stu_name, C.room_id, C.room_name, A.status
- FROM (`erp2_teach_schedules` AS A  INNER JOIN `erp2_students` AS B ON A.stu_id=B.stu_id) 
- INNER JOIN `erp2_classrooms` AS C ON A.room_id=C.room_id 
- INNER JOIN `erp2_curriculums` AS D ON A.cur_id=D.cur_id WHERE A.t_id={$tid}";
 
-        // 查询时间范围
-        if (isset($startTime) and isset($endTime))
+        $tables = Db::name('teach_schedules')->field('sc_id, stu_id, room_id, cur_time, cur_id, status')
+                    ->where(['org_id'=>$org_id, 't_id'=>$tid]);
+
+        if (!empty($startTime) and !empty($endTime))
         {
-            $rangeTime = "AND cur_name BETWEEN {$startTime} AND {$endTime}";
-            $sql .= $rangeTime;
+            $tables->whereTime('cur_time','between',[$startTime, $endTime]);
         }else
         {
             if($type==$curYearCode) //查询本年数据
             {
-                $curYear = "AND DATE_FORMAT(A.cur_time,'%Y') = DATE_FORMAT(SYSDATE(),'%Y')";
-                $sql .= $curYear;
+                $tables->whereTime('cur_time', 'year');
             }
             elseif ($type==$curMonthCode){ // 查询本月数据
-                $curMonth = "AND DATE_FORMAT( A.cur_time, '%Y%m' ) = DATE_FORMAT( CURDATE( ) , '%Y%m' )";
-                $sql .= $curMonth;
+                $tables->whereTime('cur_time', 'month');
             }
         }
-        if(isset($courseId))
+        if(!empty($courseId))
         {
-            $selectCourse = "AND A.cur_id={$courseId}";
-            $sql .= $selectCourse;
+            $tables->where('cur_id', '=', $courseId);
         }
-        $startNum = ($page - 1) * $pageSize;
-        $limit = "LIMIT {$startNum}, $pageSize";
-        $sql .= $limit;
-        $data = Db::query($sql);
-        $this->return_data(1, '', '', $data);
+        $data = $tables->paginate($limit);
+        $response = array();
+        foreach ($data as $k=>$v)
+        {
+            $status = $v['status'];
+            $sc_id = $v['sc_id'];
+            $cur_id = $v['cur_id'];
+            $cur_time = $v['cur_time'];
+            $stu_id = $v['stu_id'];
+            $room_id = $v['room_id'];
+            $stu_name = db('students')->where('stu_id', '=', $stu_id)->value('truename');
+            $room_name = db('classrooms')->where('room_id', '=', $room_id)->value('room_name');
+            $temp = db('curriculums')->where('cur_id', '=', $cur_id)->field('cur_name, 
+                        tmethods as cur_type')->find();
+
+            $response[] = [
+                'sc_id' => $sc_id,
+                'cur_id' => $cur_id,
+                'cur_name' => $temp['cur_name'],
+                'cur_type'  => $temp['cur_type'],
+                'cur_time'  => $cur_time,
+                'stu_id'  => $stu_id,
+                'stu_name' => $stu_name,
+                'room_id'   => $room_id,
+                'room_name' => $room_name,
+                'status'    => $status
+            ];
+        }
+
+        $this->return_data(1, '', '', $response);
     }
 
     /**
@@ -553,7 +595,7 @@ class Teacher extends BaseController
     public function changeSchedule()
     {
         $sc_id = input('sc_id/d', '');
-        $cur_id = input('cur_id', '');
+        $cur_id = input('cur_id/d', '');
         if (empty($sc_id) || empty($cur_id))
         {
             $this->return_data(0, '10000', '缺少参数', false);
