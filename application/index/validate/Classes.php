@@ -30,7 +30,7 @@ class Classes extends Validate
     // add验证场景定义
     public function sceneAdd()
     {
-        return $this->only(['room_name','room_count','status']);
+        return $this->only(['class_name','class_count','headmaster','remarks','orgid']);
     }
     // edit验证场景定义
     public function sceneEdit()
