@@ -74,7 +74,7 @@ class Teacher extends BaseController
             'birthday' => input('post.birthday'),
             'entry_time' => input('post.entry_day'),
             'resume' => input('post.resume'),
-            'identity_card' => input('post.id_card')
+            'identity_card' => input('post.id_card'),
         ];
         $validate = new \app\index\validate\Teacher();
         if (!$validate->check($data)) {
@@ -82,6 +82,7 @@ class Teacher extends BaseController
             $error = explode('|',$validate->getError());
             $this->return_data(0,$error[1],$error[0]);
         }
+        Db::startTrans();
         try{
             TeacherModel::update($data,['t_id'=>$data['t_id']]);
             $this->return_data(1,0,'编辑教师成功');
@@ -569,13 +570,30 @@ class Teacher extends BaseController
         $this->return_data(1, '', '', $response);
     }
 
+    public function close_cancel_course()
+    {
+        $sc_id = input('sc_id/d', '');
+        if(empty($sc_id))
+        {
+            $this->return_data(1, '10000', '缺少参数');
+        }
+        try
+        {
+            db('teach_schedules')->where('sc_id', '=', $sc_id)->update(['status' => 1]);
+            $this->return_data(0, '20003', '取消消课成功', true);
+        }catch (Exception $e)
+        {
+            $this->return_data(1, '', '取消消课失败', false);
+        }
+    }
+
     /**
      * 删除排课记录
      */
-    public function delSchedule()
+    public function schedule_del()
     {
-        $sc_id = input('sc_id', null);
-        if(!isset($sc_id))
+        $sc_id = input('sc_id', '');
+        if(empty($sc_id))
         {
             $this->return_data(0, '10000', '缺少参数');
         }
@@ -794,6 +812,7 @@ class Teacher extends BaseController
             $this->return_data(0, '', '服务器错误，　请假失败', true);
         }
     }
+
 
     /**
      * 课程列表
