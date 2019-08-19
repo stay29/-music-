@@ -14,7 +14,7 @@ use think\Controller;
 use think\Db;
 use think\Exception;
 
-class Categories
+final class Categories
 {
     /*
      * 获取分类首页显示的分类信息
@@ -28,7 +28,7 @@ class Categories
         {
             if ($value['cate_pid'] == $pid)
             {
-                $value['level'] = $level;
+                $value['level_num'] = $level;
                 $value['level_text'] = $map[$level] . '级分类';
                 $list[] = $value;
                 unset($array[$key]);
@@ -53,7 +53,7 @@ class Categories
 }
 
 
-class Purchase extends Controller
+class Purchase extends BaseController
 {
     /*
      * 分类列表
@@ -126,13 +126,18 @@ class Purchase extends Controller
         $order = input('order/d', 0);
         $cate_pid = input('cate_pid/d', '');
         $org_id = input('orgid/d', '');
-        if(empty($cate_name) || empty($cate_id) || empty($cate_pid) || empty($org_id))
+        if(empty($org_id))
         {
             $this->return_data(0, '10000', '缺少参数', false);
         }
         Db::startTrans();
         try
         {
+            $p_cate = db('goods_cate')->where('cate_id', '=', $cate_pid)->select();
+            if (empty($p_cate) && $cate_pid != 0)
+            {
+                $this->return_date(0, '10000', '父级分类不存在', false);
+            }
             $data = [
                 'cate_name' => $cate_name,
                 'cate_pid'  => $cate_pid,
@@ -166,7 +171,7 @@ class Purchase extends Controller
     }
 
 
-    /*
+    /**
      * 删除分类
      */
     public function cate_del()
@@ -191,6 +196,94 @@ class Purchase extends Controller
         {
             Db::rollback();
             $this->return_data(0, '20003', '删除失败', false);
+        }
+    }
+
+    /*
+     * 销售员列表
+     */
+    public function sale_mans_index()
+    {
+        $org_id = input('orgid/d', '');
+        if (empty($org_id))
+        {
+            $this->return_data(0, '10000', '缺少参数', '');
+        }
+        $page = input('page/d', 1);
+        $limit = input('limit/d', 10);
+        $data = db('salesmans')->where('org_id', '=', $org_id)
+            ->field('sm_id, sm_name, sm_mobile, status')
+            ->paginate($limit);
+        $this->return_data(1, '', '请求成功', $data);
+    }
+
+    /*
+     * 删除销售员
+     */
+    public function sale_mans_del()
+    {
+        $sm_id = input('sm_id/d', '');
+        if(empty($sm_id))
+        {
+            $this->return_data(0, '10000', '缺少参数', false);
+        }
+        db('salesmans')->where('sm_id', '=', $sm_id)->delete();
+        $this->return_data('0', '', '删除成功', true);
+    }
+
+    /*
+     * 修改销售员
+     */
+    public function sale_mans_edit()
+    {
+        $data = [
+            'sm_id' => input('sm_id/d', ''),
+            'sm_name' => input('sm_name/s', ''),
+            'org_id' => input('org_id/d', ''),
+            'sm_mobile' => input('sm_mobile', ''),
+            'status' => input('status')
+        ];
+        if (empty($data['sm_id']))
+        {
+            $this->return_data(0, '10000', '缺少参数', false);
+        }
+        try{
+            $data['update_time'] = time();
+            db('salesmans')->update($data);
+            $this->return_data(1, '', '修改成功', true);
+        }catch (Exception $e)
+        {
+            $this->return_data(0, '20002', '系统错误, 修改失败', false);
+        }
+    }
+
+    /*
+     * 添加销售员
+     */
+    public function sale_mans_add()
+    {
+        $data = [
+            'sm_id' => input('sm_id/d', ''),
+            'sm_name' => input('sm_name/s', ''),
+            'org_id' => input('org_id/d', ''),
+            'sm_mobile' => input('sm_mobile', ''),
+            'status' => input('status')
+        ];
+        foreach ($data as $k => $v)
+        {
+            if (empty($v))
+            {
+                $this->return_data(0, '10000', '缺少参数:'. $k, false);
+            }
+        }
+        try{
+            $data['create_time'] = time();
+            $data['update_time'] = time();
+            db('salesmans')->insert($data);
+            $this->return_data(1, '', '修改成功', true);
+        }catch (Exception $e)
+        {
+            $this->return_data(0, '20002', '系统错误, 修改失败', false);
         }
     }
 

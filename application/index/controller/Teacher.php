@@ -9,10 +9,26 @@
 namespace app\index\controller;
 use app\index\model\Teacher as TeacherModel;
 use app\index\validate\Teachers as TeachersValidate;
+use think\Controller;
 use think\Db;
 use think\db\Where;
 use think\Exception;
 use think\Log;
+
+trait Response
+{
+    public function return_data($status=1,$error_no=0,$info='',$data=''){
+        $status = empty($status)?false:true;
+        if($status){
+            $key = 'sinfo';
+        }else{
+            $key = 'error_msg';
+        }
+        echo json_encode(['status'=>$status,'error_code'=>$error_no,$key =>$info,'data'=>$data]);
+        exit();
+    }
+}
+
 
 /*
  * Teacher-related Functional Controller
@@ -23,6 +39,7 @@ class Teacher extends BaseController
      * Returning the details of teachers
      * can be screened by teachers'qualifications and on-the-job status of teachers' names.
      */
+//    use Response;
     public function index()
     {
         $org_id = input('orgid', '');
@@ -502,6 +519,7 @@ class Teacher extends BaseController
     */
     public function schedule()
     {
+//        $this->return_data(1,'', '', '');
         $allCode = 1;  // 全部
         $org_id = input('orgid/d', '');
         $curYearCode = 2; // 本年
@@ -517,28 +535,30 @@ class Teacher extends BaseController
         {
             $this->return_data(0, '10000', '缺少参数');
         }
-
+        $data = array();
         $tables = Db::name('teach_schedules')->field('sc_id, stu_id, room_id, cur_time, cur_id, status')
                     ->where(['org_id'=>$org_id, 't_id'=>$tid]);
-
-        if (!empty($startTime) and !empty($endTime))
-        {
-            $tables->whereTime('cur_time','between',[$startTime, $endTime]);
-        }else
-        {
-            if($type==$curYearCode) //查询本年数据
-            {
-                $tables->whereTime('cur_time', 'year');
-            }
-            elseif ($type==$curMonthCode){ // 查询本月数据
-                $tables->whereTime('cur_time', 'month');
-            }
-        }
         if(!empty($courseId))
         {
             $tables->where('cur_id', '=', $courseId);
         }
-        $data = $tables->paginate($limit);
+        if (!empty($startTime) and !empty($endTime))
+        {
+            $tables->whereTime('cur_time', [$startTime, $endTime]);
+        }else
+        {
+            if($type==$curYearCode) //查询本年数据
+            {
+                $tables->whereTime('cur_time', 'y');
+            }
+            elseif ($type==$curMonthCode){ // 查询本月数据
+                $tables->whereTime('cur_time', 'm');
+            }
+            else{
+                $data = $tables->paginate($limit);
+            }
+        }
+//        $this->return_data(1,'', '', $tables->fetchSql());
         $response = array();
         foreach ($data as $k=>$v)
         {
@@ -550,8 +570,7 @@ class Teacher extends BaseController
             $room_id = $v['room_id'];
             $stu_name = db('students')->where('stu_id', '=', $stu_id)->value('truename');
             $room_name = db('classrooms')->where('room_id', '=', $room_id)->value('room_name');
-            $temp = db('curriculums')->where('cur_id', '=', $cur_id)->field('cur_name, 
-                        tmethods as cur_type')->find();
+            $temp = db('curriculums')->where('cur_id', '=', $cur_id)->field('cur_name, tmethods as cur_type')->find();
 
             $response[] = [
                 'sc_id' => $sc_id,
@@ -570,20 +589,31 @@ class Teacher extends BaseController
         $this->return_data(1, '', '', $response);
     }
 
+    /**
+     * 取消消课
+     */
     public function close_cancel_course()
     {
         $sc_id = input('sc_id/d', '');
-        if(empty($sc_id))
+        $password = input('password', '');
+        $uid = input('uid', '');
+        if(empty($sc_id) || empty($password) || empty($uid))
         {
             $this->return_data(1, '10000', '缺少参数');
         }
         try
         {
+            $req_pwd_md5 = md5_return($password);
+            $db_pwd_md5 = db('users')->where('uid', '=', $uid)->value('password');
+            if (empty($db_pwd_md5) || $req_pwd_md5!=$db_pwd_md5)
+            {
+                $this->return_data('0', '20002', '取消消课失败，密码错误', false);
+            }
             db('teach_schedules')->where('sc_id', '=', $sc_id)->update(['status' => 1]);
             $this->return_data(0, '20003', '取消消课成功', true);
         }catch (Exception $e)
         {
-            $this->return_data(1, '', '取消消课失败', false);
+            $this->return_data(1, '', '系统出错,取消消课失败', false);
         }
     }
 
@@ -640,12 +670,12 @@ class Teacher extends BaseController
                 $this->return_data(0, '10001', '排课时间有误');
             }
             // 课程时长分钟数
-            $cur_min = db('curriculums')->where('cur_id', '=', $cur_id)->field('ctime')->find();
+            $cur_min = db('curriculums')->where('cur_id', '=', $cur_id)->value('ctime');
 
             $end_time = $data['cur_time'] + $cur_min * 60;
             $start_time = $data['cur_time'];
-            $sql = "SELECT * FROM erp2_teach_schedules WHERE cur_time BETWEEN {$start_time} AND {$end_time};";
-            $res = Db::query($sql);
+            $res = db('teach_schedules')->whereTime('cur_time', [$start_time, $end_time])->select();
+
             if(!empty($res))
             {
                 $this->return_data(0, '20002', '调课失败');
@@ -654,7 +684,7 @@ class Teacher extends BaseController
         }
         try{
             db('teach_schedules')->where('sc_id', '=', $sc_id)->update($data);
-            $this->return_data(1, '', '', true);
+            $this->return_data(1, '', '调课成功', true);
         }catch (Exception $e)
         {
             $this->return_data(0, '20002', '调课失败');
@@ -666,32 +696,39 @@ class Teacher extends BaseController
      */
     public function schedulePostpone()
     {
-        $sc_id = input('sc_id', '');
+        $sc_id = input('sc_id/d', '');
         if(empty($sc_id))
         {
             $this->return_data(0, '', '缺少参数', false);
         }
-        // 查询上课时间，　和课程时长
-        $sql = "SELECT A.cur_time, B.ctime FROM erp2_teach_schedules
-                AS A INNER JOIN erp2_curriculums B ON A.cur_id=B.cur_id WHERE A.sc_id={$sc_id}";
-        $data = Db::query($sql);
-        $cur_time = $data['cur_time'];
-        $c_time = $data['ctime'];
-        $day_timestamp =  60 * 60 * 24; // 顺延一天
-        $start_time = $cur_time + $day_timestamp; // 顺延后的上课时间
-        $end_time = $cur_time + $day_timestamp + $c_time * 60; // 顺延后的课程结束时间
-        $sql = "SELECT * FROM erp2_teach_schedules WHERE cur_time BETWEEN {$start_time} AND {$end_time};";
-        $res = Db::query($sql);
-        if (!empty($res))
+        try
         {
-            $this->return_data(0, '20002', '顺延失败, 课程冲突', false);
-        }
-        try{
-            db('teach_schedules')->where('sc_id', '=', $sc_id)->update(['cur_time' => $cur_time]);
+            // 查询上课时间，　和课程时长
+            $data = db('teach_schedules')->alias('A')
+                ->join('erp2_curriculums B', 'A.cur_id=B.cur_id')
+                ->field('A.cur_time, B.ctime, A.room_id')->where('A.sc_id', '=', $sc_id)->find();
+            $cur_time = $data['cur_time'];
+            $c_time = $data['ctime'];
+            $room_id = $data['room_id'];
+            $day_timestamp =  60 * 60 * 24; // 顺延一天
+            $start_time = $cur_time + $day_timestamp; // 顺延后的上课时间
+            $end_time = $cur_time + $day_timestamp + $c_time * 60; // 顺延后的课程结束时间
+            $where = [
+                ['room_id', '=', $room_id],
+                ['status', '=', 1]
+            ];
+            $res = db('teach_schedules')->whereTime('cur_time', [$start_time, $end_time])
+                ->where($where)->find();
+            if (!empty($res))
+            {
+                $this->return_data(0, '20002', '顺延失败, 课程冲突', false);
+            }
+            // 更新上课时间
+            db('teach_schedules')->where('sc_id', '=', $sc_id)->update(['cur_time' => $start_time]);
             $this->return_data(1, '', '顺延成功', true);
         }catch (Exception $e)
         {
-            $this->return_data(0, '', '服务器错误', false);
+            $this->return_data('0', '50000', '服务器错误');
         }
     }
 
@@ -708,8 +745,8 @@ class Teacher extends BaseController
          */
         $status = 3;
         $sc_id = input('sc_id', '');
-        $level = input('level', 1); // 1事假, 2病假, 老师请假
-        if(empty($sc_id) || $level)
+        $level = input('level', 1); // 1事假, 2病假, 3老师请假
+        if(empty($sc_id) || empty($level))
         {
             $this->return_data(0, '10000', '缺少参数');
         }
@@ -732,7 +769,7 @@ class Teacher extends BaseController
         $status = 1;  //　设为正常状态
         $sc_id = input('sc_id', '');
         $level = 0; // 1事假, 2病假, 3老师请假, 0 非请假
-        if(empty($sc_id) || $level)
+        if(empty($sc_id))
         {
             $this->return_data(0, '10000', '缺少参数');
         }
@@ -797,7 +834,7 @@ class Teacher extends BaseController
     public function scheduleRecover()
     {
         $status = 1;  //　设为正常状态
-        $sc_id = input('sc_id', '');
+        $sc_id = input('sc_id/d', '');
         if(empty($sc_id))
         {
             $this->return_data(0, '10000', '缺少参数');
@@ -809,7 +846,7 @@ class Teacher extends BaseController
             $this->return_data(1, '', '还原成功', true);
         }catch (Exception $e)
         {
-            $this->return_data(0, '', '服务器错误，　请假失败', true);
+            $this->return_data(0, '', '服务器错误，还原失败', true);
         }
     }
 
@@ -835,5 +872,32 @@ class Teacher extends BaseController
         $this->return_data(1, '', '', $data);
     }
 
+    /*
+     * 教师下拉列表
+     */
+    public function selectedTeacher()
+    {
+        $org_id = input('orgid', '');
+        if(empty($org_id))
+        {
+            $this->return_data('0', '10000','缺少参数');
+        }
+        $data = db('teachers')->field('t_id, t_name')->where(['org_id'=>$org_id, 'is_del'=>0])->select();
+        $this->return_data('1', '', '请求成功', $data);
+    }
+
+    /*
+     * 教室下拉列表
+     */
+    public function selectedRoom()
+    {
+        $org_id = input('orgid', '');
+        if(empty($org_id))
+        {
+            $this->return_data('0', '10000','缺少参数');
+        }
+        $data = db('classrooms')->field('room_id, room_name')->where('or_id','=', $org_id)->select();
+        $this->return_data('1', '', '请求成功', $data);
+    }
 }
 
