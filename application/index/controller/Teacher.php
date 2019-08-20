@@ -101,7 +101,35 @@ class Teacher extends BaseController
         }
         Db::startTrans();
         try{
-            TeacherModel::update($data,['t_id'=>$data['t_id']]);
+            $salary = input('salary');
+            $basic_wages = $salary['basic_wages'];
+            $wages_type = $salary['wages_type'];
+            if(!is_numeric($basic_wages) || $basic_wages < 0)
+            {
+                $this->return_data(0, '10000', '基本工资参数有误');
+            }
+            if($wages_type != 1 and $wages_type!=0)
+            {
+                $this->return_data(0, '10000', '工资类型有误');
+            }
+            $s_id = $salary['s_id'];
+            $courses_list = $salary['courses'];
+            //TeacherModel::update($data,['t_id'=>$data['t_id']]);
+            Db::name('teachers')->where('t_id', '=', $t_id)->update($data);
+            Db::name('teacher_salary')->where('s_id', '=', $s_id)->update(
+                ['basic_wages'=>$basic_wages],
+                ['wages_type'=>$wages_type]
+            );
+            Db::name('teacher_salary')->where('s_id', '=', $s_id)->update(['basic_wages'=>$basic_wages, 'wages_type'=>$wages_type]);
+            foreach ($courses_list as $k=>$v)
+            {
+                if (!isset($v['cur_id']) || !isset($v['p_id']) || !isset($v['p_num']))
+                {
+                    Db::rollback();
+                    $this->return_data(0, '10000', '薪酬设置参数错误');
+                }
+            }
+            Db::commit();
             $this->return_data(1,0,'编辑教师成功');
         }catch (\Exception $e){
             $this->return_data(0,50000,$e->getMessage());
@@ -248,9 +276,6 @@ class Teacher extends BaseController
             ];
             unset($p_id, $p_name, $p_num, $p_unit, $cur_id, $cur_name);
         }
-
-        unset($teacher_salary['s_id']);
-
         $data = [
             'teacher' => $teacher_details,
             'salary' => $teacher_salary,
@@ -544,7 +569,8 @@ class Teacher extends BaseController
         }
         if (!empty($startTime) and !empty($endTime))
         {
-            $tables->whereTime('cur_time', [$startTime, $endTime]);
+//            $tables->where('cur_time','between',[$startTime, $endTime]);
+            $tables->whereBetweenTime('cur_time', $startTime, $endTime);
         }else
         {
             if($type==$curYearCode) //查询本年数据
@@ -554,10 +580,8 @@ class Teacher extends BaseController
             elseif ($type==$curMonthCode){ // 查询本月数据
                 $tables->whereTime('cur_time', 'm');
             }
-            else{
-                $data = $tables->paginate($limit);
-            }
         }
+        $data = $tables->paginate($limit);
 //        $this->return_data(1,'', '', $tables->fetchSql());
         $response = array();
         foreach ($data as $k=>$v)
@@ -610,10 +634,10 @@ class Teacher extends BaseController
                 $this->return_data('0', '20002', '取消消课失败，密码错误', false);
             }
             db('teach_schedules')->where('sc_id', '=', $sc_id)->update(['status' => 1]);
-            $this->return_data(0, '20003', '取消消课成功', true);
+            $this->return_data(0,'' , '取消消课成功', true);
         }catch (Exception $e)
         {
-            $this->return_data(1, '', '系统出错,取消消课失败', false);
+            $this->return_data(1, '20003', '系统出错,取消消课失败', false);
         }
     }
 

@@ -287,4 +287,98 @@ class Purchase extends BaseController
         }
     }
 
+    /*
+     * 销售员离职
+     */
+    public function sale_mans_departure()
+    {
+        $sm_id = input('sm_id/d', '');
+        if(empty($sm_id))
+        {
+            $this->return_data(0, '10000', '缺少参数', false);
+        }
+        try
+        {
+            db('salesmans')->where('sm_id', '=', $sm_id)->update(['status'=>2]);
+            $this->return_data(1, '', '离职成功', true);
+        }catch (Exception $e)
+        {
+            log($e->getMessage());
+            $this->return_data(0, '50000', '离职失败', false);
+        }
+    }
+
+    /*
+     * 销售员复职
+     */
+    public function sale_mans_recovery()
+    {
+        $sm_id = input('sm_id/d', '');
+        if(empty($sm_id))
+        {
+            $this->return_data(0, '10000', '缺少参数', false);
+        }
+        try{
+            db('salesmans')->where('sm_id', '=', $sm_id)->update(['status'=>1]);
+            $this->return_data(1, '', '复职成功', false);
+        }catch (Exception $e)
+        {
+            log($e->getMessage());
+            $this->return_data(0, '50000', '离职失败', false);
+        }
+    }
+    /*
+     * 商品列表
+     */
+    public function goods_index()
+    {
+
+    }
+
+    /*
+     * 添加商品
+     */
+    public function goods_add()
+    {
+
+    }
+
+    /*
+     * 删除商品
+     */
+    public function goods_del()
+    {
+
+    }
+
+    /*
+     * 修改商品
+     */
+    public function goods_edit()
+    {
+
+    }
+
+    /*
+     * 商品入库
+     */
+    public function goods_storage()
+    {
+    }
+
+    /*
+     * 商品出库
+     */
+    public function goods_checkout()
+    {
+
+    }
+
+    /*
+     * 商品销售
+     */
+    public function goods_sale()
+    {
+
+    }
 }
