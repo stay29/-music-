@@ -10,7 +10,7 @@ use think\Validate;
 class Classes extends Validate
 {
     protected $rule = [
-        'class_name'=>'require',
+        'class_name'=>'require|max:20',
         'class_count'=>'require',
         'headmaster'=>'require',
         'remarks'=>'max:500',
@@ -20,9 +20,10 @@ class Classes extends Validate
 
     protected $message = [
         'class_name.require'=>'班级名称不得为空|10000',
+        'class_name.max'=>'班级名称不得超过20个字|10000',
         'class_count.require'=>'班级人数不得为空|10000',
         'headmaster.require'=>'班主任id不得为空|10000',
-        'remarks.require'=>'备注不得为空|10000',
+        'remarks.max'=>'备注不得超过500个字|10000',
         'orgid.require'=>'机构id不得为空|10000',
     ];
 
