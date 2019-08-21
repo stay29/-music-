@@ -34,6 +34,7 @@ class Curriculums extends Model
         });
         return $list;
 	}
+    
     public  static  function  get_all($where)
     {
         $list = Curriculums::where($where)->select()

@@ -501,6 +501,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             Db::rollback();
             $this->returnError('20001', $e->getMessage());
         }
+
     }
 
 
@@ -509,11 +510,8 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
      */
     public function schedule_tpl()
     {
-        $org_id = input('orgid', '');
-        if(empty($org_id))
-        {
-            $this->returnError('10000', '缺少参数orgid');
-        }
+        $str = "./public/uploads/file/schedule.xlsx";
+        $this->returnData('', $str);
     }
 
     /**
@@ -521,7 +519,18 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
      */
     public function schedule_ipt()
     {
+        $org_id = input('orgid/d', '');
+        if(empty($org_id))
+        {
+            $this->returnError('10000', '缺少机构id');
+        }
+        $file = request()->file('excel');
+        $data = $this->getExcelData($file);
+        foreach ($data as $k => $v)
+        {
 
+        }
+        $this->returnData('导出成功');
     }
 
     /**
@@ -529,89 +538,154 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
      */
     public function schedule_ept()
     {
+        $allCode = 1;  // 全部
+        $org_id = input('orgid/d', '');
+        $curYearCode = 2; // 本年
+        $curMonthCode = 3;  // 本月
+        $tid = input('t_id/d', '');
+        $startTime = input('startTime/d', '');
+        $endTime = input('endTime/d', '');
+        $type = input('type/d', 1);  // 默认是全部
+        $courseId = input('courseId/d', ''); // 通过课程ID筛选
 
-    }
-
-
-
-
-    /**
-     * Template Download for student information import
-     */
-    public function stu_tpl()
-    {
-        $str = "./public/uploads/file/students.xlsx";
-        $this->returnData('', $str);
-    }
-
-    /*
-     * Student Information Exporting Method
-     */
-    public function stu_ept()
-    {
-        $org_id = input('org_id', '');
-        if(empty($org_id))
+        if (empty($tid) || empty($org_id))
         {
-            $this->returnError('10000', '缺少参数orgid');
+            $this->return_data(0, '10000', '缺少参数');
         }
-        $xlsName  = "学生模板";
 
-        $xlsCell  = array(
-            array('stu_name', '学生姓名(必填)'),
-            array('stu_sex', '性别(必填，男或女)'),
-            array('stu_birthday', '出生日期(如:1996.12.31)'),
-            array('stu_mobile', '手机号(必填)'),
-            array('stu_wechat', '微信号(非必填)'),
-            array('stu_address', '住址(非必填)'),
-            array('stu_remark', ' 备注(非必填)'),
-            array('stu_status', '学生状态')
-        );
-        $sql = "SELECT truename AS stu_name, 
-                CASE WHEN sex = 1 THEN '男' WHEN sex = 2 THEN '女' END AS stu_sex,
-                FROM_UNIXTIME(birthday, \"%Y.%m.%d\") AS stu_birthday,
-                cellphone AS stu_mobile, wechat AS stu_wechat, address AS stu_adress,
-                remark AS stu_remark FROM erp2_students WHERE org_id={$org_id}";
-        try{
-            $data = Db::query($sql);
-            $this->exportExcel($xlsName, $xlsCell, $data);
-        }catch (\Exception $e)
-        {
-            $this->returnError('50000', '导出失败');
-        }
-    }
+        $tables = Db::name('teach_schedules')->field('sc_id, stu_id, room_id, cur_time, cur_id, status')
+            ->where(['org_id'=>$org_id, 't_id'=>$tid]);
 
-    /*
-     * Student information introduction method
-     */
-    public function stu_ipt()
-    {
-        $org_id = input('org_id', '');
-        $uid = input('uid', '');
-        $file = request()->file('excel');
-        if(empty($org_id) || $file)
+        if (!empty($startTime) and !empty($endTime))
         {
-            $this->returnError(10000, '缺少参数orgid或excel文件');
-        }
-        $data = $this->getExcelData($file);
-        try{
-            foreach ($data as $k=>$v)
+            $tables->whereTime('cur_time','between',[$startTime, $endTime]);
+        }else
+        {
+            if($type==$curYearCode) //查询本年数据
             {
-                $t['manager'] = $uid;
-                $t['org_id'] = $org_id;
-                $t['truename'] = $v[0];
-                $t['sex'] = $v[1] == '男' ? 1 : 2;
-                $t['birthday'] = strtotime($v[2]);
-                $t['cellphone'] = $v[3];
-                $t['wechat'] = $v[4];
-                $t['address'] = $v[5];
-                $t['remark'] = $v[6];
-                Db::table('erp2_students')->insert($t);
-                unset($t);
+                $tables->whereTime('cur_time', 'year');
             }
-        }catch (\Exception $e){
-            $this->returnError('50000', '插入失败');
+            elseif ($type==$curMonthCode){ // 查询本月数据
+                $tables->whereTime('cur_time', 'month');
+            }
         }
-
+        if(!empty($courseId))
+        {
+            $tables->where('cur_id', '=', $courseId);
+        }
+        $data = $tables->select();
+        $xls_name  = "教师信息" . date('Y-m-d', time());
+        $xls_cell = array(
+            array('cur_name', '课程名称(必填)'),
+            array('cur_day','上课日期(必填2019/01/02)'),
+            array('cur_time', '上课时间(必填08:00)'),
+            array('stu_name', '学生姓名(必填)'),
+            array('room_name', '教室名称(必填)'),
+            array('status', '状态(默认正常，进入系统修改)'),
+        );
+        $xls_data = array();
+        foreach ($data as $k=>$v) {
+            $status = $v['status'];
+            $sc_id = $v['sc_id'];
+            $cur_id = $v['cur_id'];
+            $cur_time = $v['cur_time'];
+            $stu_id = $v['stu_id'];
+            $room_id = $v['room_id'];
+            $stu_name = db('students')->where('stu_id', '=', $stu_id)->value('truename');
+            $room_name = db('classrooms')->where('room_id', '=', $room_id)->value('room_name');
+            $temp = db('curriculums')->where('cur_id', '=', $cur_id)->field('cur_name, 
+                        tmethods as cur_type')->find();
+            $cur_day = date('Y/m/d', $cur_time);
+            $cur_time = \date('H:i:s', $cur_time);
+            $xls_data[] = [
+                'cur_name' => $temp['cur_name'],
+                'cur_day'   => $cur_day,
+                'cur_time' => $cur_time,
+                'stu_name' => $stu_name,
+                'room_name' => $room_name,
+                'status' => $status
+            ];
+        }
+        $this->export($xls_name, $xls_cell, $xls_cell);
     }
+
+//    /**
+//     * Template Download for student information import
+//     */
+//    public function stu_tpl()
+//    {
+//        $str = "./public/upload/file/students.xlsx";
+//        $this->returnData('', $str);
+//    }
+
+//    /*
+//     * Student Information Exporting Method
+//     */
+//    public function stu_ept()
+//    {
+//        $org_id = input('org_id', '');
+//        if(empty($org_id))
+//        {
+//            $this->returnError('10000', '缺少参数orgid');
+//        }
+//        $xlsName  = "学生模板";
+//
+//        $xlsCell  = array(
+//            array('stu_name', '学生姓名(必填)'),
+//            array('stu_sex', '性别(必填，男或女)'),
+//            array('stu_birthday', '出生日期(如:1996.12.31)'),
+//            array('stu_mobile', '手机号(必填)'),
+//            array('stu_wechat', '微信号(非必填)'),
+//            array('stu_address', '住址(非必填)'),
+//            array('stu_remark', ' 备注(非必填)'),
+//            array('stu_status', '学生状态')
+//        );
+//        $sql = "SELECT truename AS stu_name,
+//                CASE WHEN sex = 1 THEN '男' WHEN sex = 2 THEN '女' END AS stu_sex,
+//                FROM_UNIXTIME(birthday, \"%Y.%m.%d\") AS stu_birthday,
+//                cellphone AS stu_mobile, wechat AS stu_wechat, address AS stu_adress,
+//                remark AS stu_remark FROM erp2_students WHERE org_id={$org_id}";
+//        try{
+//            $data = Db::query($sql);
+//            $this->exportExcel($xlsName, $xlsCell, $data);
+//        }catch (\Exception $e)
+//        {
+//            $this->returnError('50000', '导出失败');
+//        }
+//    }
+//
+//    /*
+//     * Student information introduction method
+//     */
+//    public function stu_ipt()
+//    {
+//        $org_id = input('org_id', '');
+//        $uid = input('uid', '');
+//        $file = request()->file('excel');
+//        if(empty($org_id) || $file)
+//        {
+//            $this->returnError(10000, '缺少参数orgid或excel文件');
+//        }
+//        $data = $this->getExcelData($file);
+//        try{
+//            foreach ($data as $k=>$v)
+//            {
+//                $t['manager'] = $uid;
+//                $t['org_id'] = $org_id;
+//                $t['truename'] = $v[0];
+//                $t['sex'] = $v[1] == '男' ? 1 : 2;
+//                $t['birthday'] = strtotime($v[2]);
+//                $t['cellphone'] = $v[3];
+//                $t['wechat'] = $v[4];
+//                $t['address'] = $v[5];
+//                $t['remark'] = $v[6];
+//                Db::table('erp2_students')->insert($t);
+//                unset($t);
+//            }
+//        }catch (\Exception $e){
+//            $this->returnError('50000', '插入失败');
+//        }
+//
+//    }
 
 }

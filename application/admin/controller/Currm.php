@@ -70,7 +70,8 @@ class Currm extends AdminBase
             if(db("subjects")->where(['sname'=>$data['sname']])->count()){
                 $this->return_data(0,'该课程科目已存在');
             }
-            $data['create_time'] = $data['update_time'] = time(); $data['manager'] = session('admin.id');
+            $data['create_time'] = $data['update_time'] = time();
+            $data['manager'] = session('admin.id');
             $res = db('subjects')->insertGetId($data);
             if($res){
                 $this->return_data(1,'新增课程科目成功');

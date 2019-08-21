@@ -199,4 +199,186 @@ class Purchase extends BaseController
         }
     }
 
+    /*
+     * 销售员列表
+     */
+    public function sale_mans_index()
+    {
+        $org_id = input('orgid/d', '');
+        if (empty($org_id))
+        {
+            $this->return_data(0, '10000', '缺少参数', '');
+        }
+        $page = input('page/d', 1);
+        $limit = input('limit/d', 10);
+        $data = db('salesmans')->where('org_id', '=', $org_id)
+            ->field('sm_id, sm_name, sm_mobile, status')
+            ->paginate($limit);
+        $this->return_data(1, '', '请求成功', $data);
+    }
+
+    /*
+     * 删除销售员
+     */
+    public function sale_mans_del()
+    {
+        $sm_id = input('sm_id/d', '');
+        if(empty($sm_id))
+        {
+            $this->return_data(0, '10000', '缺少参数', false);
+        }
+        db('salesmans')->where('sm_id', '=', $sm_id)->delete();
+        $this->return_data('0', '', '删除成功', true);
+    }
+
+    /*
+     * 修改销售员
+     */
+    public function sale_mans_edit()
+    {
+        $data = [
+            'sm_id' => input('sm_id/d', ''),
+            'sm_name' => input('sm_name/s', ''),
+            'org_id' => input('org_id/d', ''),
+            'sm_mobile' => input('sm_mobile', ''),
+            'status' => input('status')
+        ];
+        if (empty($data['sm_id']))
+        {
+            $this->return_data(0, '10000', '缺少参数', false);
+        }
+        try{
+            $data['update_time'] = time();
+            db('salesmans')->update($data);
+            $this->return_data(1, '', '修改成功', true);
+        }catch (Exception $e)
+        {
+            $this->return_data(0, '20002', '系统错误, 修改失败', false);
+        }
+    }
+
+    /*
+     * 添加销售员
+     */
+    public function sale_mans_add()
+    {
+        $data = [
+            'sm_id' => input('sm_id/d', ''),
+            'sm_name' => input('sm_name/s', ''),
+            'org_id' => input('org_id/d', ''),
+            'sm_mobile' => input('sm_mobile', ''),
+            'status' => input('status')
+        ];
+        foreach ($data as $k => $v)
+        {
+            if (empty($v))
+            {
+                $this->return_data(0, '10000', '缺少参数:'. $k, false);
+            }
+        }
+        try{
+            $data['create_time'] = time();
+            $data['update_time'] = time();
+            db('salesmans')->insert($data);
+            $this->return_data(1, '', '修改成功', true);
+        }catch (Exception $e)
+        {
+            $this->return_data(0, '20002', '系统错误, 修改失败', false);
+        }
+    }
+
+    /*
+     * 销售员离职
+     */
+    public function sale_mans_departure()
+    {
+        $sm_id = input('sm_id/d', '');
+        if(empty($sm_id))
+        {
+            $this->return_data(0, '10000', '缺少参数', false);
+        }
+        try
+        {
+            db('salesmans')->where('sm_id', '=', $sm_id)->update(['status'=>2]);
+            $this->return_data(1, '', '离职成功', true);
+        }catch (Exception $e)
+        {
+            log($e->getMessage());
+            $this->return_data(0, '50000', '离职失败', false);
+        }
+    }
+
+    /*
+     * 销售员复职
+     */
+    public function sale_mans_recovery()
+    {
+        $sm_id = input('sm_id/d', '');
+        if(empty($sm_id))
+        {
+            $this->return_data(0, '10000', '缺少参数', false);
+        }
+        try{
+            db('salesmans')->where('sm_id', '=', $sm_id)->update(['status'=>1]);
+            $this->return_data(1, '', '复职成功', false);
+        }catch (Exception $e)
+        {
+            log($e->getMessage());
+            $this->return_data(0, '50000', '离职失败', false);
+        }
+    }
+    /*
+     * 商品列表
+     */
+    public function goods_index()
+    {
+
+    }
+
+    /*
+     * 添加商品
+     */
+    public function goods_add()
+    {
+
+    }
+
+    /*
+     * 删除商品
+     */
+    public function goods_del()
+    {
+
+    }
+
+    /*
+     * 修改商品
+     */
+    public function goods_edit()
+    {
+
+    }
+
+    /*
+     * 商品入库
+     */
+    public function goods_storage()
+    {
+    }
+
+    /*
+     * 商品出库
+     */
+    public function goods_checkout()
+    {
+
+    }
+
+    /*
+     * 商品销售
+     */
+    public function goods_sale()
+    {
+
+    }
 }

@@ -16,12 +16,11 @@ class BaseController extends Controller
     public function initialize()
     {   
         parent::initialize();
-        $tokenall =  $this->checkToken();
-        $token = db('Token_user')->where('uid',$tokenall['uid'])->find();
-        if ($token['token'] != $tokenall['token']) {
-            return $this->return_data(0, 10005, '请重新登录');
-        }
-        
+//        $tokenall =  $this->checkToken();
+//        $token = db('Token_user')->where('uid',$tokenall['uid'])->find();
+//        if ($token['token'] != $tokenall['token']) {
+//            return $this->return_data(0, 10005, '请重新登录');
+//        }
     }
 //    protected $beforeActionList = [
 //        'first',
@@ -34,7 +33,6 @@ class BaseController extends Controller
      *权限效验
      *没有添加的节点不限制
      * */
- 
     //     public function  auth_get_token_del()
     //     {   
     //     $header = Request::instance()->header();
@@ -65,6 +63,7 @@ class BaseController extends Controller
         $mup['a_coller'] = Request::instance()->controller();
         $mup['a_action'] = Request::instance()->action();
         $mup['is_del'] = 0;
+        $mup['status'] = 1;
         $res = finds('erp2_user_accesses',$mup);
         if($res){
             $header = Request::instance()->header();
