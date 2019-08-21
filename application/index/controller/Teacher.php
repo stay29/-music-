@@ -46,6 +46,7 @@ class Teacher extends BaseController
         $t_name = input('t_name/s', null); // 教师名称
         $se_id = input('se_id/s', null); // 资历ID
         $status = input('status/d', null);  // 离职状态
+        $limit = input('limit/d', 20);
         $where = array();
         if(empty($org_id))
         {
@@ -66,7 +67,7 @@ class Teacher extends BaseController
         $where[] = ['is_del', '=', 0];
         $where[] = ['org_id', '=', $org_id];
         $teacher = TeacherModel::where($where)->field('t_id as id,t_name as name, avator,
-                sex,cellphone,birthday,entry_time,status, se_id, resume')->order('create_time DESC')->paginate(20);
+                sex,cellphone,entry_time,status, se_id, resume')->order('create_time DESC')->paginate($limit);
         $this->return_data(1, '','', $teacher);
     }
 
@@ -83,18 +84,18 @@ class Teacher extends BaseController
         $data = [
             't_id'=>$t_id,
             'org_id' => $org_id,
-            't_name' => input('post.name'),
+            't_name' => input('post.t_name'),
             'avator' => input('post.avator'),
             'sex' => input('post.sex',1),
             'se_id' => input('post.se_id'),
             'cellphone' => input('post.cellphone'),
             'birthday' => input('post.birthday'),
-            'entry_time' => input('post.entry_day'),
+            'entry_time' => input('post.entrytime'),
             'resume' => input('post.resume'),
             'identity_card' => input('post.id_card'),
         ];
-        $validate = new \app\index\validate\Teacher();
-        if (!$validate->check($data)) {
+        $validate = new TeachersValidate();
+        if (!$validate->scene('edit')->check($data)) {
             //为了可以得到错误码
             $error = explode('|',$validate->getError());
             $this->return_data(0,$error[1],$error[0]);
@@ -102,6 +103,10 @@ class Teacher extends BaseController
         Db::startTrans();
         try{
             $salary = input('salary');
+            if (!isset($salary['basic_wages']) || !isset($salary['wages_type']) || !isset($salary['s_id']))
+            {
+                $this->return_data('0', '10000', '缺少basic_wages或wages_type或s_id');
+            }
             $basic_wages = $salary['basic_wages'];
             $wages_type = $salary['wages_type'];
             if(!is_numeric($basic_wages) || $basic_wages < 0)
@@ -127,6 +132,22 @@ class Teacher extends BaseController
                 {
                     Db::rollback();
                     $this->return_data(0, '10000', '薪酬设置参数错误');
+                }
+                $d  = [
+                    'p_id' => $v['p_id'],
+                    'p_num' => $v['p_num'],
+                    'cur_id' => $v['cur_id'],
+                    's_id' => $s_id
+                ];
+                $salary_id = db('teacher_salary_cur')->where(['s_id'=>$s_id, 'p_id'=>$v['p_id'], 'cur_id'=>$v['cur_id']])
+                    ->value('id');
+                if (empty($salary_id))
+                {
+                    db('teacher_salary_cur')->insert($d);
+                }
+                else
+                {
+                    db('teacher_salary_cur')->where('id', '=', $salary_id)->update($d);
                 }
             }
             Db::commit();
@@ -246,7 +267,7 @@ class Teacher extends BaseController
                 ->field('cur_id, p_id, p_num')
                 ->where($where)
                 ->find();
-            if (!isset($salary['cur_id']))
+            if (empty($salary))
             {
                 $p_id = 1;
                 $p_num = 0;
@@ -255,15 +276,16 @@ class Teacher extends BaseController
             }
             else
             {
-                $p_id = $salary['cur_id'];
+                $p_id = $salary['p_id'];
                 $p_num = $salary['p_num'];
-                $temp = db('pay_id_info')->field('pay_name as p_name, cpany as p_unit')
-                    ->where('pay_id_info', '=', $p_id)->find();
+                $temp = db('pay_info')->field('pay_name as p_name, cpany as p_unit')
+                    ->where(['pay_id_info'=>$p_id, 'orgid'=>$org_id])->find();
                 $p_name = $temp['p_name'];
                 $p_unit = $temp['p_unit'];
             }
 
-            $cur_name = db('curriculums')->where('cur_id', '=', $cur_id)->value('cur_name');
+            $cur_data = db('curriculums')->where('cur_id', '=', $cur_id)
+                ->field('cur_name, tmethods as cur_type')->find();
 
             // 详细课程薪酬列表
             $teacher_salary['courses'][] = [
@@ -272,7 +294,8 @@ class Teacher extends BaseController
                 'p_num' => $p_num,
                 'p_unit' => $p_unit,
                 'cur_id' => $cur_id,
-                'cur_name' => $cur_name
+                'cur_name' => $cur_data['cur_name'],
+                'cur_type'  => $cur_data['cur_type']
             ];
             unset($p_id, $p_name, $p_num, $p_unit, $cur_id, $cur_name);
         }
@@ -582,8 +605,12 @@ class Teacher extends BaseController
             }
         }
         $data = $tables->paginate($limit);
-//        $this->return_data(1,'', '', $tables->fetchSql());
-        $response = array();
+        $response = [
+            'total' => $data->total(),
+            'per_page' => $limit,
+            'current_page' => $data->currentPage(),
+            'last_page' => $data->lastPage()
+        ];
         foreach ($data as $k=>$v)
         {
             $status = $v['status'];
@@ -922,6 +949,20 @@ class Teacher extends BaseController
         }
         $data = db('classrooms')->field('room_id, room_name')->where('or_id','=', $org_id)->select();
         $this->return_data('1', '', '请求成功', $data);
+    }
+
+    /*
+     * 课程薪酬方式
+     */
+    public function salary_pay_type()
+    {
+        $orgid = input('orgid/d', '');
+        if(empty($orgid))
+        {
+            $this->return_data(0, '10000', '缺少参数', false);
+        }
+        $data = db('pay_info')->field('pay_id_info as p_id, pay_name as p_name')->select();
+        $this->return_data(1, '', '请求成功', $data);
     }
 }
 
