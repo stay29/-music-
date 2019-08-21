@@ -12,7 +12,7 @@ class Classroom extends Validate
 {
     protected $rule = [
         'room_id'=>'require',
-        'room_name'=>'require|max:8',
+        'room_name'=>'require|max:20',
         'room_count'=>'require|between:1,9999',
         'status'=>'require|in:1,2',
     ];
@@ -21,7 +21,7 @@ class Classroom extends Validate
     protected $message = [
         'room_id.require'=>'教室id不得为空|10000',
         'room_name.require'=>'教室名称不得为空|10000',
-        'room_name.max'=>'教室名称不得长于8|10001',
+        'room_name.max'=>'教室名称不得长于20|10001',
         'room_name.unique'=>'教室名称不能重复|20000',
         'room_count.require'=>'教室容量不得为空|10000',
         'room_count.between'=>'教室容量格式不正确|10001',
