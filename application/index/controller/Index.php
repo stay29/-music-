@@ -336,6 +336,42 @@ class Index extends Basess
 
 
 
+    //导出班级
+    public  function  dchu_banji()
+    {
+       //echo 111;exit();
+        $kname = array(
+            array('cur_name','课程名称(必填)'),
+            array('subject','科目分类(必填)'),
+            array('tmethods','授课方式(必填) 1 :1对1 ,2:一对多'),
+            array('ctime','课时(必填) 如 60分钟 填写60'),
+            array('describe','备注(必填)'),
+            array('remarks','描述(必填)'),
+        );
+
+        $where[] = ['status','=',1];
+        $where[] = ['orgid','=',input('orgid')];
+        $where[] = ['is_del','=',0];
+        $class_name = input('class_name');
+        if($class_name!=null){
+            $where[] = ['class_name','link','%'.$class_name.'%'];
+        }
+        $res = selects('erp2_classes',$where);
+        foreach ($res as $k => &$v) {
+            $v['headmasterinfo'] = finds('erp2_teachers',['t_id'=>$v['headmaster']]);
+            $v['orginfo'] = finds('erp2_organizations',['or_id'=>input('orgid')]);
+            $v['currlist'] = Db::table('erp2_class_cur')->alias('c')->where(['cls_id'=>$v['class_id']])->join('erp2_curriculums r','c.cur_id=r.cur_id')->select();
+            $cheadmaster = selects('erp2_class_student_relations',['class_id'=>$v['class_id']]);
+            $v['cheadmaster'] = count($cheadmaster);
+        }
+
+
+
+    }
+
+
+
+
 
 
 }
