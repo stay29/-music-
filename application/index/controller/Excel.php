@@ -2,6 +2,7 @@
 
 namespace app\index\controller;
 use app\index\model\Classroom as ClsModel;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 use think\Controller;
 use think\Db;
 use think\Exception;
@@ -26,6 +27,7 @@ class ExcelBase extends Controller
             'data' => ''
         ];
         echo json_encode($data);
+        exit();
     }
 
     /**
@@ -42,6 +44,7 @@ class ExcelBase extends Controller
             'data' => $data
         ];
         echo json_encode($data);
+        exit();
     }
 
     /**
@@ -186,6 +189,27 @@ class ExcelBase extends Controller
         }
         else {
             $this->returnError('30000', '文件上传失败');
+        }
+    }
+
+    /*
+     * validate date.
+     */
+    public function validate_date($date)
+    {
+        $pattern = "/^\d{4}\/\d{1,2}\/\d{1,2}$/";
+        if (!preg_match($pattern, $date))
+        {
+            return false;
+        }
+        $t = explode('/', $date);
+        if (checkdate($t[1], $t[2], $t[0]))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 }
@@ -334,15 +358,15 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
 
     // Teacher Information Exporting Method
     public function teacher_ept(){
-        $org_id = input('org_id', '');
-        $se_id = input('se_id', '');
-        $status = input('status', '');
+        $org_id = input('orgid/d', '');
+        $se_id = input('se_id/d', ''); // 资历ID
+        $status = input('status/d', '');  // 离职状态
         if(empty($org_id))
         {
             $this->returnError('10000', '缺少参数org_id');
         }
-        $xlsName  = "教师信息";
-        $xlsCell  = array(
+        $xls_name  = "教师信息" . date('Y-m-d', time());
+        $xls_cell  = array(
             array('t_name', '姓名(必填)'),
             array('t_sex','性别(只能填男或者女)'),
             array('t_sen', '资历(暂时无需填写，导入后进入系统修改)'),
@@ -350,29 +374,46 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             array('t_entry_time', '入职日期(格式必须为：1970.01.01)'),
             array('t_id_card', '身份证(必填)'),
             array('t_birthday', '生日(格式为:1970.01.01)'),
-            array('t_resume', '简历(非必填,最多2000字)')
+            array('t_resume', '简历(非必填,最多2000字)'),
+            array('t_status', '教师状态: 1在职, 2离职')
         );
-        $sql = "SELECT A.t_name as t_name, 
-            case when A.sex = 1 then '男' when  A.sex = 2 then '女' end AS t_sex, 
-            B.seniority_name as t_sen, A.cellphone as t_mobile, FROM_UNIXTIME(A.entry_time, '%Y.%m.%d') as t_entry_time,
-            A.identity_card as t_id_card, FROM_UNIXTIME(A.birthday, '%Y.%m.%d') AS t_birthday,
-            A.resume AS t_resume FROM erp2_teachers AS A 
-            INNER JOIN erp2_seniorities AS B ON A.se_id=B.seniority_id
-            WHERE org_id={$org_id}";
-        if (!empty($se_id))
+
+        $teachers = Db::name('teachers')->field('t_name, sex as t_sex, se_id, 
+                        identity_card as t_id_card, cellphone as t_mobile,
+                        birthday as t_birthday, resume as t_resume, status as t_status, entry_time as t_entry_time');
+        $where[] = ['org_id', '=', $org_id];
+        if(!empty($se_id))
         {
-            $sql .= " AND A.se_id={$se_id}";
+            if(!is_numeric($se_id) || $se_id < 0)
+            {
+                $this->returnError('10000', '资历id不合法');
+            }
+            $where[] = ['se_id', '=', $se_id];
         }
         if(!empty($status))
         {
-            $sql .= " AND A.status={$status}";
+            if(!is_numeric($se_id) || $status < 0)
+            {
+                $this->returnError('10000', 'status不合法');
+            }
+            $where[] = ['status', '=', $status];
         }
-        try{
-            $xlsData = Db::query($sql);
-            $this->exportExcel($xlsName,$xlsCell,$xlsData);
-        }catch (\Exception $e){
-            $this->returnError('50000', '服务器错误');
+        $result = $teachers->where($where)->select();
+
+        $xls_data = [];
+        foreach ($result as $k=>$v)
+        {
+            $v['t_sex'] = $v['t_sex'] == 1 ? '男' : '女';
+            $v['t_sen'] = Db::name('seniorities')->where('seniority_id', '=', $v['se_id'])
+                            ->value('seniority_name');
+            $v['t_birthday'] = date('Y/m/d', $v['t_birthday']);
+            $v['t_entry_time'] = date('Y/m/d', $v['t_entry_time']);
+            unset($v['se_id']);
+            $xls_data[] = $v;
+            unset($v);
         }
+//        $this->returnData('请求成功', $xls_data);
+        $this->export($xls_name, $xls_cell, $xls_data);
     }
 
     /**
@@ -381,38 +422,118 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
      * @throws \PHPExcel_Reader_Exception
      */
     public function teacher_ipt(){
-        $org_id = input('org_id', '');
+        $org_id = input('orgid', '');
         $uid = input('uid', '');
         $file = request()->file('excel');
         if (empty($org_id) || empty($file))
         {
-            $this->returnError('10000', '缺少文件或者org_id');
+            $this->returnError('10000', '缺少文件或者orgid');
         }
         $data = $this->getExcelData($file);
+
         Db::startTrans();
         try{
             foreach ($data as $k => $v)
             {
                 $t['t_name'] = $v[0];
-                $t['sex'] = $v[1] == '男' ? 1 : 2;
+                $t['sex'] = trim($v[1]);
                 $t['se_id'] = 1;
                 $t['cellphone'] = $v[3];
-                $t['entry_time'] = strtotime($v[4]);
+                $t['entry_time'] = $v[4];
                 $t['identity_card'] = trim($v[5]);
-                $t['birthday'] = strtotime($v[6]);
+                $t['birthday'] = $v[6];
                 $t['resume'] = $v[7];
+                $t['status'] = $v[8];
                 $t['manager'] = $uid;
                 $t['org_id'] = $org_id;
-                Db::table('erp2_teachers')->insert($data);
-                unset($t);
+                if ($t['t_name'] > 20 )
+                {
+                    $this->returnError('10000', '教师名称大于10个字符');
+                }
+                if (!in_array($t['sex'], ['男', '女']))
+                {
+                    $this->returnError('10000', '性别只能是男, 女: ' . $t['sex']);
+                }
+
+                if (!preg_match("/^1[345789]\d{9}$/", $t['cellphone'], $matches))
+                {
+                    Db::rollback();
+                    $this->returnError('10000', '手机号码有误');
+                }
+                if (!$this->validate_date($t['entry_time']))
+                {
+                    Db::rollback();
+                    $this->returnError('10000', '入职日期格式错误' . $t['entry_time']);
+                }
+                if (!$this->validate_date($t['birthday']))
+                {
+                    Db::rollback();
+                    $this->returnError('10000', '生日日期格式错误');
+                }
+                $card_pattern ='/^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}([0-9]|X)$/i';
+                if(!preg_match($card_pattern, $t['identity_card']))
+                {
+                    Db::rollback();
+                    $this->returnError('10000', '身份证格式错误');
+                }
+                if ($t['resume'] == null)
+                {
+                    $t['resume'] = '';
+                }
+                if(!is_numeric($t['status']) and !in_array($t['status'], [1, 2]))
+                {
+                    $t['status'] = 1;
+                }
+                $t['sex'] = $t['sex'] == '男' ? 1 : 2;
+                $t['entry_time'] = strtotime($t['entry_time']);
+                $t['birthday'] = strtotime($t['birthday']);
+                $t_id = Db::table('erp2_teachers')->insertGetId($t);
+
+                // 添加教师薪酬
+                Db::name('teacher_salary')->insert(['t_id'=>$t_id]);
+                unset($t, $v);
             }
+
             Db::commit();
+
             $this->returnData('导入成功', true);
         }catch (\Exception $e){
             Db::rollback();
-            $this->returnError('导入失败', false);
+            $this->returnError('20001', $e->getMessage());
         }
     }
+
+
+    /**
+     * Download Data Template for Course Purchase
+     */
+    public function schedule_tpl()
+    {
+        $org_id = input('orgid', '');
+        if(empty($org_id))
+        {
+            $this->returnError('10000', '缺少参数orgid');
+        }
+    }
+
+    /**
+     * Importing Purchasing Course Data from EXCEL
+     */
+    public function schedule_ipt()
+    {
+
+    }
+
+    /**
+     * Data of students'purchasing lessons are exported to EXCEL
+     */
+    public function schedule_ept()
+    {
+
+    }
+
+
+
 
     /**
      * Template Download for student information import
@@ -490,33 +611,6 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         }catch (\Exception $e){
             $this->returnError('50000', '插入失败');
         }
-
-    }
-    /**
-     * Download Data Template for Course Purchase
-     */
-    public function course_tpl()
-    {
-        $org_id = input('orgid', '');
-        if(empty($org_id))
-        {
-            $this->returnError('10000', '缺少参数orgid');
-        }
-    }
-
-    /**
-     * Importing Purchasing Course Data from EXCEL
-     */
-    public function course_ipt()
-    {
-
-    }
-
-    /**
-     * Data of students'purchasing lessons are exported to EXCEL
-     */
-    public function course_ept()
-    {
 
     }
 
