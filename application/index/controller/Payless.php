@@ -36,7 +36,7 @@ use app\index\model\Curriculums;
 use app\index\model\PayInfo as payinfos;
 use app\index\model\Organization as Organ;
 use app\index\model\Users;
-    class Payless extends  BaseController
+class Payless extends  BaseController
 {
 //添加课程薪酬
 public function  addpayinfo()
@@ -51,7 +51,9 @@ public function  addpayinfo()
         'orgid'   =>   input('orgid'),
         'manager'   =>   ret_session_name('uid'),
     ];
-
+    if(empty($cur_id)){
+       $this->return_data(0,10000,'请填写数据后提交');
+   }
     $arr = array();
     $arr1 = array();
     //数据处理
@@ -68,7 +70,9 @@ public function  addpayinfo()
         $arr['cur_id'] = $v;
         $arr1[] = $arr;
     }
+
     Db::startTrans();
+
     try {
         $validate = new pays;
        foreach ($arr1 as $ks=>$vs)
@@ -91,6 +95,7 @@ public function  addpayinfo()
                Db::commit();
            }
        }
+
         if($res){
             $this->return_data(1,0,'添加成功');
         }else{
@@ -102,6 +107,7 @@ public function  addpayinfo()
         $this->return_data(0,50000,$e->getMessage());
     }
 }
+
 
 //删除课程薪酬
 public  function  del_pay_list()
@@ -161,7 +167,7 @@ public  function  pay_list()
             }
         }
     }else{
-           $res1 = $res;
+                $res1 = $res;
     }
     $res_list = $this->array_page_list_show($limit,$page,$res1,1);
     $this->return_data(1,0,'搜索成功',$res_list);
