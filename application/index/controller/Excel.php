@@ -519,18 +519,70 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
      */
     public function schedule_ipt()
     {
-        $org_id = input('orgid/d', '');
-        if(empty($org_id))
-        {
-            $this->returnError('10000', '缺少机构id');
-        }
+        $org_id = input('orgid', '');
+        $uid = input('uid', '');
         $file = request()->file('excel');
-        $data = $this->getExcelData($file);
-        foreach ($data as $k => $v)
+        if (empty($org_id) || empty($file))
         {
+            $this->returnError('10000', '缺少文件或者orgid');
+        }
+        $data = $this->getExcelData($file);
+
+        foreach ($data as $k=>$v)
+        {
+            $cur_name = $v[0];
+            $cur_day = $v[1];
+            $cur_time = $v[2];
+            $stu_name = trim($v[3]);
+            $room_name = $v[4];
+            $status = $v[5];
+            if (strlen($cur_name) > 40)
+            {
+                $this->returnError('10000', '课程名称过长');
+            }
+            if(preg_match('\d{4}\/d{2}\/d{2}', $cur_day))
+            {
+                $this->returnError('10000', '上课日期格式错误');
+            }
+            if(preg_match('\d{2}:\d{2}', $cur_time))
+            {
+                $this->returnError('10000', '上课时间格式错误');
+            }
+            if(strlen($stu_name) > 40) {
+                $this->returnError('10000', '学生姓名过长');
+            }
+            if(strlen($room_name))
+            {
+                $this->returnError('10000', '教室名称过长');
+            }
+            if($status != 2 || $status != 1)
+            {
+                $status = 1;
+            }
+            $stu_id = db('students')->where('truename', '=', $stu_name)->value('stu_id');
+            if(empty($stu_id))
+            {
+                $this->returnError('20001', '学生:'. $stu_name .'不存在');
+            }
+            $cur_time = strtotime($cur_day . ' ' .$cur_time);
+            $cur_id = db('curriculums')->where('cur_name', '=', $cur_name)->value('cur_id');
+            if (empty($cur_id))
+            {
+                $this->returnError('10000', '课程:'. $cur_name .'不存在');
+            }
+            $room_id = db('classrooms')->where('room_name', '=', $room_name)->value('room_id');
+            if(empty($room_id))
+            {
+                $this->returnError('10000', '教室:'. $room_name .'不存在');
+            }
+            $in_data = [
+                'cur_id' => $cur_id,
+                'stu_id' => $stu_id,
+                'room_id' => $room_id,
+            ];
 
         }
-        $this->returnData('导出成功');
+
     }
 
     /**
