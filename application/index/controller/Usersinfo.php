@@ -11,8 +11,7 @@ use think\Db;
 use app\index\model\Users;
 use app\index\model\Organization as Organ;
 class Usersinfo extends BaseController
-{   
-    
+{
     public  function  addusers(){
         $orgid = input('organization');
         $password =input('password');
@@ -22,7 +21,6 @@ class Usersinfo extends BaseController
         }
         $u= finds('erp2_users',['organization'=>$orgid]);
         $uid = $u['uid'];
-
         if(input('rid')!=null){
             $datarid = implode(',',input('rid'));
         }else{
@@ -47,7 +45,7 @@ class Usersinfo extends BaseController
         try{
         $validate = new \app\index\validate\User();
         if(!$validate->scene('Addone')->check($data)){
-            $error = explode('|',$validate->getError());//为了可以得到错误码
+            $error = explode('|',$validate->getError());
             $this->return_data(0,$error[1],$error[0]);
         }else {
             $data['password'] = md5_return($data['password']);
@@ -90,15 +88,16 @@ class Usersinfo extends BaseController
         }
         $orgid[] = ['is_del','=',"0"];
         $res = select_find('erp2_users',$orgid,'nickname,uid,cellphone,incumbency,rid,organization,sex,senfen');
+        $aid = '';
         foreach ($res as $k=>&$v){
             $v['orginfo'] = finds('erp2_organizations',['or_id'=>$v['organization']],'or_id,or_name');
             $v['ridinfo'] = $this->exp_name($v['rid'],'role_name');
+            $aid = $this->exp_name($v['rid'],'aid');
+            $v['aid'] = $this->get_aid($aid);
         }
-        //print_r($res);exit();
         $res_list = $this->array_page_list_show($limit,$page,$res,1);
         $this->return_data(1,0,'查询成功',$res_list);
     }
-
 
     public  function  exp_name($da,$name){
         $res = explode(',',$da);
@@ -111,8 +110,8 @@ class Usersinfo extends BaseController
 
     public function array_page_list_show($count,$page,$array,$order)
     {
-        $page=(empty($page))?'1':$page; #判断当前页面是否为空 如果为空就表示为第一页面
-        $start=($page-1)*$count; #计算每次分页的开始位置
+        $page=(empty($page))?'1':$page;
+        $start=($page-1)*$count;
         if($order==1){
             $array=array_reverse($array);
         }
@@ -121,10 +120,9 @@ class Usersinfo extends BaseController
         $pagedata['countarr'] = count($array);
         $pagedata['to_pages'] = ceil(count($array)/$count);
         $pagedata['page'] = $page;
-        $pagedata['data']=array_slice($array,$start,$count);    //分隔数组
-        return $pagedata;  #返回查询数据
+        $pagedata['data']=array_slice($array,$start,$count);
+        return $pagedata;
     }
-
 
     public  function  getrole_user()
     {
@@ -180,7 +178,7 @@ class Usersinfo extends BaseController
                  }
                  $v3['type3'] = $type_list3;
              }
-             $f1 = [];//需要删除的父级
+             $f1 = [];
              foreach ($acclist3 as $k5=>&$v5)
              {
                  if($v5['type3']==null){
@@ -208,7 +206,7 @@ class Usersinfo extends BaseController
         }
     }
 
-    function a_array_unique($array)//写的比较好
+    function a_array_unique($array)
     {
         $out = array();
         foreach ($array as $key=>$value) {
@@ -247,24 +245,19 @@ class Usersinfo extends BaseController
         }
     }
 
-
     public function  editpass()
     {
+        //print_r(input('post.'));exit();
         $uid = input('uid');
         $orgid = input('orgid');
-        $pass = md5_return(input('pass'));
-        $rpass =  md5_return(input('rpass'));
-        $res = Db::query("select * from erp2_users  where uid=$uid AND organization=$orgid AND password=$pass");
-        if($res){
-            $info = Db::query("UPDATE erp2_users SET password=$rpass WHERE uid=$uid AND organization=$orgid");
-            if($info){
-                $this->return_data(1,0,'操作成功');
-            }else{
-                $this->return_data(0,10000,'没有任何改变');
-            }
-        }else{
-         $this->return_data(0,10000,'原密码错误');
-        }
+        $where['uid'] = $uid;
+        $data['password'] =  md5_return(input('pass'));
+         $res = edit('erp2_users',$where,$data);
+         if($res){
+             $this->return_data(1,0,'操作成功');
+         }else{
+             $this->return_data(0,10000,'操作失败');
+         }
     }
 
 
@@ -350,9 +343,6 @@ class Usersinfo extends BaseController
             $this->return_data(0,10000,'没有任何改变');
         }
     }
-
-
-
 
 
     public  function  edit_accauth_list()

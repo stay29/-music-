@@ -58,10 +58,11 @@ class BaseController extends Controller
 
 
     }
-    //获取当前用户的最终权限
+
     public  function  get_aid_role111($uid)
     {
         $userinfo = finds('erp2_users',['uid'=>$uid]);
+        //print_r($userinfo);exit();
         if($userinfo){
             $rid = explode(',',is_string($userinfo['rid']));
             $array = [];
@@ -94,6 +95,7 @@ class BaseController extends Controller
         }
         return $arrays;
     }
+
 
     public function a_array_unique($array)//写的比较好
     {

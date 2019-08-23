@@ -156,17 +156,19 @@ function getconfig()
     return $a;
 }
 
-
 function finds($dataName,$where,$field=''){
     return Db::table($dataName)->field($field)->where($where)->find();
 }
+
 function select_find($dataName,$where,$field='')
 {
      return Db::table($dataName)->field($field)->where($where)->select();
 }
+
 function selects($dataName,$where){
     return Db::table($dataName)->where($where)->select();
 }
+
 function add($dataName,$data,$key=''){
     if($key==1){
         return Db::table($dataName)->data($data)->insert();
@@ -175,6 +177,7 @@ function add($dataName,$data,$key=''){
     }
 
 }
+
 function del($dataName,$where){
     return Db::table($dataName)->where($where)->delete();
 }

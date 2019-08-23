@@ -227,7 +227,12 @@ class Classes extends BaseController
     }
 
 
-
+    public function  get_teach_sch()
+    {
+        $where['t_id'] = input('t_id');
+        $where['cur_id'] = input('cur_id');
+        $res = Db::table('erp2_teach_schedules')->where($where)->select();
+    }
 
 
 
