@@ -11,7 +11,8 @@ use think\Db;
 use app\index\model\Users;
 use app\index\model\Organization as Organ;
 class Usersinfo extends BaseController
-{
+{   
+    
     public  function  addusers(){
         $orgid = input('organization');
         $password =input('password');
