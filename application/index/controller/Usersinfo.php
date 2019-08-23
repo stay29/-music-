@@ -22,6 +22,12 @@ class Usersinfo extends BaseController
         }
         $u= finds('erp2_users',['organization'=>$orgid]);
         $uid = $u['uid'];
+
+        if(input('rid')!=null){
+            $datarid = implode(',',input('rid'));
+        }else{
+            $this->return_data(0,10000,'角色授权不能为空');
+        }
         $data = [
             'nickname' =>input('nickname'),
             'account'=>input('cellphone'),
@@ -29,7 +35,7 @@ class Usersinfo extends BaseController
             'password'=>$password,
             'organization' =>$orgid,
             'sex'=>input('sex'),
-            'rid'=>implode(',',input('rid')),
+            'rid'=>$datarid,
             'incumbency'=>1,
             'status'=>1,
             'create_time'=>time(),
@@ -58,6 +64,8 @@ class Usersinfo extends BaseController
          $this->return_data(0,10000,'添加失败');
      }
     }
+
+
     public function user_list()
     {
         $page = input('page');
@@ -86,6 +94,7 @@ class Usersinfo extends BaseController
             $v['orginfo'] = finds('erp2_organizations',['or_id'=>$v['organization']],'or_id,or_name');
             $v['ridinfo'] = $this->exp_name($v['rid'],'role_name');
         }
+        //print_r($res);exit();
         $res_list = $this->array_page_list_show($limit,$page,$res,1);
         $this->return_data(1,0,'查询成功',$res_list);
     }
@@ -116,6 +125,7 @@ class Usersinfo extends BaseController
         return $pagedata;  #返回查询数据
     }
 
+
     public  function  getrole_user()
     {
         $page = input('page');
@@ -127,15 +137,17 @@ class Usersinfo extends BaseController
             $limit = 10;
         }
         $orgid = ret_session_name('orgid');
-        $uid = ret_session_name('uid');
+        $uid =   ret_session_name('uid');
         $list =  selects('erp2_user_roles',['is_del'=>0,'orgid'=>$orgid]);
         foreach ($list as $k=>&$v)
         {
             $v['info'] = $this->uuu($v['aid']);
+            $v['get_aid'] = $this->get_aid($v['aid']);
         }
         $res = $this->array_page_list_show($limit,$page,$list,1);
         $this->return_data(1,0,$res);
     }
+
     public  function  uuu($aid)
     {
         $aidlist = explode(',',$aid);
@@ -147,7 +159,66 @@ class Usersinfo extends BaseController
         return $array;
     }
 
+    public  function  get_aid($aid)
+    {
+        if($aid!=null){
+             $arr = explode(',',trim($aid,','));
+             $arr1 = $this->a_array_unique($arr);
+             $acclist = Db::table('erp2_user_accesses')->field('access_id')->where('access_id','in',$arr1)->where('type',1)->select();
+             $acclist1 = [];
+             foreach ($acclist as $k=>$v){
+                 $acclist1[] = $v['access_id'];
+             }
+             //获取全部节点
+             $acclist3 = Db::table('erp2_user_accesses')->field('access_id')->where('type',0)->select();
+             foreach ($acclist3 as $k3=>&$v3)
+             {
+                 $type3 = Db::table('erp2_user_accesses')->field('access_id')->where('pid',$v3['access_id'])->where('type',1)->select();
+                 $type_list3 = [];
+                 foreach ($type3 as $k4=>$v4){
+                     $type_list3[] = $v4['access_id'];
+                 }
+                 $v3['type3'] = $type_list3;
+             }
+             $f1 = [];//需要删除的父级
+             foreach ($acclist3 as $k5=>&$v5)
+             {
+                 if($v5['type3']==null){
+                    $f1[] = $v5['access_id'];
+                 }else{
+                     foreach ($v5['type3'] as $k6=>$v6)
+                     {
+                        if(!in_array($v6['access_id'],$arr)){
+                            $f1[] = $v5['access_id'];
+                            break;
+                        }
+                     }
+                 }
+             }
+            foreach ($arr as $k7=>&$v7)
+            {
+                foreach ($f1 as $k8=>&$v8)
+                {
+                    if($v7==$v8){
+                        unset($arr[$k7]);
+                    }
+                }
+            }
+            return implode(',',$arr);
+        }
+    }
 
+    function a_array_unique($array)//写的比较好
+    {
+        $out = array();
+        foreach ($array as $key=>$value) {
+            if (!in_array($value, $out))
+            {
+                $out[$key] = $value;
+            }
+        }
+        return $out;
+    }
 
 
 
@@ -213,12 +284,21 @@ class Usersinfo extends BaseController
     public function  edituser_info()
     {
         $uid = input('uid');
+        if(input('rid')==null){
+            $this->return_data(0,10000,'请选择授权角色');
+        }else{
+            $rid = implode(',',input('rid'));
+        }
+        $c = Db::table('erp2_user')->where('cellphone',input('cellphone'))->find();
+        if($c){
+            $this->return_data(0,10000,'该账户已被注册 请联系管理员');
+        }
         $data = [
             'nickname' =>input('nickname'),
             'cellphone' =>input('cellphone'),
             'organization' =>input('organization'),
             'sex'=>input('sex'),
-            'rid'=>implode(',',input('rid')),
+            'rid'=>$rid,
             'update_time'=>time(),
         ];
         $res = Db::table('erp2_users',null)->where('uid',$uid)->update($data);
@@ -228,6 +308,7 @@ class Usersinfo extends BaseController
             $this->return_data(0,10000,'没有任何改变');
         }
     }
+
 
     public  function  addrole_new()
     {
@@ -327,4 +408,8 @@ class Usersinfo extends BaseController
         $res['alist'] = $alist;
         $this->return_data(1,0,$res);
     }
+
+
+
+
 }

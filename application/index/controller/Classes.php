@@ -41,14 +41,7 @@ class Classes extends BaseController
             }
             $res = add('erp2_classes', $data, 2);
             Db::commit();
-
             if ($res) {
-//            $aa2 = [];
-//            foreach ($cls_id as $k1=>&$v1){
-//                $fs['cur_id'] = $v1;
-//                $fs['cls_id'] = $res;
-//                $aa2[] = $fs;
-//            }
                 $data1 = [
                     'cls_id' => $res,
                     'cur_id' => $cls_id,
@@ -99,9 +92,9 @@ class Classes extends BaseController
         $where[] = ['status', '=', 1];
         $where[] = ['orgid', '=', input('orgid')];
         $where[] = ['is_del', '=', 0];
-        $class_name = input('class_name');
-        if ($class_name != null) {
-            $where[] = ['class_name', 'link', '%' . $class_name . '%'];
+        $class_name = input('cls_name');
+        if ($class_name!= null) {
+            $where[] = ['class_name', 'like', '%' . $class_name . '%'];
         }
         $res = selects('erp2_classes', $where);
         foreach ($res as $k => &$v) {
@@ -150,6 +143,7 @@ class Classes extends BaseController
         }
     }
 
+
     public function edit_classes_curs()
     {
         $where['class_id'] = input('class_id');
@@ -163,7 +157,6 @@ class Classes extends BaseController
         }
         $a = del('erp2_class_student_relations', $where);
         $b = Db::table('erp2_class_student_relations')->insertAll($arr);
-
         if ($b) {
             $this->return_data(1, 0, '修改成功');
         } else {
@@ -171,10 +164,13 @@ class Classes extends BaseController
         }
     }
 
+
+
+
     public function edit_curr()
     {
-        $where['class_id'] = input('class_id');
-        $data = ['cur_id', '=', input('cur_id')];
+         $where['cls_id'] = input('class_id');
+         $data['cur_id'] = input('cur_id');
         $res = edit('erp2_class_cur', $where, $data);
         if ($res) {
             $this->return_data(1, 0, '修改成功');
@@ -182,6 +178,8 @@ class Classes extends BaseController
             $this->return_data(0, 10000, '修改失败');
         }
     }
+
+
 
     public function del_classes()
     {
@@ -228,7 +226,11 @@ class Classes extends BaseController
         $this->return_data(1, 0, $res);
     }
 
-    
+
+
+
+
+
 
 
 

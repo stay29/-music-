@@ -116,6 +116,9 @@ class Currm extends BaseController
     public function  edit_popular(){
         $this->auth_get_token();
         $currid  =   input('cur_id');
+        if(empty($currid)){
+               $this->return_data(0,10000,'请选中数据在提交');
+        }
         $where['orgid'] = session(md5(MA.'user'))['orgid'];
         $data2['popular'] = 2;
         $res =  Curriculums::where($where)->update($data2);
