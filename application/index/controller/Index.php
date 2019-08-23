@@ -6,6 +6,7 @@ use think\Db;
 use think\facade\Session;
 use app\index\model\Curriculums;
 use app\index\controller\Phpexcil;
+use think\facade\Cookie;
 use app\index\model\Meals as Mealss;
 use app\index\model\MealCurRelations as Mclmodel;
 use app\index\model\PayInfo as payinfos;
@@ -26,7 +27,7 @@ class Index extends Basess
       return view();
     }
 
-    //测试端口
+
     public  function  sss(){
         $suball = db('subjects')->select();
         foreach ($suball as $kll=>&$vll){
@@ -47,12 +48,9 @@ class Index extends Basess
         Phpexcil::export_tow_aaa('课程列表',$kname,array(),$subjectinfo_list);
     }
 
-    //课程薪酬导出
+
     public  function  pay_export()
     {
-//        $data = input('get.');
-//        print_r($data);
-//        exit();
         $subject = input('subject');
         $cur_name = input('cur_name');
         $where = array();
@@ -110,7 +108,6 @@ class Index extends Basess
         return $arr;
     }
 
-    //导出套餐模板
     public  function  setmeal_export()
     {
         //$arr = $this->inp_list_name();
@@ -137,6 +134,7 @@ class Index extends Basess
             $where[]=['cur_state','=',$cur_state];
         }
         $where[] = ['orgid','=',$orgid];
+        $where[] = ['is_del','=',0];
         if($moban=='1'){
             $list = array();
             Phpexcil::export('课程列表',$kname,$list);
@@ -145,7 +143,7 @@ class Index extends Basess
             Phpexcil::export('课程列表',$kname,$list);
         }
         }
-        //套餐导入
+
         public  function  setmeal_Import()
         {
             $kname = ['meal_name','meals_cur', 'cur_num',  'cur_value','actual_price','price','cur_state','course_model','value'];
@@ -159,7 +157,6 @@ class Index extends Basess
                     $infos[] = $vs;
                 }
             }
-            //处理数据 筛选数据
             $arr1 = array();
             $arr2 = array();
             // print_r($infos);exit();
@@ -215,6 +212,8 @@ class Index extends Basess
 
 
         }
+
+
     //课程导入模板
     public  function  Import_currm(){
         $kname = ['cur_name', 'subject', 'tmethods', 'ctime', 'describe', 'remarks'];
@@ -268,19 +267,19 @@ class Index extends Basess
             }
            $info =  Curriculums::create($vs);
         }
-
             Db::commit();
         }catch(\Exception $e){
             // 回滚事务
             Db::rollback();
             $this->return_data(0,50000,$e->getMessage());
         }
-       if($info){
+        if($info){
            $this->return_data(1,0,'导入成功');
-       }else{
+        }else{
            $this->return_data(0,50000,'导入失败');
-       }
+        }
     }
+
 
     //导出课程excil
     public  function  currm_export(){
@@ -341,34 +340,82 @@ class Index extends Basess
     {
        //echo 111;exit();
         $kname = array(
-            array('cur_name','课程名称(必填)'),
-            array('subject','科目分类(必填)'),
-            array('tmethods','授课方式(必填) 1 :1对1 ,2:一对多'),
-            array('ctime','课时(必填) 如 60分钟 填写60'),
-            array('describe','备注(必填)'),
-            array('remarks','描述(必填)'),
+            array('class_name', '班级名称'),
+            array('class_count_all',  '学生人数'),
+            array('class_count', '容量'),
+            array('headmaster',    '班主任'),
+            array('currl', '班级课程'),
+            array('remarks',  '备注'),
         );
 
-        $where[] = ['status','=',1];
-        $where[] = ['orgid','=',input('orgid')];
-        $where[] = ['is_del','=',0];
-        $class_name = input('class_name');
-        if($class_name!=null){
-            $where[] = ['class_name','link','%'.$class_name.'%'];
+        $where[] = ['status', '=', 1];
+        $where[] = ['orgid', '=', input('orgid')];
+        $where[] = ['is_del', '=', 0];
+        $class_name = input('cls_name');
+        if ($class_name!= null) {
+            $where[] = ['class_name', 'like', '%' . $class_name . '%'];
         }
-        $res = selects('erp2_classes',$where);
+        $res = selects('erp2_classes', $where);
         foreach ($res as $k => &$v) {
-            $v['headmasterinfo'] = finds('erp2_teachers',['t_id'=>$v['headmaster']]);
-            $v['orginfo'] = finds('erp2_organizations',['or_id'=>input('orgid')]);
-            $v['currlist'] = Db::table('erp2_class_cur')->alias('c')->where(['cls_id'=>$v['class_id']])->join('erp2_curriculums r','c.cur_id=r.cur_id')->select();
-            $cheadmaster = selects('erp2_class_student_relations',['class_id'=>$v['class_id']]);
-            $v['cheadmaster'] = count($cheadmaster);
+            $v['headmasterinfo'] = finds('erp2_teachers', ['t_id' => $v['headmaster']]);
+            $v['orginfo'] = finds('erp2_organizations', ['or_id' => input('orgid')]);
+            //$v['currlist'] = Db::table('erp2_class_cur')->alias('c')->where(['cls_id'=>$v['class_id']])->join('erp2_curriculums r','c.cur_id=r.cur_id')->select();
+            $v['currlist'] = Db::table('erp2_class_cur')->alias('c')->where(['cls_id' => $v['class_id']])->join('erp2_curriculums r', 'c.cur_id=r.cur_id')->find();
+            $v['currl'] = $v['currlist']['cur_name'];
+            $cheadmaster = selects('erp2_class_student_relations', ['class_id' => $v['class_id']]);
+            $v['class_count_all'] = count($cheadmaster);
+            $v['headmaster'] = $v['headmasterinfo']['t_name'];
         }
-
-
-
+        //print_r($res);exit();
+        Phpexcil::explords('班级列表',$kname,$res);
     }
 
+
+    public  function  daoru_banji()
+    {
+        $kname = ['class_name','class_count', 'headmaster', 'remarks'];
+        $orgid = input('orgid');
+        $res = Phpexcil::import_all($kname);
+         foreach ($res as $k2=>&$v2)
+         {
+            foreach ($v2 as $kf=>$vf){
+               if ($kf==1){
+                   unset($v2[$kf]);
+               }
+                if ($kf==4){
+                    unset($v2[$kf]);
+                }
+            }
+         }
+         $fils = array_serch($kname,$res);
+         foreach ($fils as $kl=>&$vl){
+            if($kl==0){
+                unset($fils[$kl]);
+            }else{
+                 $vl['status'] = 1;
+                 $vl['orgid'] = $orgid;
+                 $vl['is_del'] = 0;
+                 $vl['manager'] = ret_session_name('uid');
+                 $vl['create_time'] = time();
+                 $vl['update_time'] = time();
+                 $headmaster = $vl['headmaster'];
+                 $vheadmaster = Db::table('erp2_teachers')->where('t_name','like','%'.$headmaster.'%')->find();
+                 if($vheadmaster==null){
+                    $this->return_data(0,10000,'没有找到'.$headmaster);
+                 }else{
+                    $vl['headmaster'] = $vheadmaster['t_id'];
+                 }
+            }
+         }
+        $info = Db::table('erp2_classes')->insertAll($fils);
+        if($info){
+            $this->return_data(1,0,'导入成功');
+        }else{
+            $this->return_data(0,10000,'导入失败');
+        }
+    }
+
+                                 
 
 
 

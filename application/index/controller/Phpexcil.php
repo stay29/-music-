@@ -17,23 +17,18 @@ use PHPExcel_Style_Border;
 use PHPExcel_Style_NumberFormat;
 class Phpexcil extends Basess
 {
+
     //公共导入方法返回数组
     public static function import($kname)
     {
-        //获取表单上传文件
         $file = request()->file('excel');
         $info = $file->validate(['ext' => 'xlsx,xls'])->move('./upload/file/');
-        //数据为空返回错误
         if(empty($info)){
              self::return_data_sta(0,10000,'请上传正确格式的文件');
         }
-        //获取文件名
         $exclePath = $info->getSaveName();
-        //上传文件的地址
         $filename = './upload/file/'. $exclePath;
-        //判断截取文件
         $extension = strtolower( pathinfo($filename, PATHINFO_EXTENSION) );
-        //区分上传文件格式
         if($extension == 'xlsx') {
             $objReader =\PHPExcel_IOFactory::createReader('Excel2007');
             $objPHPExcel = $objReader->load($filename, $encode = 'utf-8');
@@ -42,8 +37,8 @@ class Phpexcil extends Basess
             $objPHPExcel = $objReader->load($filename, $encode = 'utf-8');
         }
         $sheet = $objPHPExcel->getSheet(0);
-        $highestRow = $sheet-> getHighestRow();// 取得总行数
-        $excel_array= $sheet->toArray();//转换为数组格式
+        $highestRow = $sheet-> getHighestRow();
+        $excel_array= $sheet->toArray();
         if(count($excel_array[0])!=count($kname)){
              self::return_data_sta(0,10000,'请上传正常的模板文件');
         }
@@ -57,6 +52,38 @@ class Phpexcil extends Basess
             }
         }
         return $fils;
+    }
+
+
+    public static function import_all($kname)
+    {
+        $file = request()->file('excel');
+        $info = $file->validate(['ext' => 'xlsx,xls'])->move('./upload/file/');
+        if(empty($info)){
+            self::return_data_sta(0,10000,'请上传正确格式的文件');
+        }
+        $exclePath = $info->getSaveName();
+        $filename = './upload/file/'. $exclePath;
+        $extension = strtolower( pathinfo($filename, PATHINFO_EXTENSION) );
+        if($extension == 'xlsx') {
+            $objReader =\PHPExcel_IOFactory::createReader('Excel2007');
+            $objPHPExcel = $objReader->load($filename, $encode = 'utf-8');
+        }else if($extension == 'xls'){
+            $objReader =\PHPExcel_IOFactory::createReader('Excel5');
+            $objPHPExcel = $objReader->load($filename, $encode = 'utf-8');
+        }
+        $sheet = $objPHPExcel->getSheet(0);
+        $excel_array= $sheet->toArray();
+        foreach ($excel_array as $ks=>$vs)
+        {
+            if($vs[0]==null)
+            {
+                unset($excel_array[$ks]);
+            }
+        }
+        return $excel_array;
+
+
     }
 
 

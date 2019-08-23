@@ -10,7 +10,6 @@ use think\Controller;
 use think\facade\Request;
 use think\Db;
 use think\facade\Session;
-
 class Basess extends Controller
 {
     public function return_data($status=1,$error_no=0,$info='',$data=''){
@@ -62,7 +61,7 @@ class Basess extends Controller
     public  function  get_img_del()
     {
         $oldig = input('oldimg');
-        if($oldig==null){
+        if($oldig == null){
             $this->return_data(1,0,'删除成功');
         }
         $res = file_exists($oldig);

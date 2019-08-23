@@ -5,7 +5,7 @@ use think\Exception;
 use app\index\model\Curriculums;
 class Currm extends BaseController
 {
-    //课程列表
+
     public function index()
     {
         $this->auth_get_token();
@@ -47,6 +47,7 @@ class Currm extends BaseController
             $this->return_data(0,50000,$e->getMessage());
         }
     }
+
     //添加课程
  	public function  addcurrmon()
     {
@@ -87,6 +88,7 @@ class Currm extends BaseController
         }
     }
 
+
     //删除课程
     public function delcurrmon()
     {
@@ -104,6 +106,7 @@ class Currm extends BaseController
         }
     }
 
+
     //获取单个课程
     public function getcurrm()
     {
@@ -112,10 +115,14 @@ class Currm extends BaseController
         $this->return_data(1,0,$res);
     }
 
+
     //设置热门 1为热门 2为取消热门
     public function  edit_popular(){
         $this->auth_get_token();
         $currid  =   input('cur_id');
+        if(empty($currid)){
+               $this->return_data(0,10000,'请选中数据在提交');
+        }
         $where['orgid'] = session(md5(MA.'user'))['orgid'];
         $data2['popular'] = 2;
         $res =  Curriculums::where($where)->update($data2);
@@ -130,6 +137,7 @@ class Currm extends BaseController
             $this->return_data(0,50000,'设置失败');
         }
     }
+
 
     //上传图片
     public function get_img_update()

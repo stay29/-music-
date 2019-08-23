@@ -21,6 +21,11 @@ class Usersinfo extends BaseController
         }
         $u= finds('erp2_users',['organization'=>$orgid]);
         $uid = $u['uid'];
+        if(input('rid')!=null){
+            $datarid = implode(',',input('rid'));
+        }else{
+            $this->return_data(0,10000,'角色授权不能为空');
+        }
         $data = [
             'nickname' =>input('nickname'),
             'account'=>input('cellphone'),
@@ -28,7 +33,7 @@ class Usersinfo extends BaseController
             'password'=>$password,
             'organization' =>$orgid,
             'sex'=>input('sex'),
-            'rid'=>implode(',',input('rid')),
+            'rid'=>$datarid,
             'incumbency'=>1,
             'status'=>1,
             'create_time'=>time(),
@@ -40,7 +45,7 @@ class Usersinfo extends BaseController
         try{
         $validate = new \app\index\validate\User();
         if(!$validate->scene('Addone')->check($data)){
-            $error = explode('|',$validate->getError());//为了可以得到错误码
+            $error = explode('|',$validate->getError());
             $this->return_data(0,$error[1],$error[0]);
         }else {
             $data['password'] = md5_return($data['password']);
@@ -57,6 +62,8 @@ class Usersinfo extends BaseController
          $this->return_data(0,10000,'添加失败');
      }
     }
+
+
     public function user_list()
     {
         $page = input('page');
@@ -81,14 +88,16 @@ class Usersinfo extends BaseController
         }
         $orgid[] = ['is_del','=',"0"];
         $res = select_find('erp2_users',$orgid,'nickname,uid,cellphone,incumbency,rid,organization,sex,senfen');
+        $aid = '';
         foreach ($res as $k=>&$v){
             $v['orginfo'] = finds('erp2_organizations',['or_id'=>$v['organization']],'or_id,or_name');
             $v['ridinfo'] = $this->exp_name($v['rid'],'role_name');
+            $aid = $this->exp_name($v['rid'],'aid');
+            $v['aid'] = $this->get_aid($aid);
         }
         $res_list = $this->array_page_list_show($limit,$page,$res,1);
         $this->return_data(1,0,'查询成功',$res_list);
     }
-
 
     public  function  exp_name($da,$name){
         $res = explode(',',$da);
@@ -101,8 +110,8 @@ class Usersinfo extends BaseController
 
     public function array_page_list_show($count,$page,$array,$order)
     {
-        $page=(empty($page))?'1':$page; #判断当前页面是否为空 如果为空就表示为第一页面
-        $start=($page-1)*$count; #计算每次分页的开始位置
+        $page=(empty($page))?'1':$page;
+        $start=($page-1)*$count;
         if($order==1){
             $array=array_reverse($array);
         }
@@ -111,8 +120,8 @@ class Usersinfo extends BaseController
         $pagedata['countarr'] = count($array);
         $pagedata['to_pages'] = ceil(count($array)/$count);
         $pagedata['page'] = $page;
-        $pagedata['data']=array_slice($array,$start,$count);    //分隔数组
-        return $pagedata;  #返回查询数据
+        $pagedata['data']=array_slice($array,$start,$count);
+        return $pagedata;
     }
 
     public  function  getrole_user()
@@ -126,15 +135,17 @@ class Usersinfo extends BaseController
             $limit = 10;
         }
         $orgid = ret_session_name('orgid');
-        $uid = ret_session_name('uid');
+        $uid =   ret_session_name('uid');
         $list =  selects('erp2_user_roles',['is_del'=>0,'orgid'=>$orgid]);
         foreach ($list as $k=>&$v)
         {
             $v['info'] = $this->uuu($v['aid']);
+            $v['get_aid'] = $this->get_aid($v['aid']);
         }
         $res = $this->array_page_list_show($limit,$page,$list,1);
         $this->return_data(1,0,$res);
     }
+
     public  function  uuu($aid)
     {
         $aidlist = explode(',',$aid);
@@ -146,7 +157,66 @@ class Usersinfo extends BaseController
         return $array;
     }
 
+    public  function  get_aid($aid)
+    {
+        if($aid!=null){
+             $arr = explode(',',trim($aid,','));
+             $arr1 = $this->a_array_unique($arr);
+             $acclist = Db::table('erp2_user_accesses')->field('access_id')->where('access_id','in',$arr1)->where('type',1)->select();
+             $acclist1 = [];
+             foreach ($acclist as $k=>$v){
+                 $acclist1[] = $v['access_id'];
+             }
+             //获取全部节点
+             $acclist3 = Db::table('erp2_user_accesses')->field('access_id')->where('type',0)->select();
+             foreach ($acclist3 as $k3=>&$v3)
+             {
+                 $type3 = Db::table('erp2_user_accesses')->field('access_id')->where('pid',$v3['access_id'])->where('type',1)->select();
+                 $type_list3 = [];
+                 foreach ($type3 as $k4=>$v4){
+                     $type_list3[] = $v4['access_id'];
+                 }
+                 $v3['type3'] = $type_list3;
+             }
+             $f1 = [];
+             foreach ($acclist3 as $k5=>&$v5)
+             {
+                 if($v5['type3']==null){
+                    $f1[] = $v5['access_id'];
+                 }else{
+                     foreach ($v5['type3'] as $k6=>$v6)
+                     {
+                        if(!in_array($v6['access_id'],$arr)){
+                            $f1[] = $v5['access_id'];
+                            break;
+                        }
+                     }
+                 }
+             }
+            foreach ($arr as $k7=>&$v7)
+            {
+                foreach ($f1 as $k8=>&$v8)
+                {
+                    if($v7==$v8){
+                        unset($arr[$k7]);
+                    }
+                }
+            }
+            return implode(',',$arr);
+        }
+    }
 
+    function a_array_unique($array)
+    {
+        $out = array();
+        foreach ($array as $key=>$value) {
+            if (!in_array($value, $out))
+            {
+                $out[$key] = $value;
+            }
+        }
+        return $out;
+    }
 
 
 
@@ -175,24 +245,19 @@ class Usersinfo extends BaseController
         }
     }
 
-
     public function  editpass()
     {
+        //print_r(input('post.'));exit();
         $uid = input('uid');
         $orgid = input('orgid');
-        $pass = md5_return(input('pass'));
-        $rpass =  md5_return(input('rpass'));
-        $res = Db::query("select * from erp2_users  where uid=$uid AND organization=$orgid AND password=$pass");
-        if($res){
-            $info = Db::query("UPDATE erp2_users SET password=$rpass WHERE uid=$uid AND organization=$orgid");
-            if($info){
-                $this->return_data(1,0,'操作成功');
-            }else{
-                $this->return_data(0,10000,'没有任何改变');
-            }
-        }else{
-         $this->return_data(0,10000,'原密码错误');
-        }
+        $where['uid'] = $uid;
+        $data['password'] =  md5_return(input('pass'));
+         $res = edit('erp2_users',$where,$data);
+         if($res){
+             $this->return_data(1,0,'操作成功');
+         }else{
+             $this->return_data(0,10000,'操作失败');
+         }
     }
 
 
@@ -212,12 +277,27 @@ class Usersinfo extends BaseController
     public function  edituser_info()
     {
         $uid = input('uid');
+        if(input('rid')==null){
+            $this->return_data(0,10000,'请选择授权角色');
+        }else{
+            $rid = implode(',',input('rid'));
+        }
+        $c = Db::table('erp2_users')->where('cellphone',input('cellphone'))->find();
+        if($c['uid']!=$uid){
+            if($c){
+                $this->return_data(0,10000,'该账户已被注册 请联系管理员');
+            }
+        }
+        if(input('organization')==null)
+        {
+            $this->return_data(0,10000,'请选择机构');
+        }
         $data = [
             'nickname' =>input('nickname'),
             'cellphone' =>input('cellphone'),
             'organization' =>input('organization'),
             'sex'=>input('sex'),
-            'rid'=>implode(',',input('rid')),
+            'rid'=>$rid,
             'update_time'=>time(),
         ];
         $res = Db::table('erp2_users',null)->where('uid',$uid)->update($data);
@@ -227,6 +307,7 @@ class Usersinfo extends BaseController
             $this->return_data(0,10000,'没有任何改变');
         }
     }
+
 
     public  function  addrole_new()
     {
@@ -262,9 +343,6 @@ class Usersinfo extends BaseController
             $this->return_data(0,10000,'没有任何改变');
         }
     }
-
-
-
 
 
     public  function  edit_accauth_list()
@@ -326,4 +404,8 @@ class Usersinfo extends BaseController
         $res['alist'] = $alist;
         $this->return_data(1,0,$res);
     }
+
+
+
+
 }

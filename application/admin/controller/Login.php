@@ -8,13 +8,11 @@ class Login extends AdminBase
         // 'second' =>  ['except'=>'hello'],
         // 'three'  =>  ['only'=>'hello,data'],
     ];
-
     public function first(){
         if(session('?admin')){
             $this->redirect(url('admin/index/index'),302);
         }
     }
-
     private function after(){
           db('admins')
               ->where(['id'=>session('admin.id')])
