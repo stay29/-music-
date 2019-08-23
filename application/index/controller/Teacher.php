@@ -609,7 +609,8 @@ class Teacher extends BaseController
             'total' => $data->total(),
             'per_page' => $limit,
             'current_page' => $data->currentPage(),
-            'last_page' => $data->lastPage()
+            'last_page' => $data->lastPage(),
+            'data' => array(),
         ];
         foreach ($data as $k=>$v)
         {
@@ -623,7 +624,7 @@ class Teacher extends BaseController
             $room_name = db('classrooms')->where('room_id', '=', $room_id)->value('room_name');
             $temp = db('curriculums')->where('cur_id', '=', $cur_id)->field('cur_name, tmethods as cur_type')->find();
 
-            $response[] = [
+            $response['data'][] = [
                 'sc_id' => $sc_id,
                 'cur_id' => $cur_id,
                 'cur_name' => $temp['cur_name'],
