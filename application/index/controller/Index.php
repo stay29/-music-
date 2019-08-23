@@ -6,6 +6,7 @@ use think\Db;
 use think\facade\Session;
 use app\index\model\Curriculums;
 use app\index\controller\Phpexcil;
+use think\facade\Cookie;
 use app\index\model\Meals as Mealss;
 use app\index\model\MealCurRelations as Mclmodel;
 use app\index\model\PayInfo as payinfos;
@@ -26,7 +27,7 @@ class Index extends Basess
       return view();
     }
 
-    //测试端口
+
     public  function  sss(){
         $suball = db('subjects')->select();
         foreach ($suball as $kll=>&$vll){
@@ -47,12 +48,9 @@ class Index extends Basess
         Phpexcil::export_tow_aaa('课程列表',$kname,array(),$subjectinfo_list);
     }
 
-    //课程薪酬导出
+
     public  function  pay_export()
     {
-//        $data = input('get.');
-//        print_r($data);
-//        exit();
         $subject = input('subject');
         $cur_name = input('cur_name');
         $where = array();
@@ -110,7 +108,6 @@ class Index extends Basess
         return $arr;
     }
 
-    //导出套餐模板
     public  function  setmeal_export()
     {
         //$arr = $this->inp_list_name();
@@ -146,7 +143,7 @@ class Index extends Basess
             Phpexcil::export('课程列表',$kname,$list);
         }
         }
-        //套餐导入
+
         public  function  setmeal_Import()
         {
             $kname = ['meal_name','meals_cur', 'cur_num',  'cur_value','actual_price','price','cur_state','course_model','value'];
@@ -160,7 +157,6 @@ class Index extends Basess
                     $infos[] = $vs;
                 }
             }
-            //处理数据 筛选数据
             $arr1 = array();
             $arr2 = array();
             // print_r($infos);exit();
@@ -216,6 +212,8 @@ class Index extends Basess
 
 
         }
+
+
     //课程导入模板
     public  function  Import_currm(){
         $kname = ['cur_name', 'subject', 'tmethods', 'ctime', 'describe', 'remarks'];
@@ -269,18 +267,17 @@ class Index extends Basess
             }
            $info =  Curriculums::create($vs);
         }
-
             Db::commit();
         }catch(\Exception $e){
             // 回滚事务
             Db::rollback();
             $this->return_data(0,50000,$e->getMessage());
         }
-       if($info){
+        if($info){
            $this->return_data(1,0,'导入成功');
-       }else{
+        }else{
            $this->return_data(0,50000,'导入失败');
-       }
+        }
     }
 
 

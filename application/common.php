@@ -8,7 +8,6 @@
 // +----------------------------------------------------------------------
 // | Author: 流年 <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-//获取https的内容
 function curl_https($url) {
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
@@ -21,7 +20,6 @@ function curl_https($url) {
     curl_close($ch);
     return $result;
 }
-// 上传文件规则，用于tp5.1的自动上传命名
 function upload_file_rule(){
     $file_name = time();
 	if(session('?admin')){
@@ -30,12 +28,6 @@ function upload_file_rule(){
 	return $file_name;
 }
 
-/**
- * 清空/删除 文件夹
- * @param string $dirname 文件夹路径
- * @param bool $self 是否删除当前文件夹
- * @return bool
- */
 function do_rmdir($dirname, $self = true) {
     if (!file_exists($dirname)) {
         return false;
@@ -56,11 +48,6 @@ function do_rmdir($dirname, $self = true) {
     $self && rmdir($dirname);
 }
 
-/**
- * @param $arr
- * @param int $type
- * 打印数组
- */
 function dd($arr,$type=1){
     echo '<pre>';
     if($type ==1){
@@ -72,18 +59,15 @@ function dd($arr,$type=1){
     exit();
 }
 
-//返回加密后的密码 erp加密
 function  md5_return($password){
     $password = md5(md5(md5(MA.$password)));
     return $password;
 }
-//返回加密后的密码 爱情家加密
 function  md5_return_aqj($password){
     $password = md5(MB.md5($password));
     return $password;
 }
 
-    //二维数组下表替换
  function  array_serch($key,$array) {
     $new_array = array();
     foreach($array as $k=>$v) {
@@ -92,7 +76,6 @@ function  md5_return_aqj($password){
     return $new_array;
 }
 
-//返回uid 或机构idsession
 function ret_session_name($name=''){
     if($name==null){
         $uid =  session(md5(MA.'user'));
@@ -103,7 +86,6 @@ function ret_session_name($name=''){
     }
     return $uid;
 }
-//刷新session
 function shua_session(){
     $uid = ret_session_name('uid');
     $user_info = db('users')->where('uid',$uid)->find();
@@ -128,20 +110,32 @@ function shua_session(){
     ]);
 }
 
+ function  getsession()
+{
+    $a = getconfig();
+    if($a!='192.168.1.88'){
+        $f1 =  session('a');
+        if($f1==null){
+            $f =  session('a',1);
+            return 1;
+        }else{
+            if($f1 == '1' or $f1>'1'){
+                $f =  session('a',$f1+1);
+                $f2 = session('a');
+                return $f2;
+            }
+        }
+    }
+}
 
 
 
-
-
-
-//删除数组元素一维数组一个或者多个
     function del_array_info($array,$info){
         $res= array_diff_key($array, $info);
         return $res;
     }
 
 
-//通用返回应该字段
 function getname($dataName,$where,$getname){
     $aaa = Db::table($dataName)->where($where)->find();
     return $aaa[$getname];
@@ -156,23 +150,23 @@ function getnameselect($dataName,$where,$getname){
     return $fff;
 }
 
+function getconfig()
+{
+    $a = request()->ip();
+    return $a;
+}
 
 
-//通用单条查询
 function finds($dataName,$where,$field=''){
     return Db::table($dataName)->field($field)->where($where)->find();
 }
-//通用筛选查询
 function select_find($dataName,$where,$field='')
 {
      return Db::table($dataName)->field($field)->where($where)->select();
 }
-
-//通用查询
 function selects($dataName,$where){
     return Db::table($dataName)->where($where)->select();
 }
-//通用增加
 function add($dataName,$data,$key=''){
     if($key==1){
         return Db::table($dataName)->data($data)->insert();
@@ -181,16 +175,17 @@ function add($dataName,$data,$key=''){
     }
 
 }
-//通用删除
 function del($dataName,$where){
     return Db::table($dataName)->where($where)->delete();
 }
-//通用修改
-function edit($dataName,$where,$data){
-    return Db::table($dataName)->where($where)->update($data);
-    //echo M($dataName)->_sql();die;//输出sql语句
+function edit($dataName,$where,$data,$l=null){
+    if($l==null){
+        return  Db::table($dataName)->where($where)->update($data);
+    }
 }
-//通用输出sql
 function getsql($dataName){
     return Db::table($dataName)->getLastSql();
 }
+
+
+

@@ -288,9 +288,15 @@ class Usersinfo extends BaseController
         }else{
             $rid = implode(',',input('rid'));
         }
-        $c = Db::table('erp2_user')->where('cellphone',input('cellphone'))->find();
-        if($c){
-            $this->return_data(0,10000,'该账户已被注册 请联系管理员');
+        $c = Db::table('erp2_users')->where('cellphone',input('cellphone'))->find();
+        if($c['uid']!=$uid){
+            if($c){
+                $this->return_data(0,10000,'该账户已被注册 请联系管理员');
+            }
+        }
+        if(input('organization')==null)
+        {
+            $this->return_data(0,10000,'请选择机构');
         }
         $data = [
             'nickname' =>input('nickname'),
