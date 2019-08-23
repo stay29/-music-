@@ -14,6 +14,7 @@ use think\Db;
 use think\facade\Session;
 use think\facade\Cookie;
 use app\index\model\Organization as Organ;
+
 class Login extends Basess{
 
     public function for_login()
@@ -66,7 +67,6 @@ class Login extends Basess{
             $this->return_data(0,50000,$e->getMessage());
         }
     }
-
 
 
 

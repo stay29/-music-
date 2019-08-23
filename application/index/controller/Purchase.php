@@ -14,6 +14,10 @@ use think\Controller;
 use think\Db;
 use think\Exception;
 
+use app\index\model\Goods as GoodsModel;
+use app\index\validate\Goods as GoodsValidate;
+
+
 final class Categories
 {
     /*
@@ -340,7 +344,20 @@ class Purchase extends BaseController
      */
     public function goods_add()
     {
-
+        $data = input('post');
+        try{
+            $validate = new GoodsValidate();
+            if (!$validate->check($data))
+            {
+                $error = explode('|', $validate->getError());
+                $this->return_data(0, $error[0], $error[1]);
+            }
+            $goods = new GoodsModel($data);
+            $goods->save();
+        }catch (Exception $e)
+        {
+            $this->return_data(0, '50000', '系统错误');
+        }
     }
 
     /*
@@ -348,7 +365,24 @@ class Purchase extends BaseController
      */
     public function goods_del()
     {
-
+        $goods_id = input('goods_id', '');
+        if(empty($goods_id))
+        {
+            $this->return_data(0, '10000', '缺少参数');
+        }
+        Db::startTrans();
+        try
+        {
+            // 删除产品和库存数据
+            Db::name('goods_detail')->where('goods_id', '=', $goods_id)->delete();
+            Db::name('goods_sku')->where('goods_id', '=', $goods_id)->delete();
+            Db::commit();
+            $this->return_data(1, '', '删除成功');
+        }catch (Exception $e)
+        {
+            Db::rollback();
+            $this->return_data(0, '50000', '系统错误');
+        }
     }
 
     /*
@@ -356,7 +390,20 @@ class Purchase extends BaseController
      */
     public function goods_edit()
     {
-
+        $data = input('post');
+        try{
+            $validate = new GoodsValidate();
+            if(!$validate->check($data))
+            {
+                $error = explode('|', $validate->getError());
+                $this->return_data(0, $error[0], $error[1]);
+            }
+            GoodsModel::update($data);
+            $this->return_data(1, '', '修改成功');
+        }catch (Exception $e)
+        {
+            $this->return_data(0, '50000', '系统出错');
+        }
     }
 
     /*
@@ -364,6 +411,13 @@ class Purchase extends BaseController
      */
     public function goods_storage()
     {
+        $goods_id = input('goods_id/d', '');
+        $goods_num = input('goods_num/d', '');
+        if(empty($goods_id) || empty($goods_num))
+        {
+            $this->return_data(0, '10000', '缺少参数');
+        }
+        $this->return_data(1, '', '', '添加成功');
     }
 
     /*
@@ -371,7 +425,7 @@ class Purchase extends BaseController
      */
     public function goods_checkout()
     {
-
+        //
     }
 
     /*
@@ -379,6 +433,6 @@ class Purchase extends BaseController
      */
     public function goods_sale()
     {
-
+        //
     }
 }

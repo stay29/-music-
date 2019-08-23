@@ -89,9 +89,6 @@ class BaseController extends Controller
         }
 
 
-
-
-
     }
     //获取当前用户的最终权限
     public  function  get_aid_role111($uid)
@@ -155,6 +152,7 @@ class BaseController extends Controller
         echo json_encode(['status'=>$status,'error_code'=>$error_no,$key =>$info,'data'=>$data]);
         exit();
     }
+
     public function sendMessage($phone,$msg,$sendtime='',$port='', $needstatus=''){
         $username = "zihao2"; //在这里配置你们的发送帐号
         $passwd = "JBZ992888";    //在这里配置你们的发送密码
