@@ -49,7 +49,7 @@ class Teachers extends Validate
     ];
 
     protected $scene = [
-        'add' => ['t_name','se_id','cellphone','entry_time','id_card','sex','status','birthday'],
-        'edit' => ['t_id', 'se_id','cellphone','entry_time','id_card','sex','status','birthday', 't_name']
+        'add' => ['t_name','se_id','cellphone','entry_time','id_card','sex','status'],
+        'edit' => ['t_id', 'se_id','cellphone','entry_time','id_card','sex','status', 't_name']
     ];
 }

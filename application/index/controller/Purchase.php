@@ -84,7 +84,7 @@ class Purchase extends BaseController
         $cate_pid = input('cate_pid', 0);
         $cate_name = input('cate_name', '');
         $order = input('order', 0);
-        if(empty($cate_name) || empty($org_id))
+        if(is_empty($org_id, $cate_name))
         {
             $this->return_data(0, '', '缺少参数', false);
         }
@@ -130,7 +130,7 @@ class Purchase extends BaseController
         $order = input('order/d', 0);
         $cate_pid = input('cate_pid/d', '');
         $org_id = input('orgid/d', '');
-        if(empty($org_id))
+        if(is_empty($cate_pid, $org_id))
         {
             $this->return_data(0, '10000', '缺少参数', false);
         }
@@ -163,7 +163,7 @@ class Purchase extends BaseController
     public function cate_list()
     {
         $org_id = input('orgid/d', '');
-        if (empty($org_id))
+        if (is_empty($org_id))
         {
             $this->return_data(0, '10000', '缺少参数', false);
         }
@@ -182,7 +182,7 @@ class Purchase extends BaseController
     {
         $cate_id = input('cate_id/d', '');
         $org_id = input('orgid/d', '');
-        if(empty($cate_id))
+        if(is_empty($cate_id, $org_id))
         {
             $this->return_data(0, '10000', '缺少参数', false);
         }
@@ -209,7 +209,7 @@ class Purchase extends BaseController
     public function sale_mans_index()
     {
         $org_id = input('orgid/d', '');
-        if (empty($org_id))
+        if (is_empty($org_id))
         {
             $this->return_data(0, '10000', '缺少参数', '');
         }
@@ -227,7 +227,7 @@ class Purchase extends BaseController
     public function sale_mans_del()
     {
         $sm_id = input('sm_id/d', '');
-        if(empty($sm_id))
+        if(is_empty($sm_id))
         {
             $this->return_data(0, '10000', '缺少参数', false);
         }
@@ -247,7 +247,7 @@ class Purchase extends BaseController
             'sm_mobile' => input('sm_mobile', ''),
             'status' => input('status')
         ];
-        if (empty($data['sm_id']))
+        if (is_empty($data['sm_id'], $data['org_id'], $data['sm_mobile']))
         {
             $this->return_data(0, '10000', '缺少参数', false);
         }
@@ -413,10 +413,22 @@ class Purchase extends BaseController
     {
         $goods_id = input('goods_id/d', '');
         $goods_num = input('goods_num/d', '');
-        if(empty($goods_id) || empty($goods_num))
+        $goods_price = input('goods_price/f', '');
+        $remark = input('remark/s', '');
+        $entry_time = input('entry_time/d', time());
+        if(is_empty($goods_id, $goods_num, $goods_price))
         {
             $this->return_data(0, '10000', '缺少参数');
         }
+        if ($goods_num <= 0 || $goods_price <= 0)
+        {
+            $this->return_data(0, '10000', '商品数量和价格必须大于0');
+        }
+        if (strlen($goods_remark) > 200)
+        {
+            $this->return_data(0, '10000', '备注不能超过200字符');
+        }
+        Db::startTrans();
         try
         {
             $goods_id = Db::name('goods_detail')->where('goods_id', '=', $goods_id)->value('goods_id');
@@ -424,10 +436,35 @@ class Purchase extends BaseController
             {
                 $this->return_data(0, '10000', '20001', '入库失败');
             }
-            Db::name('goods_sku')->insert();
+            $sku = Db::name('goods_sku')->where('goods_id', '=', $goods_id)->find();
+            if (!empty($sku))
+            {
+                $sku_id = $sku['sku_id'];
+                $sku_num = $sku['sku_num'] + $goods_num;
+                Db::name('goods_sku')->where('sku_id', '=', $sku_id)->update(['sku_num' => $sku_num]);
+            }
+            $sku_data = [
+                ['goods_id', '=', $goods_id],
+                ['sku_num', '=', $goods_num]
+            ];
+            Db::name('goods_sku')->insert($sku_data);
+
+            $sto_data = [
+                'goods_id' => $goods_id,
+                'sto_num' => $goods_num,
+                'sto_single_price' => $goods_price,
+                'remark'    => $remark,
+                'entry_time' => $entry_time,
+                'create_time' => time(),
+                'update_time' => time(),
+                'sto_code'  => random_code()
+            ];
+            Db::name('goods_storage')->insert($sto_data);
+            Db::commit();
             $this->return_data(1, '', '', '入库成功');
         }catch (Exception $e)
         {
+            Db::rollback();
             $this->return_data(1, '', '', '入库失败');
         }
     }
@@ -437,7 +474,53 @@ class Purchase extends BaseController
      */
     public function goods_checkout()
     {
-        //
+        $goods_id = input('goods_id/d', '');
+        $dep_num = input('dep_num/d', '');
+        $dep_price = input('dep_price', '');
+        $dep_time = input('dep_time/d', time());
+        $remarks = input('remarks/s', '');
+        if (is_empty($goods_id, $dep_num, $dep_price))
+        {
+            $this->return_data(0, '10000', '缺少参数', '');
+        }
+        if (strlen($remarks) > 200)
+        {
+            $this->return_data(0, '10000', '备注200字符内');
+        }
+        if ($dep_num <= 0 || $dep_price <= 0 )
+        {
+            $this->return_data(0, '10000', '商品价格和数量不能小于0');
+        }
+        Db::startTrans();
+        try
+        {
+            // 校验库存
+            $sku_num = Db::name('goods_sku')->where('goods_id', '=', $goods_id)->value('sku_num');
+            if ($sku_num < $dep_num)
+            {
+                $this->return_data(1, '20001', '出库失败,库存不足');
+            }
+            // 出库
+            $sku_num -= $dep_num;
+            Db::name('goods_sku')->where('goods_id', '=', $goods_id)->update(['sku_num' => $sku_num]);
+            $dep_data = [
+                'goods_id' => $goods_id,
+                'dep_num' => $dep_num,
+                'dep_price' => $dep_price,
+                'dep_time' => $dep_time,
+                'remarks' => $remarks,
+                'create_time'   => time(),
+                'update_time'    => time(),
+                'dep_code'  => random_code()
+            ];
+            // 出库记录
+            Db::name('goods_deposit')->insert($dep_data);
+            Db::commit();
+        }catch (Exception $e)
+        {
+            Db::rollback();
+            $this->return_data(0, '50000', '系统出错, 出库失败');
+        }
     }
 
     /*
@@ -445,6 +528,34 @@ class Purchase extends BaseController
      */
     public function goods_sale()
     {
-        //
+        $goods_id = input('goods_id/d', '');
+        $sman_type = input('sman_type/d', ''); //销售员类型, 1销售员,2老师
+        $sman_id = input('sman_id/d', ''); // 销售员id或教师id
+        $sale_obj_type = input('sale_obj_type', ''); // 销售对象,1学生2其他
+        $sale_obj_id = input('sale_obj_id', ''); // 学生id, 或其他则为0
+        $pay_id = input('pay_id/d', ''); // 支付方式
+        $remark = input('remark/s', ''); // 备注
+        $sale_time = input('sale_time/d', time()); // 销售时间
+        $create_time = time();
+        $update_time = time();
+        if (is_empty($goods_id, $sman_type, $sman_id, $sale_obj_type, $sale_obj_id, $pay_id))
+        {
+            $this->return_data(0, '10000', '缺少必填参数');
+        }
+        Db::startTrans();
+        try
+        {
+            $sale_data = [];
+
+
+
+            Db::name('goods');
+        }catch (Exception $e)
+        {
+            Db::rollback();
+            $this->return_data(0, '10000', '系统出错，销售失败');
+        }
     }
 }
+
+

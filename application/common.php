@@ -191,4 +191,31 @@ function getsql($dataName){
 }
 
 
+/*
+ * 判断不确定参数是否为空。
+ * 若所有参数均不为空返回false, 其中一个为空返回true。
+ */
+function is_empty(...$args)
+{
+    foreach ($args as $val)
+    {
+        if (empty($val))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+/*
+ * 生成单号
+ */
+function random_code()
+{
+    mt_srand((double) microtime() * 1000000);
+    return date('Ymd') . str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT);
+}
+
+
 

@@ -66,14 +66,9 @@ class Usersinfo extends BaseController
 
     public function user_list()
     {
-        $page = input('page');
-        if($page==null){
-            $page = 1;
-        }
-        $limit = input('limit');
-        if($limit==null){
-            $limit = 10;
-        }
+        $page = input('page/d', 1);
+        $limit = input('limit/d', 10);
+
         //超级管理员
         $uid = ret_session_name('uid');
         //$orgid['organization'] = input('orgid');
@@ -84,7 +79,7 @@ class Usersinfo extends BaseController
         }
         $account = input('account');
         if($account){
-                $orgid[] = ['account','like','%'.$account.'%'];
+                $orgid[] = ['account|nickname','like','%'.$account.'%'];
         }
         $orgid[] = ['is_del','=',"0"];
         $res = select_find('erp2_users',$orgid,'nickname,uid,cellphone,incumbency,rid,organization,sex,senfen');

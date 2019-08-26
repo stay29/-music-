@@ -45,11 +45,12 @@ class Organization extends Basess
             $where['organization'] = $res['id'];
             $where['update_time'] = time();
             //$where['manager'] = ret_session_name('uid');
-            Users::where('uid',$uid)->update($where);
+            // Users::where('uid',$uid)->update($where);
             $userinfo = Users::loginsession($uid);
             $rolelist =  $this->get_role_a($uid);
             $data['rolelist'] = $rolelist;
             $data['userinfo'] = $userinfo;
+            $data['orgid'] = $res['id'];
             $this->return_data(1,0,$data);
         }catch (\Exception $e){
             Db::rollback();
