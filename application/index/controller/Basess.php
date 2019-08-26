@@ -10,6 +10,7 @@ use think\Controller;
 use think\facade\Request;
 use think\Db;
 use think\facade\Session;
+
 class Basess extends Controller
 {
     public function return_data($status=1,$error_no=0,$info='',$data=''){

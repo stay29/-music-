@@ -9,7 +9,12 @@
 namespace app\index\model;
 
 
-class Goods
+use think\Model;
+
+class Goods extends Model
 {
+    protected $table = 'erp2_goods_detail';
+    protected $pk = 'goods_id';
+    protected $autoWriteTimestamp = true;
 
 }

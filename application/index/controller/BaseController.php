@@ -11,6 +11,8 @@ use think\facade\Request;
 use think\Db;
 use think\facade\Session;
 use Firebase\JWT\JWT;//引入验证类
+
+
 class BaseController extends Controller
 {
     public function initialize()

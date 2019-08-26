@@ -417,7 +417,19 @@ class Purchase extends BaseController
         {
             $this->return_data(0, '10000', '缺少参数');
         }
-        $this->return_data(1, '', '', '添加成功');
+        try
+        {
+            $goods_id = Db::name('goods_detail')->where('goods_id', '=', $goods_id)->value('goods_id');
+            if (empty($goods_id))
+            {
+                $this->return_data(0, '10000', '20001', '入库失败');
+            }
+            Db::name('goods_sku')->insert();
+            $this->return_data(1, '', '', '入库成功');
+        }catch (Exception $e)
+        {
+            $this->return_data(1, '', '', '入库失败');
+        }
     }
 
     /*

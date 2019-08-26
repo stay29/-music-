@@ -93,7 +93,7 @@ class Classes extends BaseController
         $where[] = ['orgid', '=', input('orgid')];
         $where[] = ['is_del', '=', 0];
         $class_name = input('cls_name');
-        if ($class_name!= null) {
+        if ($class_name != null) {
             $where[] = ['class_name', 'like', '%' . $class_name . '%'];
         }
         $res = selects('erp2_classes', $where);
@@ -153,7 +153,7 @@ class Classes extends BaseController
             $arr1['stu_id'] = $v;
             $arr1['class_id'] = input('class_id');
             $arr1['is_del'] = 0;
-            $arr[]= $arr1;
+            $arr[] = $arr1;
         }
         $a = del('erp2_class_student_relations', $where);
         $b = Db::table('erp2_class_student_relations')->insertAll($arr);
@@ -165,12 +165,10 @@ class Classes extends BaseController
     }
 
 
-
-
     public function edit_curr()
     {
-         $where['cls_id'] = input('class_id');
-         $data['cur_id'] = input('cur_id');
+        $where['cls_id'] = input('class_id');
+        $data['cur_id'] = input('cur_id');
         $res = edit('erp2_class_cur', $where, $data);
         if ($res) {
             $this->return_data(1, 0, '修改成功');
@@ -178,7 +176,6 @@ class Classes extends BaseController
             $this->return_data(0, 10000, '修改失败');
         }
     }
-
 
 
     public function del_classes()
@@ -221,13 +218,13 @@ class Classes extends BaseController
     public function get_stu_id()
     {
         $where['class_id'] = input('cls_id');
-        $res['stulist'] = selects('erp2_class_student_relations',$where);
-        $res['class_id'] =   input('cls_id');
+        $res['stulist'] = selects('erp2_class_student_relations', $where);
+        $res['class_id'] = input('cls_id');
         $this->return_data(1, 0, $res);
     }
 
 
-    public function  get_teach_sch()
+    public function get_teach_sch()
     {
         $where['t_id'] = input('t_id');
         $where['cur_id'] = input('cur_id');
@@ -235,8 +232,17 @@ class Classes extends BaseController
     }
 
 
+    /*
+     * 上面是刚跑路的php写的，不关我事。
+     */
+
+    /*
+     * 课表接口
+     */
+    public function schedule()
+    {
 
 
-
+    }
 
 }

@@ -12,6 +12,7 @@ use think\Db;
 use think\facade\Session;
 use app\index\model\Organization as Organ;
 use app\index\model\Users;
+
 class Organization extends Basess
 {
     /**
@@ -46,7 +47,10 @@ class Organization extends Basess
             //$where['manager'] = ret_session_name('uid');
             Users::where('uid',$uid)->update($where);
             $userinfo = Users::loginsession($uid);
-            $this->return_data(1,0,$userinfo);
+            $rolelist =  $this->get_role_a($uid);
+            $data['rolelist'] = $rolelist;
+            $data['userinfo'] = $userinfo;
+            $this->return_data(1,0,$data);
         }catch (\Exception $e){
             Db::rollback();
             $this->return_data(0,50000,$e->getMessage());
@@ -57,5 +61,72 @@ class Organization extends Basess
       $list = Organ::where('status',1)->select();
       $this->return_data(1,0,$list);
     }
+
+
+    public function  get_role_a($uid)
+    {
+        $a =   json_decode($this->get_aid_role111($uid));
+        $res = Db::table("erp2_user_accesses") ->where('access_id', 'in', $a)->where('pid',0)->select();
+        foreach ($res as $k=>&$v)
+        {
+            $v['pidinfo'] = Db::table("erp2_user_accesses") ->where('access_id', 'in', $a)->where('pid',$v['access_id'])->where('type',1)->select();
+            if(!empty($v['pidinfo'])){
+                foreach ($v['pidinfo'] as $k1 => &$v1) {
+                    $v1['pidinfos'] = Db::table("erp2_user_accesses") ->where('access_id', 'in', $a)->where('pid',$v1['access_id'])->where('type',2)->select();
+                }
+            }
+        }
+        return $res;
+    }
+
+    /*********************以下代码复制邱键的, ***************************/
+    //获取当前用户的最终权限
+    public  function  get_aid_role111($uid)
+    {
+        $userinfo = finds('erp2_users',['uid'=>$uid]);
+        $rid = explode(',',is_string($userinfo['rid']));
+        $array = [];
+        foreach ($rid as $k=>$v){
+            $array[] = finds('erp2_user_roles',['role_id'=>$v]);
+        }
+        $arr = [];
+        foreach ($array as $k1=>$v1){
+
+            $arr []= explode(',',$v1['aid']);
+        }
+        $a = $this->array_heb($arr);
+        $b =   $this->a_array_unique($a);
+        return json_encode($b);
+    }
+
+
+    public  function array_heb($arrs)
+    {
+        static $arrays  = array();
+        foreach ($arrs as $key=>$value)
+        {
+            if(is_array($value)){
+                $this->array_heb($value);
+            }else{
+                $arrays[]= $value;
+            }
+        }
+        return $arrays;
+    }
+
+    public function a_array_unique($array)//写的比较好
+    {
+        $out = array();
+        foreach ($array as $key=>$value) {
+            if (!in_array($value, $out))
+            {
+                $out[$key] = $value;
+            }
+        }
+        return $out;
+    }
+    /*********************以上代码复制邱键的***************************/
+
+
 
 }

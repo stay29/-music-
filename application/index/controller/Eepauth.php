@@ -8,6 +8,7 @@
 namespace app\index\controller;
 use think\Controller;
 use think\Db;
+
 class Eepauth extends BaseController
 {
     public function  auth_list()
