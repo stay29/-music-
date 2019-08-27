@@ -370,7 +370,9 @@ class Index extends Basess
         Phpexcil::explords('班级列表',$kname,$res);
     }
 
-
+    /*
+     * 导入班级
+     */
     public  function  daoru_banji()
     {
         $kname = ['class_name','class_count', 'headmaster', 'remarks'];
@@ -409,8 +411,10 @@ class Index extends Basess
          }
         $info = Db::table('erp2_classes')->insertAll($fils);
         if($info){
+
             $this->return_data(1,0,'导入成功');
         }else{
+
             $this->return_data(0,10000,'导入失败');
         }
     }

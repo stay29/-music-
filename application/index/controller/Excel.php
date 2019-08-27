@@ -224,7 +224,7 @@ class Excel extends ExcelBase
      */
     public function room_tpl()
     {
-        $str = "./public/uploads/file/classroom.xlsx";
+        $str = "./public/upload/file/classroom.xlsx";
         $this->returnData('', $str);
     }
 
@@ -740,4 +740,28 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
 //
 //    }
 
+
+    /*
+     * 商品模板
+     */
+    public function goods_tpl()
+    {
+
+    }
+
+    /*
+     * 商品导入
+     */
+    public function goods_ipt()
+    {
+
+    }
+
+    /*
+     * 商品导出
+     */
+    public function goods_ept()
+    {
+
+    }
 }

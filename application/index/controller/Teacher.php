@@ -76,24 +76,25 @@ class Teacher extends BaseController
      * Modifying Teacher Information Method
      */
     public function edit(){
-        $t_id = input('post.t_id', '');
-        $org_id = input('post.orgid', '');
+        $t_id = input('post.t_id/d', '');
+        $org_id = input('post.orgid/d', '');
         if (empty($t_id) || empty($org_id))
         {
             $this->return_data(0, '10000', '缺少orgid或者t_id');
         }
+        $t_id = intval($t_id);
         $data = [
-            't_id'=>$t_id,
+            't_id'  => $t_id,
             'org_id' => $org_id,
-            't_name' => input('post.t_name'),
+            't_name' => input('post.t_name/s'),
             'avator' => input('post.avator'),
-            'sex' => input('post.sex',1),
-            'se_id' => input('post.se_id'),
-            'cellphone' => input('post.cellphone'),
-            'birthday' => input('post.birthday'),
-            'entry_time' => input('post.entrytime'),
-            'resume' => input('post.resume'),
-            'identity_card' => input('post.id_card'),
+            'sex' => input('post.sex/d',1),
+            'se_id' => input('post.se_id/d'),
+            'cellphone' => input('post.cellphone/s'),
+            'birthday' => input('post.birthday/d'),
+            'entry_time' => input('post.entrytime/d'),
+            'resume' => input('post.resume/s'),
+            'identity_card' => input('post.id_card/s'),
         ];
         $validate = new TeachersValidate();
         if (!$validate->scene('edit')->check($data)) {
@@ -103,6 +104,7 @@ class Teacher extends BaseController
         }
         Db::startTrans();
         try{
+
             $salary = input('salary');
             if (!isset($salary['basic_wages']) || !isset($salary['wages_type']) || !isset($salary['s_id']))
             {
@@ -118,14 +120,15 @@ class Teacher extends BaseController
             {
                 $this->return_data(0, '10000', '工资类型有误');
             }
-            $s_id = $salary['s_id'];
+            $s_id = intval($salary['s_id']);
             $courses_list = $salary['courses'];
-            //TeacherModel::update($data,['t_id'=>$data['t_id']]);
-            Db::name('teachers')->where('t_id', '=', $t_id)->update($data);
-            Db::name('teacher_salary')->where('s_id', '=', $s_id)->update(
-                ['basic_wages'=>$basic_wages],
-                ['wages_type'=>$wages_type]
-            );
+
+            // 更新教师基本信息
+            Db::name('teachers')->update($data);
+            // 更新教师基本工资
+            Db::name('teacher_salary')->where(['s_id'=>$s_id])->update(
+                ['basic_wages'=>$basic_wages,
+                'wages_type'=>$wages_type]);
             Db::name('teacher_salary')->where('s_id', '=', $s_id)->update(['basic_wages'=>$basic_wages, 'wages_type'=>$wages_type]);
             foreach ($courses_list as $k=>$v)
             {
@@ -140,7 +143,7 @@ class Teacher extends BaseController
                     'cur_id' => $v['cur_id'],
                     's_id' => $s_id
                 ];
-                $salary_id = db('teacher_salary_cur')->where(['s_id'=>$s_id, 'p_id'=>$v['p_id'], 'cur_id'=>$v['cur_id']])
+                $salary_id = db('teacher_salary_cur')->where(['s_id'=>$s_id, 'cur_id'=>$v['cur_id']])
                     ->value('id');
                 if (empty($salary_id))
                 {
@@ -154,6 +157,7 @@ class Teacher extends BaseController
             Db::commit();
             $this->return_data(1,0,'编辑教师成功');
         }catch (\Exception $e){
+            Db::rollback();
             $this->return_data(0,50000,$e->getMessage());
         }
     }

@@ -3,6 +3,9 @@ namespace app\index\controller;
 use think\Controller;
 use think\Exception;
 use app\index\model\Curriculums;
+
+
+
 class Currm extends BaseController
 {
 

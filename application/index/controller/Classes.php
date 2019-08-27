@@ -8,6 +8,8 @@
 namespace app\index\controller;
 use think\Controller;
 use think\Db;
+use Think\Exception;
+
 class Classes extends BaseController
 {
     /*
@@ -15,10 +17,13 @@ class Classes extends BaseController
      */
     public function addclasses()
     {
+        /*
+         * qiu jian de gu fu sheng gong.
+         */
         //$this->auth_get_token();
         //print_r(input('post.'));exit();
-        $cls_id = input('cls_id');
-        $stu_id = input('stu_id');
+//        $cur_id = input('cur_id');
+//        $stu_id = input('stu_id');
         $data = [
             'class_name' => input('class_name'),
             'class_count' => input('class_count'),
@@ -31,50 +36,104 @@ class Classes extends BaseController
             'update_time' => time(),
             'is_del' => 0,
         ];
+//        Db::startTrans();
+//        try {
+//            $validate = new \app\index\validate\Classes();
+//            if (!$validate->scene('add')->check($data)) {
+//                //为了可以得到错误码
+//                $error = explode('|', $validate->getError());
+//                $this->return_data(0, $error[1], $error[0]);
+//            }
+//            $res = add('erp2_classes', $data, 2);
+//            Db::commit();
+//            if ($res and !empty($cur_id)) {
+//                $data1 = [
+//                    'cls_id' => $res,
+//                    'cur_id' => $cur_id,
+//                ];
+//                $res1 = add('erp2_class_cur', $data1, 1);
+//                //$res1 =    Db::table('erp2_class_cur')->insertAll($aa2);
+//                if ($res1) {
+//                    $aa1 = [];
+//                    if (!empty($stu_id)) {
+//                        foreach ($stu_id as $k => &$v) {
+//                            $aa['stu_id'] = $v;
+//                            $aa['class_id'] = $res;
+//                            $aa['is_del'] = 0;
+//                            $aa1[] = $aa;
+//                        }
+//                    }
+//                    $res2 = Db::table('erp2_class_student_relations')->insertAll($aa1);
+//                    //$asss = Db::table('erp2_class_student_relations')->getLastSql();
+//                    if ($res2) {
+//                        $this->return_data(1, 0, '添加成功');
+//                    } else {
+//                        $this->return_data(0, 10000, '操作失败1');
+//                    }
+//                } else {
+//                    $this->return_data(0, 10000, '操作失败2');
+//                }
+//            } else {
+//                $this->return_data(0, 10000, '操作失败3');
+//            }
+//        } catch (\Exception $e) {
+//            // 回滚事务
+//            Db::rollback();
+//            $this->return_data(0, 50000, $e->getMessage());
+//        }
+        /*wo bu xiang kan shang mian de dai ma*/
+        $cur_id = input('cls_id/d');
+        $stu_id_list = input('stu_id');
+
+        $data = [
+            'class_name' => input('class_name'),
+            'class_count' => input('class_count'),
+            'headmaster' => input('headmaster'),
+            'remarks' => input('remarks'),
+            'orgid' => ret_session_name('orgid'),
+            'manager' => ret_session_name('uid'),
+            'status' => 1,
+            'create_time' => time(),
+            'update_time' => time(),
+            'is_del' => 0,
+        ];
+        $validate = new \app\index\validate\Classes();
+        if (!$validate->scene('add')->check($data))
+        {
+            $errors = $validate->getError();
+            $this->return_data(0, $errors[1], $errors[0]);
+        }
         Db::startTrans();
-        try {
-            $validate = new \app\index\validate\Classes();
-            if (!$validate->scene('add')->check($data)) {
-                //为了可以得到错误码
-                $error = explode('|', $validate->getError());
-                $this->return_data(0, $error[1], $error[0]);
+        try
+        {
+            $cls_id = Db::name('classes')->insertGetId($data);
+            if (!$cls_id)
+            {
+                $this->return_data(0, '20001', '操作失败');
             }
-            $res = add('erp2_classes', $data, 2);
-            Db::commit();
-            if ($res) {
-                $data1 = [
-                    'cls_id' => $res,
-                    'cur_id' => $cls_id,
+            if (!empty($cur_id))
+            {
+                Db::name('class_cur')->insert(['cur_id' => $cur_id, 'cls_id' => $cls_id]);
+            }
+            $in_data = [];
+            for ($i = 0; $i < count($stu_id_list); $i++)
+            {
+                $stu_id = $stu_id_list[$i];
+                $in_data[$i] = [
+                  'class_id' => $cls_id,
+                  'stu_id' => $stu_id
                 ];
-                $res1 = add('erp2_class_cur', $data1, 1);
-                //$res1 =    Db::table('erp2_class_cur')->insertAll($aa2);
-                if ($res1) {
-                    $aa1 = [];
-                    if (!empty($stu_id)) {
-                        foreach ($stu_id as $k => &$v) {
-                            $aa['stu_id'] = $v;
-                            $aa['class_id'] = $res;
-                            $aa['is_del'] = 0;
-                            $aa1[] = $aa;
-                        }
-                    }
-                    $res2 = Db::table('erp2_class_student_relations')->insertAll($aa1);
-                    //$asss = Db::table('erp2_class_student_relations')->getLastSql();
-                    if ($res2) {
-                        $this->return_data(1, 0, '添加成功');
-                    } else {
-                        $this->return_data(0, 10000, '操作失败1');
-                    }
-                } else {
-                    $this->return_data(0, 10000, '操作失败2');
-                }
-            } else {
-                $this->return_data(0, 10000, '操作失败3');
             }
-        } catch (\Exception $e) {
-            // 回滚事务
+            if (!empty($in_data))
+            {
+                Db::name('class_student_relations')->insertAll($in_data);
+            }
+            Db::commit();
+            $this->return_data(1, '', '', '添加成功');
+        }catch (Exception $e)
+        {
             Db::rollback();
-            $this->return_data(0, 50000, $e->getMessage());
+            $this->return_data(0, '50000', '操作失败' . $e->getMessage());
         }
     }
 

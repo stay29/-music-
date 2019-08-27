@@ -206,7 +206,7 @@ class Purchase extends BaseController
     /*
      * 销售员列表
      */
-    public function sale_mans_index()
+    public function mans_index()
     {
         $org_id = input('orgid/d', '');
         if (is_empty($org_id))
@@ -224,7 +224,7 @@ class Purchase extends BaseController
     /*
      * 删除销售员
      */
-    public function sale_mans_del()
+    public function mans_del()
     {
         $sm_id = input('sm_id/d', '');
         if(is_empty($sm_id))
@@ -238,7 +238,7 @@ class Purchase extends BaseController
     /*
      * 修改销售员
      */
-    public function sale_mans_edit()
+    public function mans_edit()
     {
         $data = [
             'sm_id' => input('sm_id/d', ''),
@@ -264,7 +264,7 @@ class Purchase extends BaseController
     /*
      * 添加销售员
      */
-    public function sale_mans_add()
+    public function mans_add()
     {
         $data = [
             'sm_id' => input('sm_id/d', ''),
@@ -294,7 +294,7 @@ class Purchase extends BaseController
     /*
      * 销售员离职
      */
-    public function sale_mans_departure()
+    public function mans_departure()
     {
         $sm_id = input('sm_id/d', '');
         if(empty($sm_id))
@@ -315,7 +315,7 @@ class Purchase extends BaseController
     /*
      * 销售员复职
      */
-    public function sale_mans_recovery()
+    public function mans_recovery()
     {
         $sm_id = input('sm_id/d', '');
         if(empty($sm_id))
@@ -334,7 +334,7 @@ class Purchase extends BaseController
     /*
      * 商品列表
      */
-    public function goods_index()
+    public function index()
     {
 
     }
@@ -342,7 +342,7 @@ class Purchase extends BaseController
     /*
      * 添加商品
      */
-    public function goods_add()
+    public function add()
     {
         $data = input('post');
         try{
@@ -363,7 +363,7 @@ class Purchase extends BaseController
     /*
      * 删除商品
      */
-    public function goods_del()
+    public function del()
     {
         $goods_id = input('goods_id', '');
         if(empty($goods_id))
@@ -388,7 +388,7 @@ class Purchase extends BaseController
     /*
      * 修改商品
      */
-    public function goods_edit()
+    public function edit()
     {
         $data = input('post');
         try{
@@ -409,7 +409,7 @@ class Purchase extends BaseController
     /*
      * 商品入库
      */
-    public function goods_storage()
+    public function storage()
     {
         $goods_id = input('goods_id/d', '');
         $goods_num = input('goods_num/d', '');
@@ -472,13 +472,13 @@ class Purchase extends BaseController
     /*
      * 商品出库
      */
-    public function goods_checkout()
+    public function checkout()
     {
         $goods_id = input('goods_id/d', '');
         $dep_num = input('dep_num/d', '');
         $dep_price = input('dep_price', '');
         $dep_time = input('dep_time/d', time());
-        $remarks = input('remarks/s', '');
+        $remarks = input('remark/s', '');
         if (is_empty($goods_id, $dep_num, $dep_price))
         {
             $this->return_data(0, '10000', '缺少参数', '');
@@ -526,18 +526,24 @@ class Purchase extends BaseController
     /*
      * 商品销售
      */
-    public function goods_sale()
+    public function sale()
     {
-        $goods_id = input('goods_id/d', '');
+        $goods_id = input('goods_id/d', '');  // 商品id
         $sman_type = input('sman_type/d', ''); //销售员类型, 1销售员,2老师
         $sman_id = input('sman_id/d', ''); // 销售员id或教师id
         $sale_obj_type = input('sale_obj_type', ''); // 销售对象,1学生2其他
         $sale_obj_id = input('sale_obj_id', ''); // 学生id, 或其他则为0
         $pay_id = input('pay_id/d', ''); // 支付方式
+        $sale_num = input('sale_num/d', ''); // 销售数量
+        $single_price = input('single_price/f', 0.0);   // 单价
+        $sum_payable = input('sum_payable/f', 0.0);     // 应付金额
         $remark = input('remark/s', ''); // 备注
         $sale_time = input('sale_time/d', time()); // 销售时间
-        $create_time = time();
-        $update_time = time();
+        $pay_amount = input('pay_amount/f', 0.00);  // 实付金额
+
+        $create_time = time();      // 创建时间
+        $update_time = time();      // 更新时间
+        $sale_code = random_code();  // 销售单号
         if (is_empty($goods_id, $sman_type, $sman_id, $sale_obj_type, $sale_obj_id, $pay_id))
         {
             $this->return_data(0, '10000', '缺少必填参数');
@@ -545,15 +551,69 @@ class Purchase extends BaseController
         Db::startTrans();
         try
         {
-            $sale_data = [];
-
-
-
-            Db::name('goods');
+            $sale_data = [
+                'goods_id' => $goods_id,
+                'sale_code'    => $sale_code,
+                'sman_type'     => $sman_type,
+                'sman_id'  => $sman_id,
+                'sale_num'  => $sale_num,
+                'sale_obj_type' => $sale_obj_type,
+                'sale_obj_id'  => $sale_obj_id,
+                'single_price' => $single_price,
+                'sum_payable' => $sum_payable,
+                'pay_amount' => $pay_amount,
+                'pay_id' => $pay_id,
+                'sale_time' => $sale_time,
+                'remark' => $remark,
+                'create_time' => $create_time,
+                'update_time' => $update_time,
+            ];
+            Db::name('goods_sale_log')->insert($sale_data);
+            $sku_num = Db::name('goods_sku')->where('goods_id', '=', $goods_id)->value('sku_num');
+            $sku_num -= $sale_num;
+            Db::name('goods_sale_log')->where('goods_id', '=', $goods_id)->update(['sku_num' => $sku_num]);
+            Db::commit();
         }catch (Exception $e)
         {
             Db::rollback();
             $this->return_data(0, '10000', '系统出错，销售失败');
+        }
+    }
+
+    /*
+     * 商品租凭
+     */
+    function rental()
+    {
+        $goods_id = input('goods_id/d', ''); // 商品id
+        $rent_code = random_code();
+        $rent_margin = input('rent_margin/f', ''); //租凭押金
+        $rent_type = input('rent_type/d', 0);   // 租凭类型
+        $rent_amount = input('rent_amount/f', ''); // 租凭金额
+        $rent_num = input('rent_num/d', ''); // 租凭数量
+        $prepaid_rent = input('prepaid_rent/f', ''); // 预付租金
+        $rent_obj_type = input('rent_obj_type/d', ''); // 租凭对象类型
+        $rent_obj_id = input('rent_obj_id/d', ''); // 租凭对象id
+        $start_time = input('start_time/d', '');  // 租凭开始时间
+        $end_time = input('end_time/d', '');  // 租凭结束时间
+        $pay_id = input('pay_id/d', ''); // 支付方式id
+        $remark = input('remark/s', ''); // 租凭备注
+        $create_time = time();
+        $update_time = time();
+        if (is_empty($goods_id, $rent_margin, $rent_type,
+            $rent_amount, $rent_num, $prepaid_rent, $rent_obj_type, $rent_obj_id,
+            $start_time, $end_time, $end_time, $pay_id))
+        {
+            $this->return_data(0, '10000', '缺少参数');
+        }
+        Db::startTrans();
+        try
+        {
+
+        }catch (Exception $e)
+        {
+            Db::rollback();
+            $this->return_data(0, '50000', '租凭失败');
         }
     }
 }
