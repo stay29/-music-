@@ -13,7 +13,9 @@ use think\Controller;
 use think\Db;
 use think\db\Where;
 use think\Exception;
-use think\Log;
+use think\helper\Str;
+use think\facade\Log;
+
 
 trait Response
 {
@@ -78,23 +80,26 @@ class Teacher extends BaseController
     public function edit(){
         $t_id = input('post.t_id/d', '');
         $org_id = input('post.orgid/d', '');
+
         if (empty($t_id) || empty($org_id))
         {
             $this->return_data(0, '10000', '缺少orgid或者t_id');
         }
-        $t_id = intval($t_id);
+
         $data = [
             't_id'  => $t_id,
             'org_id' => $org_id,
             't_name' => input('post.t_name/s'),
-            'avator' => input('post.avator'),
+            'avator' => input('post.avator', ''),
             'sex' => input('post.sex/d',1),
-            'se_id' => input('post.se_id/d'),
-            'cellphone' => input('post.cellphone/s'),
-            'birthday' => input('post.birthday/d'),
-            'entry_time' => input('post.entrytime/d'),
-            'resume' => input('post.resume/s'),
-            'identity_card' => input('post.id_card/s'),
+            'se_id' => input('post.se_id/d', ''),
+            'cellphone' => input('post.cellphone/s', ''),
+            'birthday' => input('post.birthday/d', 0),
+            'entry_time' => input('post.entrytime/d', 0),
+            'resume' => input('post.resume/s', ''),
+            'identity_card' => input('post.id_card/s', ''),
+            'manager' => input('post.uid/d', 1),
+            'update_time' => time(),
         ];
         $validate = new TeachersValidate();
         if (!$validate->scene('edit')->check($data)) {
@@ -105,13 +110,13 @@ class Teacher extends BaseController
         Db::startTrans();
         try{
 
-            $salary = input('salary');
+            $salary = input('post.salary');
             if (!isset($salary['basic_wages']) || !isset($salary['wages_type']) || !isset($salary['s_id']))
             {
                 $this->return_data('0', '10000', '缺少basic_wages或wages_type或s_id');
             }
-            $basic_wages = $salary['basic_wages'];
-            $wages_type = $salary['wages_type'];
+            $basic_wages = floatval($salary['basic_wages']);
+            $wages_type = floatval($salary['wages_type']);
             if(!is_numeric($basic_wages) || $basic_wages < 0)
             {
                 $this->return_data(0, '10000', '基本工资参数有误');
@@ -120,16 +125,29 @@ class Teacher extends BaseController
             {
                 $this->return_data(0, '10000', '工资类型有误');
             }
-            $s_id = intval($salary['s_id']);
+            $s_id = $salary['s_id'];
             $courses_list = $salary['courses'];
 
-            // 更新教师基本信息
-            Db::name('teachers')->update($data);
+            Log::write('更新教师' . $t_id . '数据:' . json_encode($data));
+            $res = Db::name('teachers')->where('t_id', '=', $t_id)->update($data);
+            if (!$res)
+            {
+                Db::rollback();
+                Log::write('更新教师信息失败');
+                $this->return_data(0, '20003', '更新失败');
+            }
             // 更新教师基本工资
-            Db::name('teacher_salary')->where(['s_id'=>$s_id])->update(
-                ['basic_wages'=>$basic_wages,
-                'wages_type'=>$wages_type]);
-            Db::name('teacher_salary')->where('s_id', '=', $s_id)->update(['basic_wages'=>$basic_wages, 'wages_type'=>$wages_type]);
+            $res = Db::name('teacher_salary')->where(['s_id' => $s_id])->update([
+                'basic_wages' => $basic_wages,
+                'wages_type' => $wages_type,
+                'update_time' => time()
+            ]);
+            if (!$res)
+            {
+                Db::rollback();
+                Log::write("更新教师基本薪酬失败");
+                $this->return_data(0, '20003', '更新失败');
+            }
             foreach ($courses_list as $k=>$v)
             {
                 if (!isset($v['cur_id']) || !isset($v['p_id']) || !isset($v['p_num']))
@@ -147,12 +165,13 @@ class Teacher extends BaseController
                     ->value('id');
                 if (empty($salary_id))
                 {
-                    db('teacher_salary_cur')->insert($d);
+                    Db::name('teacher_salary_cur')->insert($d);
                 }
                 else
                 {
-                    db('teacher_salary_cur')->where('id', '=', $salary_id)->update($d);
+                    Db::name('teacher_salary_cur')->where('id', '=', $salary_id)->update($d);
                 }
+                unset($d);
             }
             Db::commit();
             $this->return_data(1,0,'编辑教师成功');
@@ -173,21 +192,39 @@ class Teacher extends BaseController
         {
             $this->return_data(0, '10000', '缺少t_id或orgid');
         }
+        Db::startTrans();
         try {
-            $tmp = db('teach_schedules')->field('t_id')->where('t_id' ,'=', $t_id)->select();
+            $tmp = Db::name('teach_schedules')->field('t_id')->where('t_id' ,'=', $t_id)->select();
+            Log::write("删除教师课表");
             if(count($tmp) > 0)
             {
                 $this->return_data(0,'20003', '已排课，删除失败');
             }
+            Db::name('cur_teacher_relations')->where('t_id', '=', $t_id)->delete();
+            Log::write("删除教师课程关联表");
+            $s_id = Db::name('teacher_salary')->where('t_id', '=', $t_id)->value('s_id');
+            if(!$s_id)
+            {
+                Log::write("删除教师课程薪酬");
+                Db::name('teacher_salary_cur')->where('s_id', '=', $s_id)->delete();
+            }
+            Log::write('删除教师班级关联表:');
+            Db::name('classes_teachers_realations')->where('t_id', '=', $t_id)->delete();
+            Log::write("删除班级教师关联");
+            Db::name('teacher_salary')->where('t_id')->delete();
+            Log::write("删除教师薪酬");
             $where[] = ['t_id', '=', $t_id];
             $where[] = ['org_id', '=', $org_id];
             $where[] = ['is_del', '=', 0];
-            db('teachers')->where($where)->update(['is_del'=>1]);
+            Db::name('teachers')->where($where)->delete();
+            Log::write("删除教师");
+            Db::commit();
             $this->return_data(1, '','删除教师成功',true);
 
         }catch (Exception $e)
         {
-            $this->return_data(0, '20003', '删除教师失败');
+            Db::rollback();
+            $this->return_data(0, '20003', '删除教师失败'.$e->getMessage());
         }
     }
 
@@ -362,7 +399,7 @@ class Teacher extends BaseController
                 db('cur_teacher_relations')->data($data)->insert();
             }
             // 添加教师薪酬ID
-            Db::name('teacher_salary')->insert(['t_id'=>$t_id]);
+            Db::name('teacher_salary')->insert(['t_id'=>$t_id, 'create_time'=>time()]);
             $this->return_data(1,0,'教师新增成功', true);
         }catch (\Exception $e){
 

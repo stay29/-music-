@@ -218,4 +218,11 @@ function random_code()
 }
 
 
+/*
+ * 数组转字符
+ */
 
+function arr2str()
+{
+
+}

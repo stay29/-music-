@@ -8,11 +8,9 @@
  */
 
 namespace app\index\controller;
-
-
-use think\Controller;
 use think\Db;
 use think\Exception;
+use think\facade\Log;
 
 use app\index\model\Goods as GoodsModel;
 use app\index\validate\Goods as GoodsValidate;
@@ -57,7 +55,7 @@ final class Categories
 }
 
 
-class Purchase extends BaseController
+class Goods extends BaseController
 {
     /*
      * 分类列表
@@ -65,6 +63,8 @@ class Purchase extends BaseController
     public function cate_index()
     {
         $org_id = input('orgid/d', '');
+        $page = input('page/d', 1);
+        $limit = input('limit/d', 20);
         if(empty($org_id))
         {
             $this->return_data(0,'1000', '缺少参数', false);
@@ -72,7 +72,13 @@ class Purchase extends BaseController
         $categories = db('goods_cate')->field('cate_id, cate_pid, cate_name')
             ->order('order, create_time DESC')->where('org_id', '=', $org_id)->select();
         $data = Categories::getIndexCate($categories);
-        $this->return_data(1, '', '请求成功', $data);
+        $response = [
+            'total' => count($data),
+            'per_page' => $limit,
+            'last_page' => ceil(count($data)/$limit),
+            'data' => array_slice($data, ($page-1)*$limit, $limit)
+        ];
+        $this->return_data(1, '', '请求成功', $response);
     }
 
     /*
@@ -167,11 +173,10 @@ class Purchase extends BaseController
         {
             $this->return_data(0, '10000', '缺少参数', false);
         }
-        $categories = db('goods_cate')->field('cate_id, cate_pid, cate_name')
-            ->order('order, create_time DESC')->where('org_id', '=', $org_id)->select();
+        $categories = db('goods_cate')->field('cate_id, cate_pid, cate_name')->
+            order('order, create_time DESC')->where('org_id', '=', $org_id)->select();
         $data = Categories::getSelectCate($categories);
         $this->return_data(1, '', '请求成功', $data);
-
     }
 
 
@@ -336,7 +341,84 @@ class Purchase extends BaseController
      */
     public function index()
     {
+        $org_id = input('orgid' , '');
+        $page = input('page/d', 1);
+        $limit = input('limit/d', 20);
+        $cate_id = input('cate_id/d', '');
+        $goods_name = input('goods_name/s', '');
+        if(empty($org_id))
+        {
+            $this->return_data(0, '10000', '缺少参数');
+        }
 
+        $db = db('goods_detail')->field('goods_id, goods_name, remarks,
+        unit_name, cate_id, goods_amount');
+        if (!empty($cate_id))
+        {
+            $db->where('cate_id', '=', $cate_id);
+        }
+        if(!empty($goods_name))
+        {
+            $db->where('goods_name', 'like', '%' . $goods_name . '%');
+        }
+        $goods_list = $db->paginate($limit);
+        // 返回值
+        $response = [
+            'total' => $goods_list->total(),
+            'per_page' => $limit,
+            'current_page' => $goods_list->currentPage(),
+            'last_page' => $goods_list->lastPage(),
+            'data' => array(),
+        ];
+
+        try
+        {
+            foreach ($goods_list as $goods)
+            {
+                $goods_id = $goods['goods_id'];
+                // 分类名称
+                $goods['cate_name'] = db('goods_cate')->where(['cate_id'=>$goods['cate_id']])
+                    ->value('cate_name');
+
+//            // 入库均价
+//            $avg_sql ="SELECT (sum(sto_num*sto_single_price)/sum(sto_num))
+//                        as avg_sto_price FROM erp2_goods_storage WHERE goods_id={$goods['goods_id']}";
+                // 入库总量
+                $sto_total_num = db('goods_storage')->where(['goods_id'=>$goods_id])->sum('sto_num');
+                // 入库总额
+                $sto_total_money = db('goods_storage')->where(['goods_id' => $goods_id])->sum('sto_num * sto_single_price');
+                // 入库平均单价
+                $sto_avg_money = $sto_total_money / $sto_total_num;
+
+                // 出库总量
+                $dep_total_num = db('goods_deposit')->where(['goods_id'=>$goods_id])->sum('dep_num');
+                // 出库总额
+                $dep_total_money = db('goods_deposit')->where(['goods_id'=>$goods_id])->sum('dep_price*dep_num');
+                // 出库均价
+                $dep_total_price = $dep_total_money / $dep_total_num;
+                // 销售总额
+                $sale_total_money = db('goods_sale_log')->where(['goods_id'=>$goods_id])->sum('sale_num*single_price');
+                // 商品库存
+                $goods['goods_sku'] = db('goods_sku')->where(['goods_id'=>$goods_id])->value('sku_num');
+
+                $goods['sto_total_num'] = $sto_total_num;
+                $goods['sto_total_money'] = $sto_total_money;
+                $goods['sto_avg_money'] = $sto_avg_money;
+
+                $goods['dep_total_price'] = $dep_total_price;
+                $goods['dep_total_num'] = $dep_total_num;
+                $goods['dep_avg_money'] = $sto_avg_money;
+
+                $goods['sale_total_money'] = $sale_total_money;
+                $response['data'][] = $goods;
+                unset($goods);
+            }
+            $this->return_data(1, '', '请求成功');
+        }catch (Exception $e)
+        {
+            Log::write($e->getMessage());
+            $this->return_data(0, '50000', '系统出错');
+        }
     }
 
     /*
@@ -356,6 +438,7 @@ class Purchase extends BaseController
             $goods->save();
         }catch (Exception $e)
         {
+            Log::write($e->getMessage());
             $this->return_data(0, '50000', '系统错误');
         }
     }
@@ -424,7 +507,7 @@ class Purchase extends BaseController
         {
             $this->return_data(0, '10000', '商品数量和价格必须大于0');
         }
-        if (strlen($goods_remark) > 200)
+        if (strlen($remark) > 200)
         {
             $this->return_data(0, '10000', '备注不能超过200字符');
         }
