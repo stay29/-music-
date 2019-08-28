@@ -29,7 +29,8 @@ class Eepauth extends BaseController
              $vs['pidinfo'] = selects('erp2_user_accesses',$c);
          }
         }
-        $this->return_data(1,0,'全部节点',$res);
+        $this->returnData($res, '全部节点');
+//        $this->return_data(1,0,'全部节点',$res);
     }
 
 
@@ -61,12 +62,13 @@ class Eepauth extends BaseController
                     $info = add('erp2_user_role_relations',$data2,2);
             }
             if($info){
-                $this->return_data(1,0,'操作成功');
+                $this->returnData(1, '添加成功');
+//                $this->return_data(1,0,'操作成功');
             }else{
-                 $this->return_data(0,10000,'操作失败');
+                 $this->returnError(10000,'操作失败');
              }
          }else{
-             $this->return_data(0,10000,'操作失败');
+             $this->returnError(10000,'操作失败');
          }
     }
 
@@ -87,11 +89,8 @@ class Eepauth extends BaseController
             $v['aidinfo'] = finds('erp2_user_accesses',$c);
         }
         $res['authlist'] = $authlist;
-        $this->return_data(1,0,$res);
+        $this->returnData($res, '');
     }
-
-
-
 
 }
 

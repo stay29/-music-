@@ -45,9 +45,11 @@ class Currm extends BaseController
         $where[] = ["orgid",'=',"$orgid"];
         try{
         $res = Curriculums::getall($limit,$where);
-        $this->return_data(1,0,$res);
+//        $this->return_data(1,0,$res);
+        $this->returnData($res, '请求成功');
         }catch (\Exception $e){
-            $this->return_data(0,50000,$e->getMessage());
+            $this->returnError(50000, $e->getMessage());
+//            $this->return_data(0,50000,$e->getMessage());
         }
     }
 
@@ -61,13 +63,16 @@ class Currm extends BaseController
         if(!$validate->scene('add')->check($data)){
             //为了可以得到错误码
             $error = explode('|',$validate->getError());
-            $this->return_data(0,$error[1],$error[0]);
+            $this->returnError($error[1], $error[0]);
+//            $this->return_data(0,$error[1],$error[0]);
         }
         try{
             $res = Curriculums::addcurrl($data);
-            $this->return_data(1,0,'添加成功');
+            $this->returnData($res, '添加成功');
+//            $this->return_data(1,0,'添加成功');
         }catch (\Exception $e){
-            $this->return_data(0,50000,$e->getMessage());
+            $this->returnError(50000, $e->getMessage());
+//            $this->return_data(0,50000,$e->getMessage());
         }
  	}
 
@@ -81,13 +86,16 @@ class Currm extends BaseController
         if(!$validate->scene('edit')->check($data)){
             //为了可以得到错误码
             $error = explode('|',$validate->getError());
-            $this->return_data(0,$error[1],$error[0]);
+//            $this->return_data(0,$error[1],$error[0]);
+            $this->returnError($error[1], $error[0]);
         }
         try{
             $res = Curriculums::editcurrm($currid,$data);
-            $this->return_data(1,0,'修改成功');
+            $this->returnData($res, '修改成功');
+//            $this->return_data(1,0,'修改成功');
         }catch (\Exception $e){
-            $this->return_data(0,50000,$e->getMessage());
+            $this->returnError(50000, $e->getMessage());
+//            $this->return_data(0,50000,$e->getMessage());
         }
     }
 
@@ -99,13 +107,16 @@ class Currm extends BaseController
         $where['cur_id'] = input('cur_id');
         $data['is_del'] = 1;
         if($where==null){
-            $this->return_data(0,10000,'缺少参数');
+            $this->returnError(10000, '缺少参数');
+//            $this->return_data(0,10000,'缺少参数');
         }
         $res = Curriculums::delcurrl($where,$data);
         if($res){
-        $this->return_data(1,0,'删除成功');
+//        $this->return_data(1,0,'删除成功');
+        $this->returnData($res, '删除成功');
         }else{
-        $this->return_data(0,20003,'操作失败');
+            $this->returnError(20003, '操作失败');
+//        $this->return_data(0,20003,'操作失败');
         }
     }
 
@@ -115,7 +126,8 @@ class Currm extends BaseController
     {
         $currid['cur_id'] =   input('cur_id');
         $res = Curriculums::getcurrmone($currid);
-        $this->return_data(1,0,$res);
+//        $this->return_data(1,0,$res);
+        $this->returnData($res, '操作成功');
     }
 
 
@@ -124,7 +136,8 @@ class Currm extends BaseController
         $this->auth_get_token();
         $currid  =   input('cur_id');
         if(empty($currid)){
-               $this->return_data(0,10000,'请选中数据在提交');
+//            $this->returnError(10000, '缺少参数');
+//               $this->return_data(0,10000,'请选中数据在提交');
         }
         $where['orgid'] = session(md5(MA.'user'))['orgid'];
         $data2['popular'] = 2;
@@ -135,9 +148,11 @@ class Currm extends BaseController
             $res = Curriculums::where('cur_id',$cid)->update($data);
         }
         if($res){
-            $this->return_data(1,0,'设置成功');
+            $this->returnData(1, '设置成功');
+//            $this->return_data(1,0,'设置成功');
         }else{
-            $this->return_data(0,50000,'设置失败');
+//            $this->return_data(0,50000,'设置失败');
+            $this->returnError(50000, '删除失败');
         }
     }
 
@@ -147,7 +162,7 @@ class Currm extends BaseController
     {
         $res =  $this->get_ret_img_update('img','./upload/currm/');
         $imgpath = './upload/currm/'.$res;
-        $this->return_data(1,0,$imgpath);
+        $this->returnData($imgpath, '');
     }
 
     //删除图片
@@ -157,9 +172,9 @@ class Currm extends BaseController
         $res = file_exists($oldig);
         if($res){
             unlink($oldig);
-            $this->return_data(1,0,'删除成功');
+            $this->returnData(1,'删除成功');
         }else{
-            $this->return_data(0,50000,'删除失败');
+            $this->returnError(50000,'删除失败');
         }
     }
     //全部搜索课程列表
@@ -177,9 +192,11 @@ class Currm extends BaseController
         try{
             $res = Curriculums::get_all($where);
             //print_r($res);exit();
-            $this->return_data(1,0,'返回成功',$res);
+            $this->returnData($res, '操作成功');
+//            $this->return_data(1,0,'返回成功',$res);
         }catch (\Exception $e){
-            $this->return_data(0,50000,$e->getMessage());
+            $this->returnError(50000, $e->getMessage());
+//            $this->return_data(0,50000,$e->getMessage());
         }
     }
 }

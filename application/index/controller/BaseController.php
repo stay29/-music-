@@ -116,6 +116,36 @@ class BaseController extends Controller
         exit();
     }
 
+    /*
+     * 请求成功返回数据
+     */
+    public function returnData($data='', $info='')
+    {
+        $response = [
+            'status' => true,
+            'sinfo' => $info,
+            'data' => $data,
+            'error_code' => ''
+        ];
+        echo json_encode($response);
+        exit();
+    }
+
+    /*
+     * 请求失败，返回错误信息
+     */
+    public function returnError($code='', $error_msg='')
+    {
+        $response = [
+            'status' => false,
+            'error_code' => $code,
+            'data' => '',
+            'error_msg' => $error_msg
+        ];
+        echo json_encode($response);
+        exit();
+    }
+
     public function sendMessage($phone,$msg,$sendtime='',$port='', $needstatus=''){
         $username = "zihao2"; //在这里配置你们的发送帐号
         $passwd = "JBZ992888";    //在这里配置你们的发送密码

@@ -101,7 +101,7 @@ class Classes extends BaseController
         if (!$validate->scene('add')->check($data))
         {
             $errors = $validate->getError();
-            $this->return_data(0, $errors[1], $errors[0]);
+            $this->returnError($errors[1], $errors[0]);
         }
         Db::startTrans();
         try
@@ -109,7 +109,7 @@ class Classes extends BaseController
             $cls_id = Db::name('classes')->insertGetId($data);
             if (!$cls_id)
             {
-                $this->return_data(0, '20001', '操作失败');
+                $this->returnError('20001', '操作失败');
             }
             if (!empty($cur_id))
             {
@@ -129,11 +129,11 @@ class Classes extends BaseController
                 Db::name('class_student_relations')->insertAll($in_data);
             }
             Db::commit();
-            $this->return_data(1, '', '', '添加成功');
+            $this->returnData('', '添加成功');
         }catch (Exception $e)
         {
             Db::rollback();
-            $this->return_data(0, '50000', '操作失败' . $e->getMessage());
+            $this->returnError('50000', '操作失败');
         }
     }
 
@@ -165,7 +165,7 @@ class Classes extends BaseController
             $v['cheadmaster'] = count($cheadmaster);
         }
         $res_list = $this->array_page_list_show($limit, $page, $res, 1);
-        $this->return_data(1, 0, $res_list);
+        $this->returnData($res_list, '');
     }
 
     //数组分页方法
@@ -196,9 +196,9 @@ class Classes extends BaseController
         ];
         $res = edit('erp2_classes', $where, $data);
         if ($res) {
-            $this->return_data(1, 0, '修改成功');
+            $this->returnData( '', '修改成功');
         } else {
-            $this->return_data(0, 10000, '修改失败');
+            $this->returnError(20003, '修改失败');
         }
     }
 
@@ -217,9 +217,9 @@ class Classes extends BaseController
         $a = del('erp2_class_student_relations', $where);
         $b = Db::table('erp2_class_student_relations')->insertAll($arr);
         if ($b) {
-            $this->return_data(1, 0, '修改成功');
+            $this->returnData( '', '修改成功');
         } else {
-            $this->return_data(0, 10000, '修改失败');
+            $this->returnError(20003, '修改失败');
         }
     }
 
@@ -230,9 +230,9 @@ class Classes extends BaseController
         $data['cur_id'] = input('cur_id');
         $res = edit('erp2_class_cur', $where, $data);
         if ($res) {
-            $this->return_data(1, 0, '修改成功');
+            $this->returnData( '', '修改成功');
         } else {
-            $this->return_data(0, 10000, '修改失败');
+            $this->returnError(20003, '修改失败');
         }
     }
 
@@ -243,16 +243,16 @@ class Classes extends BaseController
         $where['class_id'] = input('class_id');
         $res = edit('erp2_classes', $where, $data);
         if ($res) {
-            $this->return_data(1, 0, '修改成功');
+            $this->returnData( '', '修改成功');
         } else {
-            $this->return_data(0, 10000, '修改失败');
+            $this->returnError(20003, '修改失败');
         }
     }
 
     public function get_teacher_list()
     {
         $res = select_find('erp2_teachers', ['org_id' => input('orgid'), 'status' => 1, 'is_del' => 0], 't_id,t_name');
-        $this->return_data(1, 0, $res);
+        $this->returnData($res, '请求成功');
     }
 
     public function get_student_list()
@@ -262,7 +262,7 @@ class Classes extends BaseController
         foreach ($res as $k => &$v) {
             $v['f'] = false;
         }
-        $this->return_data(1, 0, $res);
+        $this->returnData($res, '请求成功');
     }
 
     public function get_fl_currlist()
@@ -271,7 +271,8 @@ class Classes extends BaseController
         foreach ($res as $k => &$v) {
             $v['currlist'] = select_find('erp2_curriculums', ['subject' => $v['sid'], 'orgid' => input('orgid'), 'is_del' => 0], 'cur_id,cur_name');
         }
-        $this->return_data(1, 0, $res);
+//        $this->return_data(1, 0, $res);
+        $this->returnData($res, '请求成功');
     }
 
     public function get_stu_id()
@@ -279,7 +280,8 @@ class Classes extends BaseController
         $where['class_id'] = input('cls_id');
         $res['stulist'] = selects('erp2_class_student_relations', $where);
         $res['class_id'] = input('cls_id');
-        $this->return_data(1, 0, $res);
+//        $this->return_data(1, 0, $res);
+        $this->returnData($res, '请求成功');
     }
 
 
@@ -288,6 +290,7 @@ class Classes extends BaseController
         $where['t_id'] = input('t_id');
         $where['cur_id'] = input('cur_id');
         $res = Db::table('erp2_teach_schedules')->where($where)->select();
+        $this->returnData($res, '请求成功');
     }
 
 
