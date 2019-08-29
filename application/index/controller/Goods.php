@@ -16,6 +16,8 @@ use app\index\model\Goods as GoodsModel;
 use app\index\validate\Goods as GoodsValidate;
 
 
+
+
 final class Categories
 {
     /*
@@ -39,20 +41,8 @@ final class Categories
         }
         return $list;
     }
-
-    /*
-     * 返回添加或修改分类时的分类下拉框信息
-     */
-    static public function getSelectCate($items)
-    {
-        foreach ($items as $item)
-
-            $items[$item['cate_pid']]['son'][$item['cate_id']] = &$items[$item['cate_id']];
-
-        return isset($items[0]['son']) ? $items[0]['son'] : array();
-    }
-
 }
+
 
 
 class Goods extends BaseController
@@ -69,8 +59,16 @@ class Goods extends BaseController
         {
             $this->returnError(10000, '缺少参数');
         }
-        $categories = db('goods_cate')->field('cate_id, cate_pid, cate_name')
-            ->order('order, create_time DESC')->where('org_id', '=', $org_id)->select();
+        $categories_raw = db('goods_cate')->field('cate_id, cate_pid, cate_name')
+            ->order('order, create_time AES')->where('org_id', '=', $org_id)->select();
+        $categories = [];
+        foreach ($categories_raw as $v)
+        {
+            $cate_pname =  db('goods_cate')->
+                where('cate_id', '=', $v['cate_pid'])->value('cate_name');
+            $v['cate_pname'] = $cate_pname ? $cate_pname : '顶级分类';
+            $categories[] = $v;
+        }
         $data = Categories::getIndexCate($categories);
         $response = [
             'total' => count($data),
@@ -78,7 +76,7 @@ class Goods extends BaseController
             'last_page' => ceil(count($data)/$limit),
             'data' => array_slice($data, ($page-1)*$limit, $limit)
         ];
-        $this->return_data($response, '请求成功');
+        $this->returnData($response, '请求成功');
     }
 
     /*
@@ -152,15 +150,13 @@ class Goods extends BaseController
             $data = [
                 'cate_name' => $cate_name,
                 'cate_pid'  => $cate_pid,
-                'org_id'    => $org_id,
-                'order' => $order
             ];
-            Db::where(['org_id'=>$org_id, 'cate_id'=>$cate_id])->update($data);
+            Db::name("goods_cate")->where(['org_id'=>$org_id, 'cate_id'=>$cate_id])->update($data);
             Db::commit();
             $this->returnData( '', '修改成功');
         }catch (Exception $e)
         {
-            $this->returnError(20002, '修改失败');
+            $this->returnError(20002, '修改失败'.$e->getMessage());
         }
     }
 
@@ -174,10 +170,18 @@ class Goods extends BaseController
         {
             $this->return_data(0, '10000', '缺少参数', false);
         }
-        $categories = db('goods_cate')->field('cate_id, cate_pid, cate_name')->
+        $categories = db('goods_cate')->field('cate_id as id,  cate_pid, cate_name')->
             order('order, create_time DESC')->where('org_id', '=', $org_id)->select();
-        $data = Categories::getSelectCate($categories);
-        $this->returnData($data, '请求成功');
+        $data = getTree($categories);
+        $response = [
+            [
+                'id' => 0,
+                'cate_name' => '顶级分类',
+                'sub' => $data
+            ]
+        ];
+//        array_push($data, $top_cate);
+        $this->returnData($response, '请求成功');
     }
 
 
@@ -442,7 +446,7 @@ class Goods extends BaseController
         }catch (Exception $e)
         {
             Log::write($e->getMessage());
-            $this->return_data(0, '50000', '系统错误');
+            $this->returnError( '50000', '系统错误');
         }
     }
 
@@ -485,7 +489,7 @@ class Goods extends BaseController
                 $this->returnError( $error[0], $error[1]);
             }
             GoodsModel::update($data);
-            $this->return_data(1, '修改成功');
+            $this->returnData(1, '修改成功');
         }catch (Exception $e)
         {
             $this->returnError(50000, '系统出错');
@@ -520,7 +524,7 @@ class Goods extends BaseController
             $goods_id = Db::name('goods_detail')->where('goods_id', '=', $goods_id)->value('goods_id');
             if (empty($goods_id))
             {
-                $this->returnError('10000', '20001', '入库失败');
+                $this->returnError('20001', '入库失败');
             }
             $sku = Db::name('goods_sku')->where('goods_id', '=', $goods_id)->find();
             if (!empty($sku))
@@ -694,9 +698,35 @@ class Goods extends BaseController
         {
             $this->returnError(10000, '缺少参数');
         }
+        if ($rent_margin < 0 || $rent_amount < 0 || $prepaid_rent < 0)
+        {
+            $this->returnError(10000, '金额不能小于0');
+        }
         Db::startTrans();
         try
         {
+            $sku_num = db('goods_sku')->where(['goods_id'=>$goods_id])->value('sku_name');
+            $sku_num -= $rent_num;
+            Db::name('goods_sku')->where('goods_id')->
+                update(['sku_num'=>$sku_num, 'update_time'=>time()]);
+            $data = [
+                'goods_id' => $goods_id,
+                'rent_code' => $rent_code,
+                'rent_margin' => $rent_margin,
+                'rent_type' => $rent_type,
+                'rent_amount' => $rent_amount,
+                'rent_num' => $rent_num,
+                'prepaid_rent' => $prepaid_rent,
+                'rent_obj_type' => $rent_obj_type,
+                'rent_obj_id' => $rent_obj_id,
+                'start_time' => $start_time,
+                'end_time' => $end_time,
+                'pay_id' => $pay_id,
+                'remark' => $remark,
+                'create_time' => $create_time,
+                'update_time' => $update_time
+            ];
+            Db::name('goods_rental_log')->insert($data);
             $this->returnData(1, '租凭成功');
         }catch (Exception $e)
         {

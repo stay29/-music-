@@ -13,7 +13,7 @@ class Organization extends Validate
         'or_id'=>       'require',
         'or_name'  =>   'require|max:20|unique:Organizations',
         'telephone'  => 'require|max:11|mobile',
-        'wechat'  =>    'require|max:15',
+        'wechat'  =>    'require|min:5|max:20',
         'describe' =>   'require|max:500',
         'remarks' =>    'max:500',
         'address' =>    'require|max:128',
@@ -28,7 +28,8 @@ class Organization extends Validate
         'telephone.mobile'=>'手机号格式不正确|10001',
 //      'telephone.unique'=>'手机号已存在|20000',
         'wechat.require'=>'微信不得为空|10000',
-        'wechat.max'=>'微信长度不得大于15|10001' ,
+        'wechat.max'=>'微信号长度超过20字符|10001' ,
+        'wechat.min' => '微信号长度小于5字符|10001',
         'describe.require'=>'简介不得为空|10000',
         'describe.max'=>'简介字数不得大于500|10001',
         'remarks.max'=>'备注字数不得大于500|10001',
@@ -39,7 +40,7 @@ class Organization extends Validate
     // add验证场景定义
     public function sceneAdd()
     {
-        return $this->only(['or_name','wechat','telephone','describe','remarks','address','logo']);
+        return $this->only(['or_name','wechat','telephone','describe','remarks', 'address']);
     }
 
 

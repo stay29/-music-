@@ -123,8 +123,8 @@ class BaseController extends Controller
     {
         $response = [
             'status' => true,
-            'sinfo' => $info,
             'data' => $data,
+            'sinfo' => $info,
             'error_code' => ''
         ];
         echo json_encode($response);
