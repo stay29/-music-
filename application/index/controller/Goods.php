@@ -463,9 +463,18 @@ class Goods extends BaseController
         Db::startTrans();
         try
         {
-            // 删除产品和库存数据
-            Db::name('goods_detail')->where('goods_id', '=', $goods_id)->delete();
+            // 出库记录
+            Db::name('goods_deposit')->where('goods_id', '=', $goods_id)->delete();
+            // 租凭记录
+            Db::name('goods_rental_log')->where('goods_id', '=', $goods_id)->delete();
+            // 销售记录
+            Db::name('goods_sale_log')->where('goods_id', '=', $goods_id)->delete();
+            // 库存记录
             Db::name('goods_sku')->where('goods_id', '=', $goods_id)->delete();
+            // 入库记录
+            Db::name('goods_storage')->where('goods_id', '=', $goods_id)->delete();
+            // 商品记录
+            Db::name('goods_detail')->where('goods_id', '=', $goods_id)->delete();
             Db::commit();
             $this->returnData(1,  '删除成功');
         }catch (Exception $e)
