@@ -773,4 +773,134 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
     {
 
     }
+
+    /*
+     * 销售记录导出
+     */
+    public function sale_record_ept()
+    {
+
+    }
+
+    /*
+     * 入库记录导出
+     */
+    public function sto_record_ept()
+    {
+
+    }
+
+    /*
+     * 出库记录导出
+     */
+    public function dep_record_ept()
+    {
+
+    }
+
+    /*
+ * 销售统计表导出
+ */
+    public function sale_census_ept()
+    {
+
+        $cate_id = input('cate_id/d', ''); // 分类id
+        $org_id = input('orgid/d', ''); // 机构id
+        $sman_type = input('sman_type/d', ''); // 销售员类型, 1销售员, 2 老师
+        $time_type = input('time_type/d', ''); // 1日/2月/3年
+        $goods_name = input('goods_name/s', '');  // 商品名称
+        $start_time = input('start_time/d', ''); // 开始时间
+        $end_time = input('end_time/d', ''); // 结束时间
+//        $page = input('page/d', 1);
+//        $limit = input('limit/d', 20);
+        if (is_empty($org_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+        try{
+            $goods_db = db('goods_detail')->where('org_id', '=', $org_id);
+            if (!empty($goods_name))
+            {
+                $goods_db->where('goods_name', 'like', '%' . $goods_name . '%');
+            }
+            if ($cate_id)
+            {
+                $goods_db->where('cate_id', '=', $cate_id);
+            }
+            $goods_list = $goods_db->field('goods_id, cate_id, unit_name')->select();
+            $data = [];
+            foreach ($goods_list as $goods)
+            {
+                $goods_id =  $goods['goods_id'];
+                $goods_name = $goods['goods_name'];
+                $unit_name = $goods['unit_name'];
+//                $cate_name = db('goods_cate')->where('cate_id', '=', $cate_id)->value('cate_name');
+                $sale_db = db('goods_sale_log')->where('goods_id', '=', $goods_id);
+                if (!$sman_type)
+                {
+                    $sale_db->where('sman_type', '=', $sman_type);
+                }
+                if (!empty($start_time) and !empty($end_time))
+                {
+                    $sale_db->whereBetweenTime('sale_time', $start_time, $end_time);
+                }elseif ($time_type)
+                {
+                    if ($time_type == 1) {$sale_db->whereTime('sale_time', 'd');}
+                    elseif ($time_type == 2) {$sale_db->whereTime('sale_time', 'm');}
+                    elseif ($time_type == 3) {$sale_db->whereTime('sale_time', 'y');}
+                }
+                // 销售总额
+                $sale_total_money = $sale_db->sum('pay_amount');
+                // 销售数量
+                $sale_num = $sale_db->sum('sale_num');
+                // 入库总额
+                $sto_total_money = db('goods_storage')->where('goods_id', '=', $goods_id)
+                    ->sum('sto_num*sto_single_price');
+                // 入库数量
+                $sto_num = db('goods_storage')->where('goods_id', '=', $goods_id)
+                    ->sum('sto_num');
+                // 入库平均单价
+                $sto_single_price = $sto_total_money / $sto_num;
+                // 销售利润
+                $sale_profit = $sale_total_money - $sto_single_price * $sale_num;
+
+                $data[] = [
+                    'goods_name' => $goods_name,
+//                    'cate_name' => $cate_name,
+                    'unit_name' => $unit_name,
+//                    '$sale_total' => $sale_total_money,
+                    'sto_num'  => $sto_num,
+                    'sto_total'  => $sto_total_money,
+
+                    'sale_num' => $sale_num,
+                    'sale_total' => $sale_total_money,
+
+                    'sale_profit' => $sale_profit
+                ];
+            }
+            $xls_name  = "销售统计表";
+            $xls_cell = array(
+                array('goods_name', '商品名称'),
+                array('unit_name','单位名称'),
+                array('sto_num', '入库数量'),
+                array('sto_total', '入库总额'),
+                array('sale_num', '销售数量'),
+                array('sale_total', '销售总额'),
+                array('sale_profit', '销售利润'),
+            );
+            $this->exportExcel($xls_name, $xls_cell, $data);
+//            $response = [
+//                'current_page' => $page,
+//                'per_page' => $limit,
+//                'last_page' => (count($data) / $limit) +1,
+//                'total' => count($data),
+//                'data' => array_slice($data, ($page-1)*$limit, $limit)
+//            ];
+//            $this->returnData($response, '请求成功');
+        }catch (Exception $e)
+        {
+            $this->returnError(50000, '系统异常' . $e->getMessage());
+        }
+    }
+
 }

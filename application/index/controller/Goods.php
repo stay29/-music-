@@ -253,7 +253,7 @@ class Goods extends BaseController
         $data = [
             'sm_id' => input('sm_id/d', ''),
             'sm_name' => input('sm_name/s', ''),
-            'org_id' => input('org_id/d', ''),
+            'org_id' => input('orgid/d', ''),
             'sm_mobile' => input('sm_mobile', ''),
             'status' => input('status')
         ];
@@ -277,9 +277,9 @@ class Goods extends BaseController
     public function mans_add()
     {
         $data = [
-            'sm_id' => input('sm_id/d', ''),
+//            'sm_id' => input('sm_id/d', ''),
             'sm_name' => input('sm_name/s', ''),
-            'org_id' => input('org_id/d', ''),
+            'org_id' => input('orgid/d', ''),
             'sm_mobile' => input('sm_mobile', ''),
             'status' => input('status')
         ];
@@ -334,7 +334,7 @@ class Goods extends BaseController
         }
         try{
             db('salesmans')->where('sm_id', '=', $sm_id)->update(['status'=>1]);
-            $this->returnData(1, '', '复职成功');
+            $this->returnData(1, '复职成功');
         }catch (Exception $e)
         {
             log($e->getMessage());
@@ -346,6 +346,7 @@ class Goods extends BaseController
      */
     public function index()
     {
+
         $org_id = input('orgid' , '');
         $page = input('page/d', 1);
         $limit = input('limit/d', 20);
@@ -388,21 +389,32 @@ class Goods extends BaseController
 //            // 入库均价
 //            $avg_sql ="SELECT (sum(sto_num*sto_single_price)/sum(sto_num))
 //                        as avg_sto_price FROM erp2_goods_storage WHERE goods_id={$goods['goods_id']}";
+
                 // 入库总量
                 $sto_total_num = db('goods_storage')->where(['goods_id'=>$goods_id])->sum('sto_num');
+//                $this->returnData($sto_total_num);
+                $sql = "SELECT sum(sto_single_price * sto_num) as sto_total FROM erp2_goods_storage WHERE goods_id={$goods_id}";
+                $res = Db::query($sql)[0]['sto_total'];
                 // 入库总额
-                $sto_total_money = db('goods_storage')->where(['goods_id' => $goods_id])->sum('sto_num * sto_single_price');
+                $sto_total_money = $res?$res:0;
+
                 // 入库平均单价
-                $sto_avg_money = $sto_total_money / $sto_total_num;
+                $sto_avg_money = db('goods_storage')->
+                    where('goods_id','=', $goods_id)->avg('sto_single_price');
 
                 // 出库总量
                 $dep_total_num = db('goods_deposit')->where(['goods_id'=>$goods_id])->sum('dep_num');
                 // 出库总额
-                $dep_total_money = db('goods_deposit')->where(['goods_id'=>$goods_id])->sum('dep_price*dep_num');
+                $sql = "SELECT sum(dep_price*dep_num) as dep_total FROM erp2_goods_deposit WHERE goods_id={$goods_id};";
+                $res = Db::query($sql)[0]['dep_total'];
+                $dep_total_money = $res ? $res : 0;
+//                $dep_total_money = db('goods_deposit')->where(['goods_id'=>$goods_id])->sum('dep_price*dep_num');
                 // 出库均价
-                $dep_total_price = $dep_total_money / $dep_total_num;
+                $dep_avg_money = db('goods_deposit')->where('goods_id', '=', $goods_id)->avg('dep_price');
                 // 销售总额
-                $sale_total_money = db('goods_sale_log')->where(['goods_id'=>$goods_id])->sum('sale_num*single_price');
+                $sql = "SELECT sum(single_price * sale_num) as sale_total FROM erp2_goods_sale_log WHERE goods_id={$goods_id};";
+                $res = Db::query($sql)[0]['sale_total'];
+                $sale_total_money = $res ? $res : 0;
                 // 商品库存
                 $goods['goods_sku'] = db('goods_sku')->where(['goods_id'=>$goods_id])->value('sku_num');
 
@@ -410,9 +422,9 @@ class Goods extends BaseController
                 $goods['sto_total_money'] = $sto_total_money;
                 $goods['sto_avg_money'] = $sto_avg_money;
 
-                $goods['dep_total_price'] = $dep_total_price;
+                $goods['dep_total_money'] = $dep_total_money;
                 $goods['dep_total_num'] = $dep_total_num;
-                $goods['dep_avg_money'] = $sto_avg_money;
+                $goods['dep_avg_money'] = $dep_avg_money;
 
                 $goods['sale_total_money'] = $sale_total_money;
                 $response['data'][] = $goods;
@@ -422,7 +434,7 @@ class Goods extends BaseController
         }catch (Exception $e)
         {
             Log::write($e->getMessage());
-            $this->returnError(50000, '系统出错');
+            $this->returnError(50000, '系统出错' . $e->getMessage());
 //            $this->return_data(0, '50000', '系统出错');
         }
     }
@@ -432,6 +444,7 @@ class Goods extends BaseController
      */
     public function add()
     {
+        $uid = input('uid');
         $data = input('post');
         try{
             $validate = new GoodsValidate();
@@ -455,6 +468,7 @@ class Goods extends BaseController
      */
     public function del()
     {
+
         $goods_id = input('goods_id', '');
         if(empty($goods_id))
         {
@@ -510,6 +524,7 @@ class Goods extends BaseController
      */
     public function storage()
     {
+        $uid = input('uid');
         $goods_id = input('goods_id/d', '');
         $goods_num = input('goods_num/d', '');
         $goods_price = input('goods_price/f', '');
@@ -573,6 +588,7 @@ class Goods extends BaseController
      */
     public function checkout()
     {
+        $uid = input('uid');
         $goods_id = input('goods_id/d', '');
         $dep_num = input('dep_num/d', '');
         $dep_price = input('dep_price', '');
@@ -628,6 +644,7 @@ class Goods extends BaseController
      */
     public function sale()
     {
+        $uid = input('uid/d', '');
         $goods_id = input('goods_id/d', '');  // 商品id
         $sman_type = input('sman_type/d', ''); //销售员类型, 1销售员,2老师
         $sman_id = input('sman_id/d', ''); // 销售员id或教师id
@@ -743,6 +760,7 @@ class Goods extends BaseController
             $this->returnError('50000', '租凭失败');
         }
     }
+
 }
 
 

@@ -19,12 +19,11 @@ class Records extends BaseController
 {
 
     /*
-     * 销售记录列表
-     */
-    public function sale_index()
-    {
-        /*
-         * i.	商品名称
+     * 4、	销售记录：销售管理模块，所有商品销售产生的销售记录均记录在此模块
+            a)	搜索：输入商品名称进行搜索查看
+            b)	状态筛选：不需要做状态筛选，仅有“支付成功”这一状态
+            c)	导出Excel，默认保存名称为“销售记录表”，包含以下信息：
+                i.	商品名称
                 ii.	商品分类
                 iii.	销售数量：本次销售该商品数量
                 iv.	零售价（元）：商品零售价单价
@@ -36,7 +35,32 @@ class Records extends BaseController
                 x.	备注
                 xi.	销售对象
                 xii.	付款方式
-         */
+            d)	销售记录表，包含信息：
+                i.	商品名称
+                ii.	所属分类
+                iii.	数量：本次销售该商品数量
+                iv.	零售价（元）：商品零售价单价
+                v.	应付款（元）：应付款金额
+                vi.	实付款（元）：实付款金额
+                vii.	销售时间：该销售记录的生成时间，精确到年月日
+                viii.	销售员：本条销售记录的跟进销售员名称
+                ix.	销售单号
+                x.	操作员：操作生成销售记录的操作员名称
+                xi.	销售对象：即购物学生的名称
+                xii.	付款方式
+                xiii.	备注：销售商品时填写的备注
+                xiv.	操作，可对该销售记录进行修改、删除操作
+                1.	修改：点击则进入修改销售信息窗口，可修改销售员类型、销售员、销售数量、销售价格、销售对象、销售时间、付款方式及备注等等信息
+                2.	删除该条销售记录数据
+                5、	租赁记录
+     */
+
+
+    /*
+     * 销售记录列表
+     */
+    public function sale_index()
+    {
         $goods_name = input('goods_name/s', '');
         $org_id = input('orgid/d', '');
         $page = input('page/d', 1);
@@ -45,7 +69,7 @@ class Records extends BaseController
         {
             $this->returnError(10000, $org_id);
         }
-        $db = db('goods_detail');
+        $db = db('goods_detail')->where('orgid', '=', $org_id);
         if(!empty($goods_name))
         {
             $db->where('goods_name', 'like', '%' . $goods_name . '%');
@@ -89,9 +113,12 @@ class Records extends BaseController
                     'sale_num'  => $log['sale_num'],
                     'sale_code' => $log['sale_code'],
                     'sman_name' => $sman_name,
+                    'sman_type' => $log['sman_type'],
+                    'sman_id'   => $log['sman_id'],
                     'sale_obj_name' => $sale_obj_name,
                     'manager' => $manager,
                     'pay_type' => $pay_type,
+                    'pay_id' => $log['pay_id'],
                     'single_price' => $log['single_price'],
                     'sum_payable' => $log['sum_payable'],
                     'pay_amount' => $log['pay_amount'],
@@ -122,6 +149,37 @@ class Records extends BaseController
         }
     }
 
+    /*
+     * 修改销售记录
+     */
+    public function sale_edit()
+    {
+        $data = [
+            'sale_id' => input('sale_id/d', ''),
+            'sman_type' => input('sman_id/d', ''),
+            'sale_num' => input('sale_num/d', ''),
+            'single_price' => input('single_price/f', ''),
+            'sum_payable' => input('sum_payable/f', ''),
+            'pay_amount' => input('pay_amount/f', ''),
+            'sale_time' => input('sale_time/d', ''),
+            'pay_id' => input('pay_id/d', ''),
+            'remarks' => input('remarks/s', ''),
+            'update_time' => time(),
+        ];
+        $validate = new \app\index\validate\SaleLog();
+        if (!$validate->check($data)){
+            $errors = explode('|', $validate->getError());
+            $this->returnError($errors[1], $errors[0]);
+        }
+        try
+        {
+            db('goods_sale_log')->update($data);
+        }catch (Exception $e)
+        {
+            $this->returnError(50000, '系统出错');
+        }
+
+    }
 
 
     /*
@@ -136,14 +194,6 @@ class Records extends BaseController
      * 租借记录修改
      */
     public function rental_edit()
-    {
-
-    }
-
-    /*
-     * 添加租凭记录
-     */
-    public function rental_add()
     {
 
     }
@@ -173,7 +223,51 @@ class Records extends BaseController
      */
     public function storage_index()
     {
-
+        $goods_name = input('goods_name/s', '');
+        $org_id = input('orgid/d', '');
+        $page = input('page/d', 1);
+        $limit = input('limit/d', 20);
+        if (is_empty($goods_name, $org_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+        $data = [];
+        $goods_list = db('goods_detail')->field('goods_id, goods_name')
+            ->where('goods_name', 'like', '%' . $goods_name . '%')->select();
+        try
+        {
+            foreach ($goods_list as $goods)
+            {
+                $goods_id = $goods['goods_id'];
+                $goods_name = $goods['goods_name'];
+                $sto_logs =  db('goods_storage')->field('sto_id, sto_num, sto_single_price, sto_code, 
+                    entry_time, manager')->where('goods_id', '=', $goods_id)->select();
+                foreach ($sto_logs as $log)
+                {
+                    $manager = db('users')->where('uid', '=', $log['manager'])->value('nickname');
+                    $data[] = [
+                        'sto_id' => $log['sto_id'],
+                        'goods_name'  => $log['goods_name'],
+                        'sto_single_price'   => $log['sto_single_price'],
+                        'sto_num'   => $log['sto_num'],
+                        'sto_code'  => $log['sto_code'],
+                        'entry_time' => $log['entry_time'],
+                        'sto_total_money' => $log['sto_num'] * $log['sto_single_price'],
+                        'manager' => $manager
+                     ];
+                }
+            }
+            $response = [
+                'total' => count($data),
+                'per_page' => $limit,
+                'last_page' => count($data) / $limit + 1,
+                'data' => array_slice($data, ($page-1)*$limit, $limit)
+            ];
+            $this->returnData($response, '请求成功');
+        }catch (Exception $e)
+        {
+            $this->returnError(50000, '服务器错误');
+        }
     }
 
     /*
@@ -181,7 +275,34 @@ class Records extends BaseController
      */
     public function storage_edit()
     {
-
+        $sto_id = input('sto_id/d', '');
+        $sto_num = input('sto_num/d', '');
+        $sto_price = input('sto_price/f', '');
+        $remarks = input('remarks/s', '');
+        $uid = input('uid/d', '');
+        if (is_empty($sto_id, $sto_num, $sto_price, $uid))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+        try
+        {
+            if($sto_num < 0 || $sto_price < 0)
+            {
+                $this->returnError(10001, '金额或数量不能小于0');
+            }
+            $data = [
+                'sto_id' => $sto_id,
+                'sto_num' => $sto_num,
+                'sto_price' => $sto_price,
+                'remarks' => $remarks,
+                'manager' => $uid,
+                'update_time' => time()
+            ];
+            db('goods_storage')->update($data);
+        }catch (Exception $e)
+        {
+            $this->returnError(50000,'系统错误' . $e->getMessage());
+        }
     }
 
     /*
@@ -202,14 +323,6 @@ class Records extends BaseController
         {
             $this->returnError(50000, '删除失败');
         }
-    }
-
-    /*
-     * 入库记录添加
-     */
-    public function storage_add()
-    {
-
     }
 
     /*
@@ -248,11 +361,118 @@ class Records extends BaseController
         }
     }
 
-    /*
-     * 出库记录添加
-     */
-    public function checkout_add()
-    {
 
+    /*
+     * 8、	销售统计：商品销售统计信息管理模块
+            a)	分类筛选：选择商品所属分类以筛选查看
+            b)	选择销售员：（与艺点点不同）选择销售员类型，可选老师或销售员，默认为全部
+            c)	日期筛选：（与艺点点不同）可单选全部、本月、上月、本年，默认为全部，也可自定义选择日期区间，分别选择起始日期、截止日期
+            d)	搜索：通过输入商品名称进行搜索查看
+            e)	总金额&总利润：显示当前筛选条件下的总销售金额和总利润
+            f)	导出Excel：默认保存名称为“销售统计”，包含字段：
+            i.	商品名称
+            ii.	单位
+            iii.	入库量
+            iv.	销售量
+            v.	销售额
+            vi.	利润
+            g)	刷新：刷新当前销售统计表
+            h)	销售统计表，包含信息：
+            i.	商品名称
+            ii.	入库量：该商品总的入库数量，同时显示单位
+            iii.	销售量：该商品销售总量
+            iv.	销售额（元）：商品销售总额
+            v.	平均成本（元）：即该商品的平均成本，计算规则：平均成本=入库总额/入库量
+            vi.	利润（元）：该商品销售获得的总利润，计算规则：总利润=销售额-平均成本*销售量
+     */
+
+    /*
+     * 销售统计表
+     */
+    public function sale_census_index()
+    {
+        $cate_id = input('cate_id/d', ''); // 分类id
+        $org_id = input('orgid/d', ''); // 机构id
+        $sman_type = input('sman_type/d', ''); // 销售员类型, 1销售员, 2 老师
+        $time_type = input('time_type/d', ''); // 1日/2月/3年
+        $goods_name = input('goods_name/s', '');  // 商品名称
+        $start_time = input('start_time/d', ''); // 开始时间
+        $end_time = input('end_time/d', ''); // 结束时间
+        $page = input('page/d', 1);
+        $limit = input('limit/d', 20);
+        if (is_empty($org_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+        try{
+            $goods_db = db('goods_detail')->where('org_id', '=', $org_id);
+            if (!empty($goods_name))
+            {
+                $goods_db->where('goods_name', 'like', '%' . $goods_name . '%');
+            }
+            if ($cate_id)
+            {
+                $goods_db->where('cate_id', '=', $cate_id);
+            }
+            $goods_list = $goods_db->field('goods_id, cate_id, unit_name')->select();
+            $data = [];
+            foreach ($goods_list as $goods)
+            {
+                $goods_id =  $goods['goods_id'];
+                $goods_name = $goods['goods_name'];
+                $unit_name = $goods['unit_name'];
+//                $cate_name = db('goods_cate')->where('cate_id', '=', $cate_id)->value('cate_name');
+                $sale_db = db('goods_sale_log')->where('goods_id', '=', $goods_id);
+                if (!$sman_type)
+                {
+                    $sale_db->where('sman_type', '=', $sman_type);
+                }
+                if (!empty($start_time) and !empty($end_time))
+                {
+                    $sale_db->whereBetweenTime('sale_time', $start_time, $end_time);
+                }elseif ($time_type)
+                {
+                    if ($time_type == 1) {$sale_db->whereTime('sale_time', 'd');}
+                    elseif ($time_type == 2) {$sale_db->whereTime('sale_time', 'm');}
+                    elseif ($time_type == 3) {$sale_db->whereTime('sale_time', 'y');}
+                }
+                // 销售总额
+                $sale_total_money = $sale_db->sum('pay_amount');
+                // 销售数量
+                $sale_num = $sale_db->sum('sale_num');
+                // 入库总额
+                $sto_total_money = db('goods_storage')->where('goods_id', '=', $goods_id)
+                    ->sum('sto_num*sto_single_price');
+                // 入库数量
+                $sto_num = db('goods_storage')->where('goods_id', '=', $goods_id)
+                    ->sum('sto_num');
+                // 入库平均单价
+                $sto_single_price = $sto_total_money / $sto_num;
+                // 销售利润
+                $sale_profit = $sale_total_money - $sto_single_price * $sale_num;
+
+                $data[] = [
+                    'goods_name' => $goods_name,
+//                    'cate_name' => $cate_name,
+                    'unit_name' => $unit_name,
+                    'sto_num'  => $sto_num,
+                    'sale_num' => $sale_num,
+                    'sale_total' => $sale_total_money,
+                    'sale_profit' => $sale_profit
+                ];
+            }
+            $response = [
+                'current_page' => $page,
+                'per_page' => $limit,
+                'last_page' => (count($data) / $limit) +1,
+                'total' => count($data),
+                'data' => array_slice($data, ($page-1)*$limit, $limit)
+            ];
+            $this->returnData($response, '请求成功');
+        }catch (Exception $e)
+        {
+            $this->returnError(50000, '系统异常' . $e->getMessage());
+        }
     }
+
 }
