@@ -4,6 +4,9 @@ use think\Controller;
 use think\Exception;
 use app\index\model\Curriculums;
 
+/*
+ * 上个PHP写的。
+ */
 
 
 class Currm extends BaseController

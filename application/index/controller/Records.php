@@ -77,6 +77,8 @@ class Records extends BaseController
 
         $goods_list = $db->field('goods_id, goods_name, cate_id')->select();
         $response = [];
+
+        // 改in查询好点
         foreach ($goods_list as $goods)
         {
             $goods_id = $goods['goods_id'];
@@ -187,14 +189,81 @@ class Records extends BaseController
      */
     public function rental_index()
     {
-
+        $org_id = input('orgid/d', '');
+        $start_time = input('start_time/d', '');
+        $end_time = input('end_time/d', '');
+        $key = input('key/s', '');  // 租客姓名/商品名称
+        $status = input('status/d', 1); // 1 全部， 2在租， 3超期， 4已归还。
+        try{
+            // 租客
+            $obj_list = db('students')->where('truename', 'like', '%' . $key . '%');
+            $goods_list = db('goods_detail')->where('goods_name', 'like', '%' . $key . '%');
+            $data = [];
+            if (!empty($start_time) and !empty($end_time))
+            {
+                $data = [];
+            }
+            else
+            {
+                switch ($status)
+                {
+                    case 1: // 全部
+                        $data = $this->get_all_rental_log($obj_list, $goods_list);
+                        break;
+                    case 2: // 在租
+                        $data = $this->get_rentaling_log($obj_list, $goods_list);
+                    case 3: // 超期
+                        $data = $this->get_expire_rental_log($obj_list, $goods_list);
+                    case 4: // 已归还
+                        $data = $this->get_return_rental_log($obj_list, $goods_list);
+                }
+            }
+            $this->returnData($data, '请求成功');
+        }catch (Exception $e)
+        {
+            $this->returnError(50000, '如果你看到这个，证明有Bug');
+        }
     }
+
+    /*
+     * 获取所有租凭记录
+     */
+    private function get_all_rental_log($obj_list, $goods_list)
+    {
+        return '';
+    }
+
+    /*
+     * 获取在租的租凭记录
+     */
+    private function get_rentaling_log($obj_list, $goods_list)
+    {
+        return '';
+    }
+
+    /*
+     * 获取已超期的租凭记录
+     */
+    private function get_expire_rental_log($obj_list, $goods_list)
+    {
+        return '';
+    }
+
+    /*
+     * 获取已归还租借记录
+     */
+    private function get_return_rental_log($obj_list, $goods_list)
+    {
+        return '';
+    }
+
 
     /*
      * 租借记录修改
      */
     public function rental_edit()
     {
+        $end_time = input('end_time/d', '');  // 结束时间
 
     }
 
@@ -239,7 +308,7 @@ class Records extends BaseController
             foreach ($goods_list as $goods)
             {
                 $goods_id = $goods['goods_id'];
-                $goods_name = $goods['goods_name'];
+                $g_name = $goods['goods_name'];
                 $sto_logs =  db('goods_storage')->field('sto_id, sto_num, sto_single_price, sto_code, 
                     entry_time, manager')->where('goods_id', '=', $goods_id)->select();
                 foreach ($sto_logs as $log)
@@ -247,7 +316,7 @@ class Records extends BaseController
                     $manager = db('users')->where('uid', '=', $log['manager'])->value('nickname');
                     $data[] = [
                         'sto_id' => $log['sto_id'],
-                        'goods_name'  => $log['goods_name'],
+                        'goods_name'  => $g_name,
                         'sto_single_price'   => $log['sto_single_price'],
                         'sto_num'   => $log['sto_num'],
                         'sto_code'  => $log['sto_code'],
@@ -330,7 +399,52 @@ class Records extends BaseController
      */
     public function checkout_index()
     {
+        $goods_name = input('goods_name/s', '');
+        $org_id = input('orgid/d', '');
+        $limit = input('limit/d', 20);
+        $page = input('limit/d', 1);
+        $goods_db = db('goods_detail')->where('org_id', '=', $org_id);
+        if (!empty($goods_name))
+        {
+            $goods_db->where('goods_name', 'like', '%' . $goods_name . '%');
+        }
+        try
+        {
+            $goods_list = $goods_db->field('goods_id, goods_name')->select();
+            $data = [];
+            foreach ($goods_list as $goods)
+            {
+                $g_name = $goods['goods_name'];
+                $g_id = $goods['goods_id'];
 
+                $sto_logs = db('goods_deposit')->where('goods_id', '=', $g_id)->select();
+                foreach ($sto_logs as $log)
+                {
+                    $manager = db('users')->where('uid', '=', $log['manager'])->value('nickname');
+                    $data[] = [
+                        'dep_id' => $log['dep_id'],
+                        'goods_name' => $g_name,
+                        'dep_num'   => $log['dep_num'],
+                        'dep_price'  => $log['dep_price'],
+                        'dep_total'  => $log['dep_num'] * $log['dep_price'],
+                        'dep_time'  => $log['dep_time'],
+                        'dep_code'  => $log['dep_code'],
+                        'manager'   => $manager,
+                        'remark'    => $log['remark'],
+                    ];
+                }
+            }
+            $response = [
+                'per_page' => $limit,
+                'current_page' => $page,
+                'last_page' => count($data) / $limit + 1,
+                'data' => array_slice($data, ($page-1)*$limit, $limit)
+            ];
+            $this->returnData($response, '请求成功');
+        }catch (Exception $e)
+        {
+            $this->returnError(50000, '请求失败');
+        }
     }
 
     /*
@@ -338,7 +452,27 @@ class Records extends BaseController
      */
     public function checkout_edit()
     {
-
+        $dep_id = input('dep_id/d', '');
+        $dep_price = input('dep_price/f', '');
+        $dep_num = input('dep_num/d', '');
+        $remarks = input('remarks/s', '');
+        if (is_empty($sto_num, $single_price))
+        {
+            $this->returnError(10000, '缺少必填参数');
+        }
+        try
+        {
+            $data = [
+                'dep_id' => $dep_id,
+                'dep_num' => $dep_id,
+                'dep_price' => $dep_price,
+                'remarks'   => $remarks
+            ];
+            db('goods_deposit')->update($data);
+        }catch (Exception $e)
+        {
+            $this->returnError(50000, '修改失败');
+        }
     }
 
     /*
@@ -475,4 +609,9 @@ class Records extends BaseController
         }
     }
 
+
+
 }
+
+
+

@@ -445,21 +445,25 @@ class Goods extends BaseController
     public function add()
     {
         $uid = input('uid');
-        $data = input('post');
+        $data = input('post.');
+        $data['org_id'] = input('orgid');
+        $data['manager'] = $uid;
         try{
             $validate = new GoodsValidate();
             if (!$validate->check($data))
             {
                 $error = explode('|', $validate->getError());
-                $this->return_data(0, $error[0], $error[1]);
+                $this->returnError($error[0], $error[1]);
             }
             $goods = new GoodsModel($data);
             $goods->save();
+            $goods_id = $goods->goods_id;
+            Db('goods_sku')->insert(['goods_id' => $goods_id]);
             $this->returnData(1, '添加成功');
         }catch (Exception $e)
         {
             Log::write($e->getMessage());
-            $this->returnError( '50000', '系统错误');
+            $this->returnError( '50000', '系统错误'.$e->getMessage());
         }
     }
 
@@ -503,7 +507,13 @@ class Goods extends BaseController
      */
     public function edit()
     {
-        $data = input('post');
+        $goods_id = input('goods_id/d', '');
+        if (is_empty($goods_id))
+        {
+            $this->returnError(10000, '商品id必填');
+        }
+        $data = input('post.');
+        $data['manager'] = input('post.uid/d');
         try{
             $validate = new GoodsValidate();
             if(!$validate->check($data))
@@ -515,7 +525,7 @@ class Goods extends BaseController
             $this->returnData(1, '修改成功');
         }catch (Exception $e)
         {
-            $this->returnError(50000, '系统出错');
+            $this->returnError(50000, '系统出错' . $e->getMessage());
         }
     }
 
