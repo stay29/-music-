@@ -22,6 +22,7 @@ class Goods extends Validate
 //        'rent_amount_mon' => 'require',
 //        'rent_amount_day' => 'require',
 //        'rent_amount_year' => 'require',
+
 //        'margin_amount' => 'require',
 //        'goods_amount'  => 'require',
         'remarks'  => 'max:500',
@@ -36,14 +37,14 @@ class Goods extends Validate
         'cate_id.require'  => '10000|分类id必填',
         'unit_name.require' => '10000|单位名称必填',
         'unit_name.max'     => '10001|单位名称4字符内',
-        'rent_type.require' => '10000|租金类型必填',
+//        'rent_type.require' => '10000|租金类型必填',
         'remarks.max'  => '10001|备注500字符内',
-        'goods_amount.require' => '10000|商品售价必填',
-        'margin_amount.require'  => '10000|押金金额必填',
-        'rent_id.require'  => '10000|租金类型必填',
-        'rent_amount_day.require'  => '10000|租金金额(日)必填',
-        'rent_amount_mon.require'   => '10000|租金金额(月)必填',
-        'rent_amount_year.require'  => '10000|租金金额(年)必填',
+//        'goods_amount.require' => '10000|商品售价必填',
+//        'margin_amount.require'  => '10000|押金金额必填',
+//        'rent_id.require'  => '10000|租金类型必填',
+//        'rent_amount_day.require'  => '10000|租金金额(日)必填',
+//        'rent_amount_mon.require'   => '10000|租金金额(月)必填',
+//        'rent_amount_year.require'  => '10000|租金金额(年)必填',
         'goods_img.require'  => '必须上传商品图片'
     ];
 }
