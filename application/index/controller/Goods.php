@@ -514,6 +514,7 @@ class Goods extends BaseController
         }
         $data = input('post.');
         $data['manager'] = input('post.uid/d');
+        $data['org_id'] = input('orgid/d');
         try{
             $validate = new GoodsValidate();
             if(!$validate->check($data))
