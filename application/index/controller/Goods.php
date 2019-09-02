@@ -447,6 +447,12 @@ class Goods extends BaseController
         $uid = input('uid');
         $data = input('post.');
         $data['org_id'] = input('orgid');
+        $data['goods_amount'] = input('goods_amount/f', 0.0);
+        $data['rent_amount_day'] = input('rent_amount_day/f', 0.0);
+        $data['rent_amount_mon'] = input('rent_amount_mon/f', 0.0);
+        $data['rent_amount_year'] = input('rent_amount_year/f', 0.0);
+        $data['margin_amount'] = input('margin_amount/f', 0.0);
+        $data['remarks'] = input('remarks/s', '');
         $data['manager'] = $uid;
         try{
             $validate = new GoodsValidate();
