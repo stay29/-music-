@@ -15,13 +15,13 @@ class Subjecinfos  extends BaseController
     public function index()
     {
         $res = Subjects::getall();
-        $this->return_data(1, 0, $res);
+        $this->returnData( $res, '请求成功');
     }
 
     public function get_subjects()
     {
         $data['sid'] = input('sid');
         $res = Subjects::get_noe_subjects($data);
-        $this->return_data(1, 0, $res);
+        $this->returnData($res, '请求成功');
     }
 }

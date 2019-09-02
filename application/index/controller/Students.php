@@ -34,7 +34,7 @@ class Students extends BaseController
 
         if(empty($orgid))
         {
-            $this->return_data(0, '10000', '缺少参数');
+            $this->returnError(0, '10000', '缺少参数');
         }
         if (!empty($status))
         {
@@ -56,7 +56,7 @@ class Students extends BaseController
         $where[] = ['org_id', '=', $org_id];
         $students = db('students')->field('stu_id, truename as stu_name, sex, birthday,
                 cellphone, wechat, address, remark')->where($where)->paginate($limit);
-        $this->return_data(1, '', '', $students);
+        $this->returnData(1, '', '', $students);
     }
 
     /*
@@ -67,13 +67,13 @@ class Students extends BaseController
         $data = input();
         if(!$this->request->isPost())
         {
-            $this->return_data(0, '10007', '请用post方法提交数据');
+            $this->returnError(0, '10007', '请用post方法提交数据');
         }
 
         $validate = new StuValidate();
         if(!$validate->scene('edit')->check($data)){
             $error = explode('|',$validate->getError());
-            $this->return_data(0,$error[1],$error[0]);
+            $this->returnData(0,$error[1],$error[0]);
         }
         try
         {

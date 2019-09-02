@@ -24,7 +24,8 @@ class Classroom extends BaseController
         $oid = input('orgid', '');
         if(empty($oid))
         {
-            $this->return_data(1, '', '', array());
+            $this->returnError('10000', '缺少orgid');
+//            $this->return_data(1, '', '', array());
         }
         $limit = input('limit/d', 20);
         $status = input('status/d', null);
@@ -43,7 +44,8 @@ class Classroom extends BaseController
         $where[] = ['is_del', '=', 0];
         $res = ClsModel::where($where)->field('room_id as id,room_name as 
             name,status,room_count as total')->paginate($limit);
-        $this->return_data(1, 0, '', $res);
+//        $this->return_data(1, 0, '', $res);
+        $this->returnData($res,'请求成功');
     }
 
     /**
@@ -53,7 +55,8 @@ class Classroom extends BaseController
         $oid = input('orgid', '');
         if (empty($oid))
         {
-            $this->return_data(0, '10000', '缺少参数');
+            $this->returnError('10000', '缺少参数');
+//            $this->return_data(0, '10000', '缺少参数');
         }
 
         $data = [
@@ -69,13 +72,16 @@ class Classroom extends BaseController
         if(!$validate->scene('add')->check($data)){
             //为了可以得到错误码
             $error = explode('|',$validate->getError());
-            $this->return_data(0,$error[1],$error[0]);
+            $this->returnError($error[1], $error[0]);
+//            $this->return_data(0,$error[1],$error[0]);
         }
         try{
             ClsModel::create($data)->save();
-            $this->return_data(1,0,'教室新增成功');
+            $this->returnData('','添加成功');
+           // $this->return_data(1,0,'教室新增成功');
         }catch (\Exception $e){
-            $this->return_data(0,50000,$e->getMessage());
+            $this->returnError(10000, $e->getMessage());
+//            $this->return_data(0,50000,$e->getMessage());
         }
     }
 
@@ -86,7 +92,8 @@ class Classroom extends BaseController
         $oid = input('orgid', '');
         if (empty($oid))
         {
-            $this->return_data(0, '10000', '缺少参数');
+            $this->returnError(10000, '缺少参数');
+//            $this->return_data(0, '10000', '缺少参数');
         }
         $data = [
             'room_id'=>input('post.id'),
@@ -98,7 +105,8 @@ class Classroom extends BaseController
         if(!$validate->scene('edit')->check($data)){
             //为了可以得到错误码
             $error = explode('|',$validate->getError());
-            $this->return_data(0,$error[1],$error[0]);
+//            $this->return_data(0,$error[1],$error[0]);
+            $this->returnError($error[1], $error[0]);
         }
         $where = [
             'or_id' => $oid,
@@ -106,9 +114,11 @@ class Classroom extends BaseController
         ];
         try{
             ClsModel::where($where)->update($data);
-            $this->return_data(1,0,'教室编辑成功');
+//            $this->return_data(1,0,'教室编辑成功');
+            $this->returnData('', '修改成功');
         }catch (\Exception $e){
-            $this->return_data(0,50000,$e->getMessage());
+//            $this->return_data(0,50000,$e->getMessage());
+            $this->returnError(50000, $e->getMessage());
         }
     }
 
@@ -120,7 +130,8 @@ class Classroom extends BaseController
         $oid = ret_session_name('orgid');
 
         if(empty($id)){
-            $this->return_data(0,10000,'缺少教室ID');
+            $this->returnError(10000, '缺少参数');
+//            $this->return_data(0,10000,'缺少教室ID');
         }
 
         $where[] = ['room_id', '=', $id];
@@ -128,9 +139,9 @@ class Classroom extends BaseController
         try
         {
             ClsModel::where($where)->update(['is_del'=>1]);
-            $this->return_data(1,0,'删除教室成功');
+            $this->returnData('','删除教室成功');
         }catch (Exception $e){
-            $this->return_data(0,20003,'删除失败');
+            $this->returnError(20003,'删除失败');
         }
     }
 }

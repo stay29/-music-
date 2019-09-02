@@ -14,6 +14,7 @@ use think\Db;
 use think\facade\Session;
 use think\facade\Cookie;
 use app\index\model\Organization as Organ;
+
 class Login extends Basess{
 
     public function for_login()
@@ -66,7 +67,6 @@ class Login extends Basess{
             $this->return_data(0,50000,$e->getMessage());
         }
     }
-
 
 
 
@@ -236,8 +236,14 @@ class Login extends Basess{
      //验证码获取
     public  function  get_vieryie()
     {
-        $pione = input('user_aco');
-        if($pione){
+        $phone = input('user_aco');
+
+        if($phone){
+            $res = db('users')->where('account', '=', $phone)->count();
+            if ($res)
+            {
+                $this->return_data(0, '10000', '手机号码已注册');
+            }
             $len = 4;
             $chars = array(
                 "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"
@@ -297,9 +303,7 @@ class Login extends Basess{
         }
     }
 
-
-    /**
-     * @param $is_rem
+    /*
      * 记住密码
      */
     public function rem_password($is_rem,$data)

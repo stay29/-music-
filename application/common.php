@@ -191,4 +191,62 @@ function getsql($dataName){
 }
 
 
+/*
+ * 判断不确定参数是否为空。
+ * 若所有参数均不为空返回false, 其中一个为空返回true。
+ */
+function is_empty(...$args)
+{
+    foreach ($args as $val)
+    {
+        if (empty($val))
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
+
+/*
+ * 生成单号
+ */
+function random_code()
+{
+    mt_srand((double) microtime() * 1000000);
+    return date('Ymd') . str_pad(mt_rand(1, 99999), 5, '0', STR_PAD_LEFT);
+}
+
+
+/*
+ * 数组转字符
+ */
+
+function arr2str()
+{
+
+}
+
+/*
+ * 无限极分类树
+ */
+function getTree($arr){
+    $refer = array();
+    $tree = array();
+    foreach($arr as $k => $v){
+        $refer[$v['id']] = & $arr[$k];  //创建主键的数组引用
+    }
+
+    foreach($arr as $k => $v){
+        $pid = $v['cate_pid'];   //获取当前分类的父级id
+        if($pid == 0){
+            $tree[] = & $arr[$k];   //顶级栏目
+        }else{
+            if(isset($refer[$pid])){
+                $refer[$pid]['sub'][] = & $arr[$k];  //如果存在父级栏目，则添加进父级栏目的子栏目数组中
+            }
+        }
+    }
+
+    return $tree;
+}

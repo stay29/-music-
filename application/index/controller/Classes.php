@@ -8,6 +8,8 @@
 namespace app\index\controller;
 use think\Controller;
 use think\Db;
+use Think\Exception;
+
 class Classes extends BaseController
 {
     /*
@@ -15,10 +17,13 @@ class Classes extends BaseController
      */
     public function addclasses()
     {
+        /*
+         * qiu jian de gu fu sheng gong.
+         */
         //$this->auth_get_token();
         //print_r(input('post.'));exit();
-        $cls_id = input('cls_id');
-        $stu_id = input('stu_id');
+//        $cur_id = input('cur_id');
+//        $stu_id = input('stu_id');
         $data = [
             'class_name' => input('class_name'),
             'class_count' => input('class_count'),
@@ -31,50 +36,104 @@ class Classes extends BaseController
             'update_time' => time(),
             'is_del' => 0,
         ];
+//        Db::startTrans();
+//        try {
+//            $validate = new \app\index\validate\Classes();
+//            if (!$validate->scene('add')->check($data)) {
+//                //为了可以得到错误码
+//                $error = explode('|', $validate->getError());
+//                $this->return_data(0, $error[1], $error[0]);
+//            }
+//            $res = add('erp2_classes', $data, 2);
+//            Db::commit();
+//            if ($res and !empty($cur_id)) {
+//                $data1 = [
+//                    'cls_id' => $res,
+//                    'cur_id' => $cur_id,
+//                ];
+//                $res1 = add('erp2_class_cur', $data1, 1);
+//                //$res1 =    Db::table('erp2_class_cur')->insertAll($aa2);
+//                if ($res1) {
+//                    $aa1 = [];
+//                    if (!empty($stu_id)) {
+//                        foreach ($stu_id as $k => &$v) {
+//                            $aa['stu_id'] = $v;
+//                            $aa['class_id'] = $res;
+//                            $aa['is_del'] = 0;
+//                            $aa1[] = $aa;
+//                        }
+//                    }
+//                    $res2 = Db::table('erp2_class_student_relations')->insertAll($aa1);
+//                    //$asss = Db::table('erp2_class_student_relations')->getLastSql();
+//                    if ($res2) {
+//                        $this->return_data(1, 0, '添加成功');
+//                    } else {
+//                        $this->return_data(0, 10000, '操作失败1');
+//                    }
+//                } else {
+//                    $this->return_data(0, 10000, '操作失败2');
+//                }
+//            } else {
+//                $this->return_data(0, 10000, '操作失败3');
+//            }
+//        } catch (\Exception $e) {
+//            // 回滚事务
+//            Db::rollback();
+//            $this->return_data(0, 50000, $e->getMessage());
+//        }
+        /*wo bu xiang kan shang mian de dai ma*/
+        $cur_id = input('cls_id/d');
+        $stu_id_list = input('stu_id');
+
+        $data = [
+            'class_name' => input('class_name'),
+            'class_count' => input('class_count'),
+            'headmaster' => input('headmaster'),
+            'remarks' => input('remarks'),
+            'orgid' => ret_session_name('orgid'),
+            'manager' => ret_session_name('uid'),
+            'status' => 1,
+            'create_time' => time(),
+            'update_time' => time(),
+            'is_del' => 0,
+        ];
+        $validate = new \app\index\validate\Classes();
+        if (!$validate->scene('add')->check($data))
+        {
+            $errors = $validate->getError();
+            $this->returnError($errors[1], $errors[0]);
+        }
         Db::startTrans();
-        try {
-            $validate = new \app\index\validate\Classes();
-            if (!$validate->scene('add')->check($data)) {
-                //为了可以得到错误码
-                $error = explode('|', $validate->getError());
-                $this->return_data(0, $error[1], $error[0]);
+        try
+        {
+            $cls_id = Db::name('classes')->insertGetId($data);
+            if (!$cls_id)
+            {
+                $this->returnError('20001', '操作失败');
             }
-            $res = add('erp2_classes', $data, 2);
-            Db::commit();
-            if ($res) {
-                $data1 = [
-                    'cls_id' => $res,
-                    'cur_id' => $cls_id,
+            if (!empty($cur_id))
+            {
+                Db::name('class_cur')->insert(['cur_id' => $cur_id, 'cls_id' => $cls_id]);
+            }
+            $in_data = [];
+            for ($i = 0; $i < count($stu_id_list); $i++)
+            {
+                $stu_id = $stu_id_list[$i];
+                $in_data[$i] = [
+                  'class_id' => $cls_id,
+                  'stu_id' => $stu_id
                 ];
-                $res1 = add('erp2_class_cur', $data1, 1);
-                //$res1 =    Db::table('erp2_class_cur')->insertAll($aa2);
-                if ($res1) {
-                    $aa1 = [];
-                    if (!empty($stu_id)) {
-                        foreach ($stu_id as $k => &$v) {
-                            $aa['stu_id'] = $v;
-                            $aa['class_id'] = $res;
-                            $aa['is_del'] = 0;
-                            $aa1[] = $aa;
-                        }
-                    }
-                    $res2 = Db::table('erp2_class_student_relations')->insertAll($aa1);
-                    //$asss = Db::table('erp2_class_student_relations')->getLastSql();
-                    if ($res2) {
-                        $this->return_data(1, 0, '添加成功');
-                    } else {
-                        $this->return_data(0, 10000, '操作失败1');
-                    }
-                } else {
-                    $this->return_data(0, 10000, '操作失败2');
-                }
-            } else {
-                $this->return_data(0, 10000, '操作失败3');
             }
-        } catch (\Exception $e) {
-            // 回滚事务
+            if (!empty($in_data))
+            {
+                Db::name('class_student_relations')->insertAll($in_data);
+            }
+            Db::commit();
+            $this->returnData('', '添加成功');
+        }catch (Exception $e)
+        {
             Db::rollback();
-            $this->return_data(0, 50000, $e->getMessage());
+            $this->returnError('50000', '操作失败');
         }
     }
 
@@ -93,7 +152,7 @@ class Classes extends BaseController
         $where[] = ['orgid', '=', input('orgid')];
         $where[] = ['is_del', '=', 0];
         $class_name = input('cls_name');
-        if ($class_name!= null) {
+        if ($class_name != null) {
             $where[] = ['class_name', 'like', '%' . $class_name . '%'];
         }
         $res = selects('erp2_classes', $where);
@@ -106,7 +165,7 @@ class Classes extends BaseController
             $v['cheadmaster'] = count($cheadmaster);
         }
         $res_list = $this->array_page_list_show($limit, $page, $res, 1);
-        $this->return_data(1, 0, $res_list);
+        $this->returnData($res_list, '');
     }
 
     //数组分页方法
@@ -137,9 +196,9 @@ class Classes extends BaseController
         ];
         $res = edit('erp2_classes', $where, $data);
         if ($res) {
-            $this->return_data(1, 0, '修改成功');
+            $this->returnData( '', '修改成功');
         } else {
-            $this->return_data(0, 10000, '修改失败');
+            $this->returnError(20003, '修改失败');
         }
     }
 
@@ -153,32 +212,29 @@ class Classes extends BaseController
             $arr1['stu_id'] = $v;
             $arr1['class_id'] = input('class_id');
             $arr1['is_del'] = 0;
-            $arr[]= $arr1;
+            $arr[] = $arr1;
         }
         $a = del('erp2_class_student_relations', $where);
         $b = Db::table('erp2_class_student_relations')->insertAll($arr);
         if ($b) {
-            $this->return_data(1, 0, '修改成功');
+            $this->returnData( '', '修改成功');
         } else {
-            $this->return_data(0, 10000, '修改失败');
+            $this->returnError(20003, '修改失败');
         }
     }
-
-
 
 
     public function edit_curr()
     {
-         $where['cls_id'] = input('class_id');
-         $data['cur_id'] = input('cur_id');
+        $where['cls_id'] = input('class_id');
+        $data['cur_id'] = input('cur_id');
         $res = edit('erp2_class_cur', $where, $data);
         if ($res) {
-            $this->return_data(1, 0, '修改成功');
+            $this->returnData( '', '修改成功');
         } else {
-            $this->return_data(0, 10000, '修改失败');
+            $this->returnError(20003, '修改失败');
         }
     }
-
 
 
     public function del_classes()
@@ -187,16 +243,17 @@ class Classes extends BaseController
         $where['class_id'] = input('class_id');
         $res = edit('erp2_classes', $where, $data);
         if ($res) {
-            $this->return_data(1, 0, '修改成功');
+            $this->returnData( '', '修改成功');
         } else {
-            $this->return_data(0, 10000, '修改失败');
+            $this->returnError(20003, '修改失败');
         }
     }
 
     public function get_teacher_list()
     {
         $res = select_find('erp2_teachers', ['org_id' => input('orgid'), 'status' => 1, 'is_del' => 0], 't_id,t_name');
-        $this->return_data(1, 0, $res);
+        $this->return_data(1, '', '请求成功', $res);
+        $this->returnData($res, '请求成功');
     }
 
     public function get_student_list()
@@ -206,7 +263,7 @@ class Classes extends BaseController
         foreach ($res as $k => &$v) {
             $v['f'] = false;
         }
-        $this->return_data(1, 0, $res);
+        $this->returnData($res, '请求成功');
     }
 
     public function get_fl_currlist()
@@ -215,28 +272,40 @@ class Classes extends BaseController
         foreach ($res as $k => &$v) {
             $v['currlist'] = select_find('erp2_curriculums', ['subject' => $v['sid'], 'orgid' => input('orgid'), 'is_del' => 0], 'cur_id,cur_name');
         }
-        $this->return_data(1, 0, $res);
+//        $this->return_data(1, 0, $res);
+        $this->returnData($res, '请求成功');
     }
 
     public function get_stu_id()
     {
         $where['class_id'] = input('cls_id');
-        $res['stulist'] = selects('erp2_class_student_relations',$where);
-        $res['class_id'] =   input('cls_id');
-        $this->return_data(1, 0, $res);
+        $res['stulist'] = selects('erp2_class_student_relations', $where);
+        $res['class_id'] = input('cls_id');
+//        $this->return_data(1, 0, $res);
+        $this->returnData($res, '请求成功');
     }
 
 
-    public function  get_teach_sch()
+    public function get_teach_sch()
     {
         $where['t_id'] = input('t_id');
         $where['cur_id'] = input('cur_id');
         $res = Db::table('erp2_teach_schedules')->where($where)->select();
+        $this->returnData($res, '请求成功');
     }
 
 
+    /*
+     * 上面是刚跑路的php写的，不关我事。
+     */
+
+    /*
+     * 课表接口
+     */
+    public function schedule()
+    {
 
 
-
+    }
 
 }

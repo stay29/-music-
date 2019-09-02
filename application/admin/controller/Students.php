@@ -7,10 +7,9 @@ use think\Request;
 
 class Students extends Controller
 {
-    /**
-     * 显示资源列表
-     *
-     * @return \think\Response
+
+    /*
+     * 学生列表
      */
     public function index()
     {

@@ -224,7 +224,7 @@ class Excel extends ExcelBase
      */
     public function room_tpl()
     {
-        $str = "./public/uploads/file/classroom.xlsx";
+        $str = "./public/upload/file/classroom.xlsx";
         $this->returnData('', $str);
     }
 
@@ -371,9 +371,9 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             array('t_sex','性别(只能填男或者女)'),
             array('t_sen', '资历(暂时无需填写，导入后进入系统修改)'),
             array('t_mobile', '手机号(此项必填)'),
-            array('t_entry_time', '入职日期(格式必须为：1970.01.01)'),
+            array('t_entry_time', '入职日期(格式必须为：1970/01/01)'),
             array('t_id_card', '身份证(必填)'),
-            array('t_birthday', '生日(格式为:1970.01.01)'),
+            array('t_birthday', '生日(格式为:1970/01/01)'),
             array('t_resume', '简历(非必填,最多2000字)'),
             array('t_status', '教师状态: 1在职, 2离职')
         );
@@ -424,11 +424,20 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
     public function teacher_ipt(){
         $org_id = input('orgid', '');
         $uid = input('uid', '');
-        $file = request()->file('excel');
-        if (empty($org_id) || empty($file))
+        try {
+            $file = request()->file('excel');
+        }catch (Exception $e)
         {
-            $this->returnError('10000', '缺少文件或者orgid');
+            if (empty($file))
+            {
+                $this->returnError(10000, '缺少文件');
+            }
         }
+        if (empty($org_id))
+        {
+            $this->returnError('10000', '缺少orgid');
+        }
+
         $data = $this->getExcelData($file);
 
         Db::startTrans();
@@ -740,4 +749,28 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
 //
 //    }
 
+
+    /*
+     * 商品模板
+     */
+    public function goods_tpl()
+    {
+
+    }
+
+    /*
+     * 商品导入
+     */
+    public function goods_ipt()
+    {
+
+    }
+
+    /*
+     * 商品导出
+     */
+    public function goods_ept()
+    {
+
+    }
 }
