@@ -13,6 +13,29 @@ use think\facade\Session;
 use app\index\model\Organization as Organ;
 use app\index\model\Users;
 
+/*               真米如初
+                 _oo0oo_
+                o8888888o
+                88" . "88
+                (| -_- |)
+                0\  =  /0
+              ___/'---'\___
+            .' \\|     |// '.
+           / \\|||  :  |||// \
+          / _||||| -:- |||||- \
+         |    | \\\ - /// |    |
+         | .-\  ''\---/''  /-. |
+         \ . -\___ '-' ___/- . /
+       ___'. .'   /--.--\  '. .'___
+     /."" '< '.___\_<|>_/___.' >' "".\
+    | | :  `- \'.;'\ _ /';.'/ -`  : | |
+    \  \ '_.   \_ __\ /__ _/   .-` /  /
+=====`-.____`.___ \_____/ ___.-`___.-'=====
+                  '=----='
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          佛祖保佑        永无Bug
+*/
+
 class Organization extends Basess
 {
     /**
@@ -29,9 +52,10 @@ class Organization extends Basess
             'address'=>input('post.map'),
             'remarks'=>input('post.remarks'),
             'status' =>2,
+             'uid'=>input('post.uid')
         ];
 
-        $uid = ret_session_name('uid');
+        $uid = input('post.uid');
         $validate = new \app\index\validate\Organization();
         if(!$validate->scene('add')->check($data)){
             //为了可以得到错误码
@@ -126,7 +150,8 @@ class Organization extends Basess
             }
         }
         return $out;
-    }
+
+    }// 写的非常非常好，比官方库还流弊，留一堆bug。
     /*********************以上代码复制邱键的***************************/
 
 
