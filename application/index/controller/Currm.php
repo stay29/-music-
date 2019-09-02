@@ -4,11 +4,29 @@ use think\Controller;
 use think\Exception;
 use app\index\model\Curriculums;
 
-/*
- * 上个PHP写的。
- */
+/*               真米如初
+                 _oo0oo_
+                o8888888o
+                88" . "88
+                (| -_- |)
+                0\  =  /0
+              ___/'---'\___
+            .' \\|     |// '.
+           / \\|||  :  |||// \
+          / _||||| -:- |||||- \
+         |    | \\\ - /// |    |
+         | .-\  ''\---/''  /-. |
+         \ . -\___ '-' ___/- . /
+       ___'. .'   /--.--\  '. .'___
+     /."" '< '.___\_<|>_/___.' >' "".\
+    | | :  `- \'.;'\ _ /';.'/ -`  : | |
+    \  \ '_.   \_ __\ /__ _/   .-` /  /
+=====`-.____`.___ \_____/ ___.-`___.-'=====
+                  '=----='
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          佛祖保佑        永无Bug
 
-
+*/
 class Currm extends BaseController
 {
 
@@ -62,6 +80,10 @@ class Currm extends BaseController
         $this->auth_get_token();
  		$data = input('post.');
  		$data['manager'] = ret_session_name('uid');
+ 		if (empty($data['orgid']))
+        {
+            $this->returnError(10000, '缺少ordid.');
+        }
         $validate = new \app\validate\Curriculums;
         if(!$validate->scene('add')->check($data)){
             //为了可以得到错误码
