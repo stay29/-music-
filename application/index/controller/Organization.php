@@ -70,7 +70,7 @@ class Organization extends Basess
             $where['organization'] = $res['id'];
             $where['update_time'] = time();
             //$where['manager'] = ret_session_name('uid');
-            // Users::where('uid',$uid)->update($where);
+            Users::where('uid',$uid)->update($where);
             $userinfo = Users::loginsession($uid);
             $rolelist =  $this->get_role_a($uid);
             $data['rolelist'] = $rolelist;
