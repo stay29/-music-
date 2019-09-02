@@ -189,34 +189,47 @@ class Records extends BaseController
      */
     public function rental_index()
     {
+        /*
+         *  c)
+            d)	总押金：当前筛选条件下的租赁记录信息中押金之和
+            e)	总预收租金：当前筛选条件下的租赁记录信息中预收租金之和
+            f)	已收租金：当前筛选条件下的租赁记录信息中已实收租金之和
+         */
         $org_id = input('orgid/d', '');
         $start_time = input('start_time/d', '');
         $end_time = input('end_time/d', '');
         $key = input('key/s', '');  // 租客姓名/商品名称
         $status = input('status/d', 1); // 1 全部， 2在租， 3超期， 4已归还。
+        if (empty($org_id))
+        {
+            $this->returnError(10000, '缺少机构ID');
+        }
         try{
             // 租客
-            $obj_list = db('students')->where('truename', 'like', '%' . $key . '%');
-            $goods_list = db('goods_detail')->where('goods_name', 'like', '%' . $key . '%');
+            $rent_obj_id = db('students')->
+                where('truename', 'like', '%' . $key . '%')->value('stu_id');
+            $goods_id = db('goods_detail')->
+                where('goods_name', 'like', '%' . $key . '%')->value('goods_id');
             $data = [];
             if (!empty($start_time) and !empty($end_time))
             {
-                $data = [];
+                $table = db('goods_rental_log')->
+                whereOr('rent_obj_id', '=', $rent_obj_id)->where('status', '=', $status)->whereOr('goods_id', '=', $goods_id)
+                    ->whereBetweenTime('create_time',  $start_time,  $end_time);
+
+                $total_margin = $table->sum('rent_margin'); // 总押金
+                $rent_num;
+                $total_margin = $table->count('rent_id') * $goods_margin;
+                $prepaid_rent = $table->sum('prepaid_rent');
+                $records = $table->select();
+                $data['total_margin'] = $total_margin;
+                $data['total_'];
             }
             else
             {
-                switch ($status)
-                {
-                    case 1: // 全部
-                        $data = $this->get_all_rental_log($obj_list, $goods_list);
-                        break;
-                    case 2: // 在租
-                        $data = $this->get_rentaling_log($obj_list, $goods_list);
-                    case 3: // 超期
-                        $data = $this->get_expire_rental_log($obj_list, $goods_list);
-                    case 4: // 已归还
-                        $data = $this->get_return_rental_log($obj_list, $goods_list);
-                }
+                $data = db('goods_rental_log')->
+                whereOr('rent_obj_id', '=', $rent_obj_id)->
+                    where('status', '=', $status)->whereOr('goods_id', '=', 'goods_id')->select();
             }
             $this->returnData($data, '请求成功');
         }catch (Exception $e)
@@ -226,44 +239,12 @@ class Records extends BaseController
     }
 
     /*
-     * 获取所有租凭记录
-     */
-    private function get_all_rental_log($obj_list, $goods_list)
-    {
-        return '';
-    }
-
-    /*
-     * 获取在租的租凭记录
-     */
-    private function get_rentaling_log($obj_list, $goods_list)
-    {
-        return '';
-    }
-
-    /*
-     * 获取已超期的租凭记录
-     */
-    private function get_expire_rental_log($obj_list, $goods_list)
-    {
-        return '';
-    }
-
-    /*
-     * 获取已归还租借记录
-     */
-    private function get_return_rental_log($obj_list, $goods_list)
-    {
-        return '';
-    }
-
-
-    /*
      * 租借记录修改
      */
     public function rental_edit()
     {
-        $end_time = input('end_time/d', '');  // 结束时间
+        $rent_margin = input('rent_margin/f', '');  // 租金押金
+        $prepaid_rent = input('prepaid_rent/f', ''); // 预付租金
 
     }
 
@@ -456,7 +437,7 @@ class Records extends BaseController
         $dep_price = input('dep_price/f', '');
         $dep_num = input('dep_num/d', '');
         $remarks = input('remarks/s', '');
-        if (is_empty($sto_num, $single_price))
+        if (is_empty($dep_price, $dep_price, $dep_num))
         {
             $this->returnError(10000, '缺少必填参数');
         }
@@ -464,7 +445,7 @@ class Records extends BaseController
         {
             $data = [
                 'dep_id' => $dep_id,
-                'dep_num' => $dep_id,
+                'dep_num' => $dep_num,
                 'dep_price' => $dep_price,
                 'remarks'   => $remarks
             ];
