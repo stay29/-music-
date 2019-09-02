@@ -252,6 +252,7 @@ class Classes extends BaseController
     public function get_teacher_list()
     {
         $res = select_find('erp2_teachers', ['org_id' => input('orgid'), 'status' => 1, 'is_del' => 0], 't_id,t_name');
+        $this->return_data(1, '', '请求成功', $res);
         $this->returnData($res, '请求成功');
     }
 

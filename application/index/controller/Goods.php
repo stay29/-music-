@@ -16,6 +16,8 @@ use app\index\model\Goods as GoodsModel;
 use app\index\validate\Goods as GoodsValidate;
 
 
+
+
 final class Categories
 {
     /*
@@ -39,20 +41,8 @@ final class Categories
         }
         return $list;
     }
-
-    /*
-     * 返回添加或修改分类时的分类下拉框信息
-     */
-    static public function getSelectCate($items)
-    {
-        foreach ($items as $item)
-
-            $items[$item['cate_pid']]['son'][$item['cate_id']] = &$items[$item['cate_id']];
-
-        return isset($items[0]['son']) ? $items[0]['son'] : array();
-    }
-
 }
+
 
 
 class Goods extends BaseController
@@ -69,8 +59,16 @@ class Goods extends BaseController
         {
             $this->returnError(10000, '缺少参数');
         }
-        $categories = db('goods_cate')->field('cate_id, cate_pid, cate_name')
-            ->order('order, create_time DESC')->where('org_id', '=', $org_id)->select();
+        $categories_raw = db('goods_cate')->field('cate_id, cate_pid, cate_name')
+            ->order('order, create_time AES')->where('org_id', '=', $org_id)->select();
+        $categories = [];
+        foreach ($categories_raw as $v)
+        {
+            $cate_pname =  db('goods_cate')->
+                where('cate_id', '=', $v['cate_pid'])->value('cate_name');
+            $v['cate_pname'] = $cate_pname ? $cate_pname : '顶级分类';
+            $categories[] = $v;
+        }
         $data = Categories::getIndexCate($categories);
         $response = [
             'total' => count($data),
@@ -78,7 +76,7 @@ class Goods extends BaseController
             'last_page' => ceil(count($data)/$limit),
             'data' => array_slice($data, ($page-1)*$limit, $limit)
         ];
-        $this->return_data($response, '请求成功');
+        $this->returnData($response, '请求成功');
     }
 
     /*
@@ -152,15 +150,13 @@ class Goods extends BaseController
             $data = [
                 'cate_name' => $cate_name,
                 'cate_pid'  => $cate_pid,
-                'org_id'    => $org_id,
-                'order' => $order
             ];
-            Db::where(['org_id'=>$org_id, 'cate_id'=>$cate_id])->update($data);
+            Db::name("goods_cate")->where(['org_id'=>$org_id, 'cate_id'=>$cate_id])->update($data);
             Db::commit();
             $this->returnData( '', '修改成功');
         }catch (Exception $e)
         {
-            $this->returnError(20002, '修改失败');
+            $this->returnError(20002, '修改失败'.$e->getMessage());
         }
     }
 
@@ -174,10 +170,18 @@ class Goods extends BaseController
         {
             $this->return_data(0, '10000', '缺少参数', false);
         }
-        $categories = db('goods_cate')->field('cate_id, cate_pid, cate_name')->
+        $categories = db('goods_cate')->field('cate_id as id,  cate_pid, cate_name')->
             order('order, create_time DESC')->where('org_id', '=', $org_id)->select();
-        $data = Categories::getSelectCate($categories);
-        $this->returnData($data, '请求成功');
+        $data = getTree($categories);
+        $response = [
+            [
+                'id' => 0,
+                'cate_name' => '顶级分类',
+                'sub' => $data
+            ]
+        ];
+//        array_push($data, $top_cate);
+        $this->returnData($response, '请求成功');
     }
 
 
@@ -249,7 +253,7 @@ class Goods extends BaseController
         $data = [
             'sm_id' => input('sm_id/d', ''),
             'sm_name' => input('sm_name/s', ''),
-            'org_id' => input('org_id/d', ''),
+            'org_id' => input('orgid/d', ''),
             'sm_mobile' => input('sm_mobile', ''),
             'status' => input('status')
         ];
@@ -273,9 +277,9 @@ class Goods extends BaseController
     public function mans_add()
     {
         $data = [
-            'sm_id' => input('sm_id/d', ''),
+//            'sm_id' => input('sm_id/d', ''),
             'sm_name' => input('sm_name/s', ''),
-            'org_id' => input('org_id/d', ''),
+            'org_id' => input('orgid/d', ''),
             'sm_mobile' => input('sm_mobile', ''),
             'status' => input('status')
         ];
@@ -330,7 +334,7 @@ class Goods extends BaseController
         }
         try{
             db('salesmans')->where('sm_id', '=', $sm_id)->update(['status'=>1]);
-            $this->returnData(1, '', '复职成功');
+            $this->returnData(1, '复职成功');
         }catch (Exception $e)
         {
             log($e->getMessage());
@@ -342,6 +346,7 @@ class Goods extends BaseController
      */
     public function index()
     {
+
         $org_id = input('orgid' , '');
         $page = input('page/d', 1);
         $limit = input('limit/d', 20);
@@ -384,21 +389,32 @@ class Goods extends BaseController
 //            // 入库均价
 //            $avg_sql ="SELECT (sum(sto_num*sto_single_price)/sum(sto_num))
 //                        as avg_sto_price FROM erp2_goods_storage WHERE goods_id={$goods['goods_id']}";
+
                 // 入库总量
                 $sto_total_num = db('goods_storage')->where(['goods_id'=>$goods_id])->sum('sto_num');
+//                $this->returnData($sto_total_num);
+                $sql = "SELECT sum(sto_single_price * sto_num) as sto_total FROM erp2_goods_storage WHERE goods_id={$goods_id}";
+                $res = Db::query($sql)[0]['sto_total'];
                 // 入库总额
-                $sto_total_money = db('goods_storage')->where(['goods_id' => $goods_id])->sum('sto_num * sto_single_price');
+                $sto_total_money = $res?$res:0;
+
                 // 入库平均单价
-                $sto_avg_money = $sto_total_money / $sto_total_num;
+                $sto_avg_money = db('goods_storage')->
+                    where('goods_id','=', $goods_id)->avg('sto_single_price');
 
                 // 出库总量
                 $dep_total_num = db('goods_deposit')->where(['goods_id'=>$goods_id])->sum('dep_num');
                 // 出库总额
-                $dep_total_money = db('goods_deposit')->where(['goods_id'=>$goods_id])->sum('dep_price*dep_num');
+                $sql = "SELECT sum(dep_price*dep_num) as dep_total FROM erp2_goods_deposit WHERE goods_id={$goods_id};";
+                $res = Db::query($sql)[0]['dep_total'];
+                $dep_total_money = $res ? $res : 0;
+//                $dep_total_money = db('goods_deposit')->where(['goods_id'=>$goods_id])->sum('dep_price*dep_num');
                 // 出库均价
-                $dep_total_price = $dep_total_money / $dep_total_num;
+                $dep_avg_money = db('goods_deposit')->where('goods_id', '=', $goods_id)->avg('dep_price');
                 // 销售总额
-                $sale_total_money = db('goods_sale_log')->where(['goods_id'=>$goods_id])->sum('sale_num*single_price');
+                $sql = "SELECT sum(single_price * sale_num) as sale_total FROM erp2_goods_sale_log WHERE goods_id={$goods_id};";
+                $res = Db::query($sql)[0]['sale_total'];
+                $sale_total_money = $res ? $res : 0;
                 // 商品库存
                 $goods['goods_sku'] = db('goods_sku')->where(['goods_id'=>$goods_id])->value('sku_num');
 
@@ -406,9 +422,9 @@ class Goods extends BaseController
                 $goods['sto_total_money'] = $sto_total_money;
                 $goods['sto_avg_money'] = $sto_avg_money;
 
-                $goods['dep_total_price'] = $dep_total_price;
+                $goods['dep_total_money'] = $dep_total_money;
                 $goods['dep_total_num'] = $dep_total_num;
-                $goods['dep_avg_money'] = $sto_avg_money;
+                $goods['dep_avg_money'] = $dep_avg_money;
 
                 $goods['sale_total_money'] = $sale_total_money;
                 $response['data'][] = $goods;
@@ -418,7 +434,7 @@ class Goods extends BaseController
         }catch (Exception $e)
         {
             Log::write($e->getMessage());
-            $this->returnError(50000, '系统出错');
+            $this->returnError(50000, '系统出错' . $e->getMessage());
 //            $this->return_data(0, '50000', '系统出错');
         }
     }
@@ -428,21 +444,26 @@ class Goods extends BaseController
      */
     public function add()
     {
-        $data = input('post');
+        $uid = input('uid');
+        $data = input('post.');
+        $data['org_id'] = input('orgid');
+        $data['manager'] = $uid;
         try{
             $validate = new GoodsValidate();
             if (!$validate->check($data))
             {
                 $error = explode('|', $validate->getError());
-                $this->return_data(0, $error[0], $error[1]);
+                $this->returnError($error[0], $error[1]);
             }
             $goods = new GoodsModel($data);
             $goods->save();
+            $goods_id = $goods->goods_id;
+            Db('goods_sku')->insert(['goods_id' => $goods_id]);
             $this->returnData(1, '添加成功');
         }catch (Exception $e)
         {
             Log::write($e->getMessage());
-            $this->return_data(0, '50000', '系统错误');
+            $this->returnError( '50000', '系统错误'.$e->getMessage());
         }
     }
 
@@ -451,6 +472,7 @@ class Goods extends BaseController
      */
     public function del()
     {
+
         $goods_id = input('goods_id', '');
         if(empty($goods_id))
         {
@@ -459,9 +481,18 @@ class Goods extends BaseController
         Db::startTrans();
         try
         {
-            // 删除产品和库存数据
-            Db::name('goods_detail')->where('goods_id', '=', $goods_id)->delete();
+            // 出库记录
+            Db::name('goods_deposit')->where('goods_id', '=', $goods_id)->delete();
+            // 租凭记录
+            Db::name('goods_rental_log')->where('goods_id', '=', $goods_id)->delete();
+            // 销售记录
+            Db::name('goods_sale_log')->where('goods_id', '=', $goods_id)->delete();
+            // 库存记录
             Db::name('goods_sku')->where('goods_id', '=', $goods_id)->delete();
+            // 入库记录
+            Db::name('goods_storage')->where('goods_id', '=', $goods_id)->delete();
+            // 商品记录
+            Db::name('goods_detail')->where('goods_id', '=', $goods_id)->delete();
             Db::commit();
             $this->returnData(1,  '删除成功');
         }catch (Exception $e)
@@ -476,7 +507,13 @@ class Goods extends BaseController
      */
     public function edit()
     {
-        $data = input('post');
+        $goods_id = input('goods_id/d', '');
+        if (is_empty($goods_id))
+        {
+            $this->returnError(10000, '商品id必填');
+        }
+        $data = input('post.');
+        $data['manager'] = input('post.uid/d');
         try{
             $validate = new GoodsValidate();
             if(!$validate->check($data))
@@ -485,10 +522,10 @@ class Goods extends BaseController
                 $this->returnError( $error[0], $error[1]);
             }
             GoodsModel::update($data);
-            $this->return_data(1, '修改成功');
+            $this->returnData(1, '修改成功');
         }catch (Exception $e)
         {
-            $this->returnError(50000, '系统出错');
+            $this->returnError(50000, '系统出错' . $e->getMessage());
         }
     }
 
@@ -497,6 +534,7 @@ class Goods extends BaseController
      */
     public function storage()
     {
+        $uid = input('uid');
         $goods_id = input('goods_id/d', '');
         $goods_num = input('goods_num/d', '');
         $goods_price = input('goods_price/f', '');
@@ -520,7 +558,7 @@ class Goods extends BaseController
             $goods_id = Db::name('goods_detail')->where('goods_id', '=', $goods_id)->value('goods_id');
             if (empty($goods_id))
             {
-                $this->returnError('10000', '20001', '入库失败');
+                $this->returnError('20001', '入库失败');
             }
             $sku = Db::name('goods_sku')->where('goods_id', '=', $goods_id)->find();
             if (!empty($sku))
@@ -560,6 +598,7 @@ class Goods extends BaseController
      */
     public function checkout()
     {
+        $uid = input('uid');
         $goods_id = input('goods_id/d', '');
         $dep_num = input('dep_num/d', '');
         $dep_price = input('dep_price', '');
@@ -615,6 +654,7 @@ class Goods extends BaseController
      */
     public function sale()
     {
+        $uid = input('uid/d', '');
         $goods_id = input('goods_id/d', '');  // 商品id
         $sman_type = input('sman_type/d', ''); //销售员类型, 1销售员,2老师
         $sman_id = input('sman_id/d', ''); // 销售员id或教师id
@@ -694,9 +734,35 @@ class Goods extends BaseController
         {
             $this->returnError(10000, '缺少参数');
         }
+        if ($rent_margin < 0 || $rent_amount < 0 || $prepaid_rent < 0)
+        {
+            $this->returnError(10000, '金额不能小于0');
+        }
         Db::startTrans();
         try
         {
+            $sku_num = db('goods_sku')->where(['goods_id'=>$goods_id])->value('sku_name');
+            $sku_num -= $rent_num;
+            Db::name('goods_sku')->where('goods_id')->
+                update(['sku_num'=>$sku_num, 'update_time'=>time()]);
+            $data = [
+                'goods_id' => $goods_id,
+                'rent_code' => $rent_code,
+                'rent_margin' => $rent_margin,
+                'rent_type' => $rent_type,
+                'rent_amount' => $rent_amount,
+                'rent_num' => $rent_num,
+                'prepaid_rent' => $prepaid_rent,
+                'rent_obj_type' => $rent_obj_type,
+                'rent_obj_id' => $rent_obj_id,
+                'start_time' => $start_time,
+                'end_time' => $end_time,
+                'pay_id' => $pay_id,
+                'remark' => $remark,
+                'create_time' => $create_time,
+                'update_time' => $update_time
+            ];
+            Db::name('goods_rental_log')->insert($data);
             $this->returnData(1, '租凭成功');
         }catch (Exception $e)
         {
@@ -704,6 +770,7 @@ class Goods extends BaseController
             $this->returnError('50000', '租凭失败');
         }
     }
+
 }
 
 

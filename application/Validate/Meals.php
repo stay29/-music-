@@ -18,8 +18,8 @@ class Meals  extends Validate
         'cur_state' =>   'require|number',
        // 'remarks' =>     'require',
         'meals_cur'=>    'require',
-        'list_img' =>    'require',
-        'bg_img' =>      'require',
+//        'list_img' =>    'require',
+//        'bg_img' =>      'require',
         'orgid' =>       'require',
         'manager' =>     'require',
       

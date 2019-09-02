@@ -56,7 +56,7 @@ class Teacher extends BaseController
         $teacher = TeacherModel::where('org_id', '=', $org_id);
         if(!empty($t_name))
         {
-            $teacher->where('AND t_name', 'like', '%' . $t_name . '%');
+            $teacher->where('t_name', 'like', '%' . $t_name . '%');
         }
         if(!empty($se_id))
         {

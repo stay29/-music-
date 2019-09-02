@@ -81,7 +81,7 @@ class Usersinfo extends BaseController
         }
         $account = input('account');
         if($account){
-                $orgid[] = ['account|nickname','like','%'.$account.'%'];
+                $orgid[] = ['account','like','%'.$account.'%'];
         }
         $orgid[] = ['is_del','=',"0"];
         $res = select_find('erp2_users',$orgid,'nickname,uid,cellphone,incumbency,rid,organization,sex,senfen');
@@ -387,6 +387,12 @@ class Usersinfo extends BaseController
     public function  del_accauth_info()
     {
         $rid['role_id'] = input('rid');
+
+        $res = db('users')->where('rid', 'like', $rid)->count();
+        if ($res)
+        {
+            $this->return_data(0, '20003', '角色被使用,无法删除');
+        }
         $data = [
             'is_del'=>1,
         ];

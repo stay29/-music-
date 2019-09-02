@@ -35,8 +35,9 @@ class Organization extends Basess
         $validate = new \app\index\validate\Organization();
         if(!$validate->scene('add')->check($data)){
             //为了可以得到错误码
-            $error = explode('|',$validate->getError());
-            $this->return_data(0,$error[1],$error[0]);
+            $error = explode('|', $validate->getError());
+//            var_dump($error);
+            $this->return_data(0,$error[1], $error[0]);
         }
         Db::startTrans();
         try{
@@ -125,7 +126,8 @@ class Organization extends Basess
             }
         }
         return $out;
-    }
+
+    }// 写的非常非常好，比官方库还流弊，留一堆bug。
     /*********************以上代码复制邱键的***************************/
 
 

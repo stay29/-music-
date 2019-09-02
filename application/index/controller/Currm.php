@@ -4,6 +4,9 @@ use think\Controller;
 use think\Exception;
 use app\index\model\Curriculums;
 
+/*
+ * 上个PHP写的。
+ */
 
 
 class Currm extends BaseController
@@ -192,6 +195,9 @@ class Currm extends BaseController
         try{
             $res = Curriculums::get_all($where);
             //print_r($res);exit();
+//            $response = [
+//                'data' => $res
+//            ];
             $this->returnData($res, '操作成功');
 //            $this->return_data(1,0,'返回成功',$res);
         }catch (\Exception $e){
