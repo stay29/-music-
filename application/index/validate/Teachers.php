@@ -14,7 +14,7 @@ class Teachers extends Validate
      */	
 	protected $rule = [
         't_id'=>'require',
-        't_name'  => 'require|max:8',
+        't_name'  => 'require|max:32',
         'cellphone'  => 'require|max:11|mobile|unique:Teachers',
         'se_id' => 'require|integer',
         'sex' => 'integer',
@@ -34,7 +34,7 @@ class Teachers extends Validate
     protected $message = [
         't_id.require'=>'教师ID不得为空|10000',
         't_name.require'=>'教师名称不得为空|10000',
-        't_name.max'=>'教师名称长度不得大于8|10001',
+        't_name.max'=>'教师名称长度不得大于16|10001',
         'cellphone.require'=>'请填写手机号|10000',
         'cellphone.max'=>'手机号不得大于11位|10001',
         'cellphone.mobile'=>'手机号格式不正确|10001',
@@ -49,7 +49,7 @@ class Teachers extends Validate
     ];
 
     protected $scene = [
-        'add' => ['t_name','se_id','cellphone','entry_time','id_card','sex','status','birthday'],
-        'edit' => ['t_id', 'se_id','cellphone','entry_time','id_card','sex','status','birthday', 't_name']
+        'add' => ['t_name','se_id','cellphone','entry_time','id_card','sex','status'],
+        'edit' => ['se_id', 'entry_time','id_card','sex','status', 't_name']
     ];
 }

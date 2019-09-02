@@ -11,16 +11,14 @@ use think\facade\Request;
 use think\Db;
 use think\facade\Session;
 use Firebase\JWT\JWT;//引入验证类
+
+
 class BaseController extends Controller
 {
     public function initialize()
     {   
         parent::initialize();
-//        $tokenall =  $this->checkToken();
-//        $token = db('Token_user')->where('uid',$tokenall['uid'])->find();
-//        if ($token['token'] != $tokenall['token']) {
-//            return $this->return_data(0, 10005, '请重新登录');
-//        }
+
     }
     public function auth_get_token()
     {
@@ -52,8 +50,6 @@ class BaseController extends Controller
             $mup['manager'] = '0';
             add('erp2_user_accesses',$mup);
         }
-
-
     }
 
     public  function  get_aid_role111($uid)
@@ -117,6 +113,36 @@ class BaseController extends Controller
             $key = 'error_msg';
         }
         echo json_encode(['status'=>$status,'error_code'=>$error_no,$key =>$info,'data'=>$data]);
+        exit();
+    }
+
+    /*
+     * 请求成功返回数据
+     */
+    public function returnData($data='', $info='')
+    {
+        $response = [
+            'status' => true,
+            'data' => $data,
+            'sinfo' => $info,
+            'error_code' => ''
+        ];
+        echo json_encode($response);
+        exit();
+    }
+
+    /*
+     * 请求失败，返回错误信息
+     */
+    public function returnError($code='', $error_msg='')
+    {
+        $response = [
+            'status' => false,
+            'error_code' => $code,
+            'data' => '',
+            'error_msg' => $error_msg
+        ];
+        echo json_encode($response);
         exit();
     }
 

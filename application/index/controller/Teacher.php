@@ -13,7 +13,9 @@ use think\Controller;
 use think\Db;
 use think\db\Where;
 use think\Exception;
-use think\Log;
+use think\helper\Str;
+use think\facade\Log;
+
 
 trait Response
 {
@@ -43,89 +45,109 @@ class Teacher extends BaseController
     public function index()
     {
         $org_id = input('orgid', '');
-        $t_name = input('t_name/s', null); // 教师名称
-        $se_id = input('se_id/s', null); // 资历ID
-        $status = input('status/d', null);  // 离职状态
+        $t_name = input('t_name/s', ''); // 教师名称
+        $se_id = input('se_id/d', ''); // 资历ID
+        $status = input('status/d', '');  // 离职状态
         $limit = input('limit/d', 20);
-        $where = array();
         if(empty($org_id))
         {
-            $this->return_data(0, '10000', '缺少参数');
+            $this->returnError('10000', '缺少参数');
         }
+        $teacher = TeacherModel::where('org_id', '=', $org_id);
         if(!empty($t_name))
         {
-            $where[] = ['t_name', 'like', '%' . $t_name. '%'];
-        }
-        if(!empty($status))
-        {
-            $where[] = ['status', '=', $status];
+            $teacher->where('t_name', 'like', '%' . $t_name . '%');
         }
         if(!empty($se_id))
         {
-            $where = ['se_id', '=', $se_id];
+            $teacher->where('se_id', '=', $se_id);
         }
-        $where[] = ['is_del', '=', 0];
-        $where[] = ['org_id', '=', $org_id];
-        $teacher = TeacherModel::where($where)->field('t_id as id,t_name as name, avator,
+
+        if(!empty($status))
+        {
+            $teacher->where('status', '=', $status);
+        }
+
+        $teacher->where('is_del', '=', 0);
+        $response = $teacher->field('t_id as id,t_name as name, avator,
                 sex,cellphone,entry_time,status, se_id, resume')->order('create_time DESC')->paginate($limit);
-        $this->return_data(1, '','', $teacher);
+        $this->returnData($response, '请求成功');
     }
 
     /*
      * Modifying Teacher Information Method
      */
     public function edit(){
-        $t_id = input('post.t_id', '');
-        $org_id = input('post.orgid', '');
+        $t_id = input('post.t_id/d', '');
+        $org_id = input('post.orgid/d', '');
+
         if (empty($t_id) || empty($org_id))
         {
-            $this->return_data(0, '10000', '缺少orgid或者t_id');
+            $this->returnError('10000', '缺少orgid或者t_id');
         }
+
         $data = [
-            't_id'=>$t_id,
+            't_id'  => $t_id,
             'org_id' => $org_id,
-            't_name' => input('post.t_name'),
-            'avator' => input('post.avator'),
-            'sex' => input('post.sex',1),
-            'se_id' => input('post.se_id'),
-            'cellphone' => input('post.cellphone'),
-            'birthday' => input('post.birthday'),
-            'entry_time' => input('post.entrytime'),
-            'resume' => input('post.resume'),
-            'identity_card' => input('post.id_card'),
+            't_name' => input('post.t_name/s'),
+            'avator' => input('post.avator', ''),
+            'sex' => input('post.sex/d',1),
+            'se_id' => input('post.se_id/d', ''),
+            'cellphone' => input('post.cellphone/s', ''),
+            'birthday' => input('post.birthday/d', 0),
+            'entry_time' => input('post.entrytime/d', 0),
+            'resume' => input('post.resume/s', ''),
+            'identity_card' => input('post.id_card/s', ''),
+            'manager' => input('post.uid/d', 1),
+            'update_time' => time(),
         ];
         $validate = new TeachersValidate();
         if (!$validate->scene('edit')->check($data)) {
             //为了可以得到错误码
             $error = explode('|',$validate->getError());
-            $this->return_data(0,$error[1],$error[0]);
+            $this->returnError($error[1],$error[0]);
         }
         Db::startTrans();
         try{
-            $salary = input('salary');
+
+            $salary = input('post.salary');
             if (!isset($salary['basic_wages']) || !isset($salary['wages_type']) || !isset($salary['s_id']))
             {
-                $this->return_data('0', '10000', '缺少basic_wages或wages_type或s_id');
+                $this->returnError('10000', '缺少basic_wages或wages_type或s_id');
             }
-            $basic_wages = $salary['basic_wages'];
-            $wages_type = $salary['wages_type'];
+            $basic_wages = floatval($salary['basic_wages']);
+            $wages_type = floatval($salary['wages_type']);
             if(!is_numeric($basic_wages) || $basic_wages < 0)
             {
-                $this->return_data(0, '10000', '基本工资参数有误');
+                $this->returnError('10000', '基本工资参数有误');
             }
             if($wages_type != 1 and $wages_type!=0)
             {
-                $this->return_data(0, '10000', '工资类型有误');
+                $this->returnError('10000', '工资类型有误');
             }
             $s_id = $salary['s_id'];
             $courses_list = $salary['courses'];
-            //TeacherModel::update($data,['t_id'=>$data['t_id']]);
-            Db::name('teachers')->where('t_id', '=', $t_id)->update($data);
-            Db::name('teacher_salary')->where('s_id', '=', $s_id)->update(
-                ['basic_wages'=>$basic_wages],
-                ['wages_type'=>$wages_type]
-            );
-            Db::name('teacher_salary')->where('s_id', '=', $s_id)->update(['basic_wages'=>$basic_wages, 'wages_type'=>$wages_type]);
+
+            Log::write('更新教师' . $t_id . '数据:' . json_encode($data));
+            $res = Db::name('teachers')->where('t_id', '=', $t_id)->update($data);
+            if (!$res)
+            {
+                Db::rollback();
+                Log::write('更新教师信息失败');
+                $this->returnError( '20003', '更新失败');
+            }
+            // 更新教师基本工资
+            $res = Db::name('teacher_salary')->where(['s_id' => $s_id])->update([
+                'basic_wages' => $basic_wages,
+                'wages_type' => $wages_type,
+                'update_time' => time()
+            ]);
+            if (!$res)
+            {
+                Db::rollback();
+                Log::write("更新教师基本薪酬失败");
+                $this->returnError('20003', '更新失败');
+            }
             foreach ($courses_list as $k=>$v)
             {
                 if (!isset($v['cur_id']) || !isset($v['p_id']) || !isset($v['p_num']))
@@ -139,21 +161,23 @@ class Teacher extends BaseController
                     'cur_id' => $v['cur_id'],
                     's_id' => $s_id
                 ];
-                $salary_id = db('teacher_salary_cur')->where(['s_id'=>$s_id, 'p_id'=>$v['p_id'], 'cur_id'=>$v['cur_id']])
+                $salary_id = db('teacher_salary_cur')->where(['s_id'=>$s_id, 'cur_id'=>$v['cur_id']])
                     ->value('id');
                 if (empty($salary_id))
                 {
-                    db('teacher_salary_cur')->insert($d);
+                    Db::name('teacher_salary_cur')->insert($d);
                 }
                 else
                 {
-                    db('teacher_salary_cur')->where('id', '=', $salary_id)->update($d);
+                    Db::name('teacher_salary_cur')->where('id', '=', $salary_id)->update($d);
                 }
+                unset($d);
             }
             Db::commit();
-            $this->return_data(1,0,'编辑教师成功');
+            $this->returnData(1,'编辑教师成功');
         }catch (\Exception $e){
-            $this->return_data(0,50000,$e->getMessage());
+            Db::rollback();
+            $this->returnError(50000,$e->getMessage());
         }
     }
 
@@ -166,23 +190,41 @@ class Teacher extends BaseController
         $org_id = input('orgid/d', '');
         if(empty($t_id) || empty($org_id))
         {
-            $this->return_data(0, '10000', '缺少t_id或orgid');
+            $this->returnError( '10000', '缺少t_id或orgid');
         }
+        Db::startTrans();
         try {
-            $tmp = db('teach_schedules')->field('t_id')->where('t_id' ,'=', $t_id)->select();
+            $tmp = Db::name('teach_schedules')->field('t_id')->where('t_id' ,'=', $t_id)->select();
+            Log::write("删除教师课表");
             if(count($tmp) > 0)
             {
-                $this->return_data(0,'20003', '已排课，删除失败');
+                $this->returnError('20003', '已排课，删除失败');
             }
+            Db::name('cur_teacher_relations')->where('t_id', '=', $t_id)->delete();
+            Log::write("删除教师课程关联表");
+            $s_id = Db::name('teacher_salary')->where('t_id', '=', $t_id)->value('s_id');
+            if(!$s_id)
+            {
+                Log::write("删除教师课程薪酬");
+                Db::name('teacher_salary_cur')->where('s_id', '=', $s_id)->delete();
+            }
+            Log::write('删除教师班级关联表:');
+            Db::name('classes_teachers_realations')->where('t_id', '=', $t_id)->delete();
+            Log::write("删除班级教师关联");
+            Db::name('teacher_salary')->where('t_id')->delete();
+            Log::write("删除教师薪酬");
             $where[] = ['t_id', '=', $t_id];
             $where[] = ['org_id', '=', $org_id];
             $where[] = ['is_del', '=', 0];
-            db('teachers')->where($where)->update(['is_del'=>1]);
-            $this->return_data(1, '','删除教师成功',true);
+            Db::name('teachers')->where($where)->delete();
+            Log::write("删除教师");
+            Db::commit();
+            $this->returnData(1,'删除教师成功');
 
         }catch (Exception $e)
         {
-            $this->return_data(0, '20003', '删除教师失败');
+            Db::rollback();
+            $this->returnError('20003', '删除教师失败');
         }
     }
 
@@ -195,7 +237,7 @@ class Teacher extends BaseController
         $t_id = input('t_id', null);
         if (!isset($org_id) || !isset($t_id))
         {
-            $this->return_data(0, '10000', '缺少参数');
+            $this->returnError('10000', '缺少参数');
         }
 
         // 教师详细信息
@@ -209,7 +251,7 @@ class Teacher extends BaseController
                             ->find();
         if (empty($teacher_details))
         {
-            $this->return_data(0, '20000', '教师不存在', '');
+            $this->returnError('20000', '教师不存在');
         }
         // 查询教师班级ID列表
         $teacher_classes = db('classes_teachers_realations')->field('cls_id')->where('t_id', '=', $t_id)->select();
@@ -305,7 +347,7 @@ class Teacher extends BaseController
             'students' => $teacher_students,
             'classes' => $teacher_classes_data,
         ];
-        $this->return_data(1, '', '请求成功', $data);
+        $this->returnData($data, '请求成功');
     }
 
     /*
@@ -316,7 +358,7 @@ class Teacher extends BaseController
 
         if (!$this->request->isPost())
         {
-            $this->return_data(0, '40000', '非法请求');
+            $this->returnError('40000', '非法请求');
         }
         $data = [
             't_name' => input('post.t_name/s', ''),
@@ -330,21 +372,21 @@ class Teacher extends BaseController
             'org_id' => input('orgid/d', ''),
             'identity_card' => input('post.id_card/s', ''),
         ];
-        if($data['entry_time'] < 0 || $data['birthday'] < 0)
+        if($data['entry_time'] < 0)
         {
-            $this->return_data(0, '10000', '时间戳参数错误');
+            $this->returnError('10000', '时间戳参数错误');
         }
         $validate = new TeachersValidate;
         if(!$validate->scene('add')->check($data)){
             //为了可以得到错误码
             $error = explode('|', $validate->getError());
-            $this->return_data(0, $error[1], $error[0]);
+            $this->returnError( $error[1], $error[0]);
         }
         try{
             $cur_str = input('cur_list/s', '');
             if (empty($cur_str))
             {
-                $this->return_data('0', '10000', '缺少cur_list参数', false);
+                $this->returnError('10000', '缺少cur_list参数', false);
             }
             $cur_list = explode(',', $cur_str);
             $teacher = new TeacherModel;
@@ -357,11 +399,11 @@ class Teacher extends BaseController
                 db('cur_teacher_relations')->data($data)->insert();
             }
             // 添加教师薪酬ID
-            Db::name('teacher_salary')->insert(['t_id'=>$t_id]);
-            $this->return_data(1,0,'教师新增成功', true);
+            Db::name('teacher_salary')->insert(['t_id'=>$t_id, 'create_time'=>time()]);
+            $this->returnData(1,'教师新增成功');
         }catch (\Exception $e){
 
-            $this->return_data(0,50000, '服务器错误'. $e->getMessage());
+            $this->returnError(50000, '服务器错误');
         }
     }
 
@@ -376,7 +418,7 @@ class Teacher extends BaseController
         $status = input('post.status', '');
         if(empty($status) || empty($t_id))
         {
-            $this->return_data(0, '10000', '缺少必填参数');
+            $this->returnError('10000', '缺少必填参数');
         }
         try
         {
@@ -386,17 +428,17 @@ class Teacher extends BaseController
                 $tmp = db('teach_schedules')->field('t_id')->where('t_id' ,'=', $t_id)->find();
                 if(!empty($tmp))
                 {
-                    $this->return_data(0,'20003', '已排课，离职失败');
+                    $this->returnError(0,'20003', '已排课，离职失败');
                 }
             }
             $res = TeacherModel::where('t_id', '=', $t_id)->update(['status'=>$status]);
             if($res)
             {
-                $this->return_data(1, '', '操作成功');
+                $this->returnData(1, '', '操作成功');
             }
             else
             {
-                $this->return_data(0, '', '操作失败');
+                $this->returnError(20003, '', '操作失败');
             }
         }catch (Exception $e)
         {
@@ -413,13 +455,13 @@ class Teacher extends BaseController
 //        $org_id = input('orgid');
         if(!$this->request->isPost())
         {
-            $this->return_data(0, '10002', '请用POST方法提交');
+            $this->returnError('10002', '请用POST方法提交');
         }
         $t_id = input('t_id'); // 教师ID
         $cur_id = input('cur_id'); //课程ID
         if (empty($t_id) || empty($cur_id))
         {
-            $this->return_data(0, '10000', '缺少参数', false);
+            $this->returnError( '10000', '缺少参数', false);
         }
         try
         {
@@ -427,15 +469,15 @@ class Teacher extends BaseController
             if ($cur_count > 1)
             {
                 db('cur_teacher_relations')->where(['t_id'=>$t_id, 'cur_id'=>$cur_id])->delete();
-                $this->return_data(1, '', '删除成功', '');
+                $this->returnData(1,  '删除成功');
             }
             else
             {
-                $this->return_data(0, '', '删除失败, 至少保留一门课程。', '');
+                $this->returnError(20003, '', '删除失败, 至少保留一门课程。');
             }
         }catch (Exception $e)
         {
-            $this->return_data(0, '20003', '删除失败');
+            $this->returnError( '20003', '删除失败');
         }
     }
 
@@ -448,21 +490,20 @@ class Teacher extends BaseController
         {
             $this->return_data(0, '10002', '请用POST方法提交');
         }
-//        $org_id = input('orgid', '');
         $t_id = input('t_id', ''); // 教师ID
         $cur_id = input('cur_id', ''); //课程ID
         if (empty($t_id) || empty($cur_id))
         {
-            $this->return_data(0, '10000', '缺少参数', false);
+            $this->returnError('10000', '缺少参数');
         }
         try
         {
             $data = ['cur_id'=>$cur_id, 't_id'=>$t_id];
             db('cur_teacher_relations')->insert($data);
-            $this->return_data(1, '', '添加课程成功', '');
+            $this->returnData(1,  '添加课程成功');
         }catch (Exception $e)
         {
-            $this->return_data(0, '20001', '添加课程失败');
+            $this->returnError('20001', '添加课程失败');
         }
     }
 
@@ -476,22 +517,22 @@ class Teacher extends BaseController
         $org_id = input('org_id', null);
         if (!isset($t_id) || !isset($org_id))
         {
-            $this->return_data(0, '10000', '缺少参数');
+            $this->returnError( '10000', '缺少参数');
         }
         $tmp = db('teach_schedules')->field('t_id')->where('t_id' ,'=', $t_id)->find();
         if(!empty($tmp))
         {
-            $this->return_data(0,'20003', '已排课，无法调度');
+            $this->returnError('20003', '已排课，无法调度');
         }
         Db::startTrans();
         try {
             Db::table('erp2_teachers')->where('t_id', '=', $t_id)->update(['org_id'=>$org_id]);
             Db::commit();
-            $this->return_data(1, '', '调度成功', true);
+            $this->returnData(1,  '调度成功');
         } catch (\Exception $e) {
             // 回滚事务
             Db::rollback();
-            $this->return_data(0, '20002', '调度失败', false);
+            $this->returnError('20002', '调度失败');
         }
 
     }
@@ -507,7 +548,7 @@ class Teacher extends BaseController
         $new_t_id = input('new_t_id', '');// 新教师id
         if(empty($t_id) || empty($new_t_id) || empty($cls_id))
         {
-            $this->return_data(0, '10000', '缺少参数', false);
+            $this->returnError('10000', '缺少参数');
         }
         try
         {
@@ -515,10 +556,10 @@ class Teacher extends BaseController
             $where[] = ['cls_id', '=', $t_id];
             $data = ['t_id' => $new_t_id];
             db('classes_teachers_realations')->where($where)->update($data);
-            $this->return_data(1,'', '更换教师成功', true);
+            $this->returnData(1,'更换教师成功');
         }catch (Exception $e)
         {
-            $this->return_data(0, '20002', '更换教师失败', false);
+            $this->returnError('20002', '更换教师失败');
         }
     }
 
@@ -531,7 +572,7 @@ class Teacher extends BaseController
         $org_id = input('orgid', '');
         if (empty($t_id) || empty($org_id))
         {
-            $this->return_data(0, '10000', '缺少t_id或org_id', false);
+            $this->returnError( '10000', '缺少t_id或org_id');
         }
         $data = db('subjects')->field('sid, sname')->select();
         foreach ($data as $k=>$v) {
@@ -558,7 +599,7 @@ class Teacher extends BaseController
             $data[$k]['courses']= $temp;
             unset($temp);
         }
-        $this->return_data(1, '', '请求成功', $data);
+        $this->returnData($data, '请求成功');
     }
 
 
@@ -581,7 +622,7 @@ class Teacher extends BaseController
         $limit = input('limit/d', 10);
         if (empty($tid) || empty($org_id))
         {
-            $this->return_data(0, '10000', '缺少参数');
+            $this->returnError('10000', '缺少参数');
         }
         $data = array();
         $tables = Db::name('teach_schedules')->field('sc_id, stu_id, room_id, cur_time, cur_id, status')
@@ -638,7 +679,7 @@ class Teacher extends BaseController
             ];
         }
 
-        $this->return_data(1, '', '', $response);
+        $this->returnData($response, '请求成功');
     }
 
     /**
@@ -651,7 +692,7 @@ class Teacher extends BaseController
         $uid = input('uid', '');
         if(empty($sc_id) || empty($password) || empty($uid))
         {
-            $this->return_data(1, '10000', '缺少参数');
+            $this->returnError('10000', '缺少参数');
         }
         try
         {
@@ -659,13 +700,13 @@ class Teacher extends BaseController
             $db_pwd_md5 = db('users')->where('uid', '=', $uid)->value('password');
             if (empty($db_pwd_md5) || $req_pwd_md5!=$db_pwd_md5)
             {
-                $this->return_data('0', '20002', '取消消课失败，密码错误', false);
+                $this->returnError('20002', '取消消课失败，密码错误');
             }
             db('teach_schedules')->where('sc_id', '=', $sc_id)->update(['status' => 1]);
-            $this->return_data(0,'' , '取消消课成功', true);
+            $this->returnData('' , '取消消课成功');
         }catch (Exception $e)
         {
-            $this->return_data(1, '20003', '系统出错,取消消课失败', false);
+            $this->returnError('20003', '系统出错,取消消课失败');
         }
     }
 
@@ -677,15 +718,15 @@ class Teacher extends BaseController
         $sc_id = input('sc_id', '');
         if(empty($sc_id))
         {
-            $this->return_data(0, '10000', '缺少参数');
+            $this->returnError( '10000', '缺少参数');
         }
         try
         {
             db('teach_schedules')->where('sc_id', '=', $sc_id)->delete();
-            $this->return_data(1, '','删除排课记录成功',true);
+            $this->returnData( '','删除排课记录成功',true);
         }catch (Exception $e)
         {
-            $this->return_data(0, '', '删除排课记录失败', false);
+            $this->returnError(0,  '删除排课记录失败');
         }
     }
 
@@ -698,7 +739,7 @@ class Teacher extends BaseController
         $cur_id = input('cur_id/d', '');
         if (empty($sc_id) || empty($cur_id))
         {
-            $this->return_data(0, '10000', '缺少参数', false);
+            $this->returnError('10000', '缺少参数');
         }
         $temp = [
             't_id'  => input('t_id/d', ''),
@@ -719,7 +760,7 @@ class Teacher extends BaseController
         {
             if($data['cur_time']  < time())
             {
-                $this->return_data(0, '10001', '排课时间有误');
+                $this->returnError('10001', '排课时间有误');
             }
             // 课程时长分钟数
             $cur_min = db('curriculums')->where('cur_id', '=', $cur_id)->value('ctime');
@@ -730,16 +771,16 @@ class Teacher extends BaseController
 
             if(!empty($res))
             {
-                $this->return_data(0, '20002', '调课失败');
+                $this->returnError( '20002', '调课失败');
             }
 
         }
         try{
             db('teach_schedules')->where('sc_id', '=', $sc_id)->update($data);
-            $this->return_data(1, '', '调课成功', true);
+            $this->returnData(1, '', '调课成功');
         }catch (Exception $e)
         {
-            $this->return_data(0, '20002', '调课失败');
+            $this->returnError('20002', '调课失败');
         }
     }
 
@@ -751,7 +792,7 @@ class Teacher extends BaseController
         $sc_id = input('sc_id/d', '');
         if(empty($sc_id))
         {
-            $this->return_data(0, '', '缺少参数', false);
+            $this->returnError(0, '', '缺少参数');
         }
         try
         {
@@ -773,14 +814,14 @@ class Teacher extends BaseController
                 ->where($where)->find();
             if (!empty($res))
             {
-                $this->return_data(0, '20002', '顺延失败, 课程冲突', false);
+                $this->returnError('20002', '顺延失败, 课程冲突');
             }
             // 更新上课时间
             db('teach_schedules')->where('sc_id', '=', $sc_id)->update(['cur_time' => $start_time]);
-            $this->return_data(1, '', '顺延成功', true);
+            $this->returnData(1,  '顺延成功');
         }catch (Exception $e)
         {
-            $this->return_data('0', '50000', '服务器错误');
+            $this->returnError('50000', '服务器错误');
         }
     }
 
@@ -800,16 +841,16 @@ class Teacher extends BaseController
         $level = input('level', 1); // 1事假, 2病假, 3老师请假
         if(empty($sc_id) || empty($level))
         {
-            $this->return_data(0, '10000', '缺少参数');
+            $this->returnError( '10000', '缺少参数');
         }
         try
         {
             db('teach_schedules')->where('sc_id', '=', $sc_id)
             ->update(['level'=> $level, 'status'=>$status]);
-            $this->return_data(1, '', '请假成功', true);
+            $this->returnData(1,  '请假成功');
         }catch (Exception $e)
         {
-            $this->return_data(0, '', '服务器错误，　请假失败', true);
+            $this->returnError(0, '服务器错误，请假失败');
         }
     }
 
@@ -823,16 +864,16 @@ class Teacher extends BaseController
         $level = 0; // 1事假, 2病假, 3老师请假, 0 非请假
         if(empty($sc_id))
         {
-            $this->return_data(0, '10000', '缺少参数');
+            $this->returnError( '10000', '缺少参数');
         }
         try
         {
             db('teach_schedules')->where('sc_id', '=', $sc_id)
                 ->update(['level'=> $level, 'status'=>$status]);
-            $this->return_data(1, '', '取消请假成功', true);
+            $this->returnData(1,  '取消请假成功');
         }catch (Exception $e)
         {
-            $this->return_data(0, '', '服务器错误，　请假失败', true);
+            $this->returnError(0, '服务器错误，请假失败');
         }
     }
 
@@ -845,16 +886,16 @@ class Teacher extends BaseController
         $sc_id = input('sc_id', '');
         if(empty($sc_id))
         {
-            $this->return_data(0, '10000', '缺少参数');
+            $this->returnError( '10000', '缺少参数');
         }
         try
         {
             db('teach_schedules')->where('sc_id', '=', $sc_id)
                 ->update(['status'=>$status]);
-            $this->return_data(1, '', '取消请假成功', true);
+            $this->returnData(1,  '取消请假成功');
         }catch (Exception $e)
         {
-            $this->return_data(0, '', '服务器错误，　请假失败', true);
+            $this->returnError(0,  '服务器错误，　请假失败');
         }
     }
 
@@ -867,16 +908,16 @@ class Teacher extends BaseController
         $sc_id = input('sc_id', '');
         if(empty($sc_id))
         {
-            $this->return_data(0, '10000', '缺少参数');
+            $this->returnError( '10000', '缺少参数');
         }
         try
         {
             db('teach_schedules')->where('sc_id', '=', $sc_id)
                 ->update(['status'=>$status]);
-            $this->return_data(1, '', '取消旷课成功', true);
+            $this->returnData(1,  '取消旷课成功');
         }catch (Exception $e)
         {
-            $this->return_data(0, '', '服务器错误，　请假失败', true);
+            $this->returnError( '50000', '服务器错误，　请假失败');
         }
     }
 
@@ -889,16 +930,16 @@ class Teacher extends BaseController
         $sc_id = input('sc_id/d', '');
         if(empty($sc_id))
         {
-            $this->return_data(0, '10000', '缺少参数');
+            $this->returnError('10000', '缺少参数');
         }
         try
         {
             db('teach_schedules')->where('sc_id', '=', $sc_id)
                 ->update(['status'=>$status]);
-            $this->return_data(1, '', '还原成功', true);
+            $this->returnData(1,  '还原成功');
         }catch (Exception $e)
         {
-            $this->return_data(0, '', '服务器错误，还原失败', true);
+            $this->returnError(50000, '服务器错误，还原失败');
         }
     }
 
@@ -911,7 +952,7 @@ class Teacher extends BaseController
         $orgid = input('orgid');
         if (empty($orgid))
         {
-            $this->return_data('0', '10000', '缺少参数orgid');
+            $this->returnError( '10000', '缺少参数orgid');
         }
         $data = db('subjects')->field('sid, sname')->select();
         foreach ($data as $k=>$v) {
@@ -921,7 +962,7 @@ class Teacher extends BaseController
             $data[$k]['courses']=$temp;
             unset($temp);
         }
-        $this->return_data(1, '', '', $data);
+        $this->returnData( $data, '');
     }
 
     /*
@@ -932,10 +973,10 @@ class Teacher extends BaseController
         $org_id = input('orgid', '');
         if(empty($org_id))
         {
-            $this->return_data('0', '10000','缺少参数');
+            $this->returnError('10000','缺少参数');
         }
         $data = db('teachers')->field('t_id, t_name')->where(['org_id'=>$org_id, 'is_del'=>0])->select();
-        $this->return_data('1', '', '请求成功', $data);
+        $this->returnData($data , '请求成功');
     }
 
     /*
@@ -946,10 +987,10 @@ class Teacher extends BaseController
         $org_id = input('orgid', '');
         if(empty($org_id))
         {
-            $this->return_data('0', '10000','缺少参数');
+            $this->returnError( '10000','缺少参数');
         }
         $data = db('classrooms')->field('room_id, room_name')->where('or_id','=', $org_id)->select();
-        $this->return_data('1', '', '请求成功', $data);
+        $this->returnData($data,'请求成功');
     }
 
     /*
@@ -960,10 +1001,10 @@ class Teacher extends BaseController
         $orgid = input('orgid/d', '');
         if(empty($orgid))
         {
-            $this->return_data(0, '10000', '缺少参数', false);
+            $this->returnError('10000', '缺少参数');
         }
         $data = db('pay_info')->field('pay_id_info as p_id, pay_name as p_name')->select();
-        $this->return_data(1, '', '请求成功', $data);
+        $this->returnData( $data, '请求成功');
     }
 }
 

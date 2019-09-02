@@ -3,6 +3,7 @@ namespace app\index\controller;
 use think\Controller;
 use PHPExcel;
 use think\Db;
+use Think\Exception;
 use think\facade\Session;
 use app\index\model\Curriculums;
 use app\index\controller\Phpexcil;
@@ -332,9 +333,6 @@ class Index extends Basess
         Phpexcil::export_tow_aaa('课程列表',$kname,$list,$subjectinfo_list);
     }
 
-
-
-
     //导出班级
     public  function  dchu_banji()
     {
@@ -370,12 +368,19 @@ class Index extends Basess
         Phpexcil::explords('班级列表',$kname,$res);
     }
 
-
+    /*
+     * 导入班级
+     */
     public  function  daoru_banji()
     {
         $kname = ['class_name','class_count', 'headmaster', 'remarks'];
         $orgid = input('orgid');
-        $res = Phpexcil::import_all($kname);
+        try{
+            $res = Phpexcil::import_all($kname);
+        }catch (Exception $e)
+        {
+            $this->return_data(0, '10000', '缺少文件', '');
+        }
          foreach ($res as $k2=>&$v2)
          {
             foreach ($v2 as $kf=>$vf){
@@ -409,16 +414,12 @@ class Index extends Basess
          }
         $info = Db::table('erp2_classes')->insertAll($fils);
         if($info){
+
             $this->return_data(1,0,'导入成功');
         }else{
+
             $this->return_data(0,10000,'导入失败');
         }
     }
-
-                                 
-
-
-
-
 
 }

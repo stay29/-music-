@@ -10,6 +10,8 @@ use think\Controller;
 use think\Db;
 use app\index\model\Users;
 use app\index\model\Organization as Organ;
+
+
 class Usersinfo extends BaseController
 {
     public  function  addusers(){
@@ -66,14 +68,9 @@ class Usersinfo extends BaseController
 
     public function user_list()
     {
-        $page = input('page');
-        if($page==null){
-            $page = 1;
-        }
-        $limit = input('limit');
-        if($limit==null){
-            $limit = 10;
-        }
+        $page = input('page/d', 1);
+        $limit = input('limit/d', 10);
+
         //超级管理员
         $uid = ret_session_name('uid');
         //$orgid['organization'] = input('orgid');
@@ -247,17 +244,36 @@ class Usersinfo extends BaseController
 
     public function  editpass()
     {
-        //print_r(input('post.'));exit();
-        $uid = input('uid');
-        $orgid = input('orgid');
-        $where['uid'] = $uid;
-        $data['password'] =  md5_return(input('pass'));
-         $res = edit('erp2_users',$where,$data);
-         if($res){
-             $this->return_data(1,0,'操作成功');
-         }else{
-             $this->return_data(0,10000,'操作失败');
-         }
+//        //print_r(input('post.'));exit();
+//        $uid = input('uid');
+//        $orgid = input('orgid');
+//        $where['uid'] = $uid;
+//        $data['password'] =  md5_return(input('pass'));
+//         $res = edit('erp2_users',$where,$data);
+//         if($res){
+//             $this->return_data(1,0,'操作成功');
+//         }else{
+//             $this->return_data(0,10000,'操作失败');
+//         }
+        $new_pwd = input('pass/s', '');
+        $raw_pwd = input('rpass/s', '');
+//        $uid = input('uid', '');
+//        $org_id = input('orgid', '');
+        $mobile = input('cellphone', '');
+        if ($new_pwd != $raw_pwd)
+        {
+            $this->return_data(0, '10000', '两次密码不能一致');
+        }
+
+        $new_pwd = md5_return($new_pwd);
+        $db_raw_pwd = db('users')->where(['account'=>$mobile])->value('password');
+
+        if ($db_raw_pwd == $new_pwd)
+        {
+            $this->return_data(0, '10000', '新旧密码不能一致');
+        }
+        db('users')->where(['account' => $mobile])->update(['password' => $new_pwd]);
+        $this->return_data(1, '10000', '修改成功');
     }
 
 
@@ -321,7 +337,9 @@ class Usersinfo extends BaseController
         }
     }
 
-
+    /*
+     *
+     */
     public  function  add_accauth_list()
     {
         $data = [
@@ -369,6 +387,12 @@ class Usersinfo extends BaseController
     public function  del_accauth_info()
     {
         $rid['role_id'] = input('rid');
+
+        $res = db('users')->where('rid', 'like', $rid)->count();
+        if ($res)
+        {
+            $this->return_data(0, '20003', '角色被使用,无法删除');
+        }
         $data = [
             'is_del'=>1,
         ];
@@ -404,8 +428,6 @@ class Usersinfo extends BaseController
         $res['alist'] = $alist;
         $this->return_data(1,0,$res);
     }
-
-
 
 
 }
