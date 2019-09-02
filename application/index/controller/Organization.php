@@ -52,9 +52,10 @@ class Organization extends Basess
             'address'=>input('post.map'),
             'remarks'=>input('post.remarks'),
             'status' =>2,
+             'uid'=>input('post.uid')
         ];
 
-        $uid = ret_session_name('uid');
+        $uid = input('post.uid');
         $validate = new \app\index\validate\Organization();
         if(!$validate->scene('add')->check($data)){
             //为了可以得到错误码
