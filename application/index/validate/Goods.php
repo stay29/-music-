@@ -26,7 +26,7 @@ class Goods extends Validate
 //        'margin_amount' => 'require',
 //        'goods_amount'  => 'require',
         'remarks'  => 'max:500',
-        'goods_img' => 'require',
+//        'goods_img' => 'require',
     ];
 
     protected $message = [
@@ -45,6 +45,6 @@ class Goods extends Validate
 //        'rent_amount_day.require'  => '10000|租金金额(日)必填',
 //        'rent_amount_mon.require'   => '10000|租金金额(月)必填',
 //        'rent_amount_year.require'  => '10000|租金金额(年)必填',
-        'goods_img.require'  => '必须上传商品图片'
+//        'goods_img.require'  => '1000必须上传商品图片'
     ];
 }
