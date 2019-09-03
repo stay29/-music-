@@ -297,7 +297,29 @@ class Records extends BaseController
         try
         {
             $log = db('goods_rental_log')->where('rent_id', '=', $rent_id)->find();
-            $goods_name = db('goods_detail')->field();
+            $goods_name = db('goods_detail')->
+                where('goods_id', '=', $log['goods_id'])->value('goods_name');
+            $rent_obj_name = '其他';
+            if ($log['rent_obj_type'] == 1)
+            {
+                $rent_obj_name = db('students', '=', $log['rent_obj_id'])->value('truename');
+            }
+            function get_amount_of_day()
+            {
+
+            }
+            $data = [
+                'rent_id' => $log['rent_id'],
+                'goods_name' => $goods_name, // 商品名称
+                'rent_num' => $log['rent_num'], // 租借数量
+                'rent_type' => $log['rent_type'], // 租借类型
+                'rent_margin' => $log['rent_margin'], // 租凭押金
+                'prepaid_rent' => $log['prepaid_rent'], // 预付租金
+                'start_time'    => $log['start_time'],
+                'end_time'  => $log['end_time'],
+                'remarks'   => $log['remarks'],
+                'pay_amount' => $log['']
+            ];
         }catch (Exception $e)
         {
             $this->returnError(50000, '系统错误' . $e->getMessage());

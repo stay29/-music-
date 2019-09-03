@@ -549,8 +549,14 @@ class Goods extends BaseController
         {
             $this->returnError(10000, '缺少参数');
         }
-        $data = db('goods_detail')->field('goods_name, goods_img, cate_id, unit_name, goods_amount, margin_amount,
-                rent_amount_day, rent_amount_mon,  rent_amount_year, remarks')->where('goods_id', '=', $goods_id)->find();
+//        $log = db('goods_rental_log')->where('goods_id', '=', $goods_id)->find();
+//        $goods_name = db('goods_detail')->where('goods_id', '=', $goods_id)->value('goods_name');
+//        $rent_obj_name = '其他';
+//        if ($log['rent_obj_type'] == 1) // 学生
+//        {
+//            $rent_obj_name = db('students')->where('stu_id')->value('truename');
+//        }
+        $data = db('goods_detail')->where('goods_id', '=', $goods_id)->find();
         $this->returnData($data, '请求成功');
     }
 
