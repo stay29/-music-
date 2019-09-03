@@ -164,10 +164,10 @@ class Organization extends Basess
         $p_id=$org['uid'];//获得校长id
 
         if($p_id==0){//uid默认为0的话只查询当下一个机构
-            $list=Organ::where('or_id',$or_id)->field('or_id, or_name')->select()->toArray();
+            $list=Organ::where('or_id',$or_id)->field('or_id, or_name,f')->select()->toArray();
             return $list;
         }
-        $list = Organ::where('uid',$p_id)->field('or_id, or_name')->select()->toArray();
+        $list = Organ::where('uid',$p_id)->field('or_id, or_name,f is null then 1')->select()->toArray();
         return $list;
 
     }
