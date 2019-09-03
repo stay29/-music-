@@ -184,6 +184,7 @@ class Records extends BaseController
     }
 
 
+
     /*
      * 租凭记录列表
      */
@@ -218,12 +219,22 @@ class Records extends BaseController
                     ->whereBetweenTime('create_time',  $start_time,  $end_time);
 
                 $total_margin = $table->sum('rent_margin'); // 总押金
-                $rent_num;
-                $total_margin = $table->count('rent_id') * $goods_margin;
-                $prepaid_rent = $table->sum('prepaid_rent');
-                $records = $table->select();
-                $data['total_margin'] = $total_margin;
-                $data['total_'];
+                $total_amount = $table->sum('rent_amount');  // 总租金
+                $total_prepaid_rent = $table->sum('prepaid_rent');  // 总预收租金
+                $data = [
+                    'total_margin' => $total_margin,
+                    'total_amount' => $total_amount,
+                    'total_prepaid_rent' => $total_prepaid_rent,
+                    'records' => array()
+                ];
+                $logs = $table->select();
+                foreach ($logs as $log)
+                {
+                    $g_id = $log['goods_id'];
+                    $rent_obj_type = $log['rent_onj_type'];
+                    $rent_obj_id = $log['rent_onj_id'];
+
+                }
             }
             else
             {
@@ -529,7 +540,7 @@ class Records extends BaseController
             {
                 $goods_db->where('cate_id', '=', $cate_id);
             }
-            $goods_list = $goods_db->field('goods_id, cate_id, unit_name')->select();
+            $goods_list = $goods_db->field('goods_id, cate_id, unit_name, goods_name')->select();
             $data = [];
             foreach ($goods_list as $goods)
             {
