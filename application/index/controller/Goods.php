@@ -358,7 +358,7 @@ class Goods extends BaseController
         }
 
         $db = db('goods_detail')->field('goods_id, goods_name, remarks,
-        unit_name, cate_id, goods_amount');
+        unit_name, cate_id, goods_amount, goods_img');
         if (!empty($cate_id))
         {
             $db->where('cate_id', '=', $cate_id);
