@@ -153,7 +153,14 @@ class Organization extends Basess
 
     }// 写的非常非常好，比官方库还流弊，留一堆bug。
     /*********************以上代码复制邱键的***************************/
-
+    //根据获得当前机构列表
+    public function get_org_list(){
+        $or_id=input('post.or_id');
+        $org=Organ::where('or_id',$or_id);     //先查到这个机构
+        $p_id=$org['uid'];//获得校长id
+        $list = Organ::where('uid',$p_id)->select();
+        $this->return_data(1,0,$list);
+    }
 
 
 }
