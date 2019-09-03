@@ -423,7 +423,7 @@ class Usersinfo extends BaseController
         }
 
         $orlist =Organization::get_org_list_m($orgid);
-        $orlist['f'] = "1";
+//        $orlist['f'] = "1";
         $res['auth'] = $a;
         $res['orglist'] = $orlist;
         $res['alist'] = $alist;
