@@ -188,6 +188,9 @@ class Goods extends BaseController
     /**
      * 删除分类
      */
+
+
+
     public function cate_del()
     {
         $cate_id = input('cate_id/d', '');
