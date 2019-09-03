@@ -590,12 +590,13 @@ class Goods extends BaseController
                 $sku_num = $sku['sku_num'] + $goods_num;
                 Db::name('goods_sku')->where('sku_id', '=', $sku_id)->update(['sku_num' => $sku_num]);
             }
-            $sku_data = [
-                ['goods_id', '=', $goods_id],
-                ['sku_num', '=', $goods_num]
-            ];
-            Db::name('goods_sku')->insert($sku_data);
-
+            else{
+                $sku_data = [
+                    ['goods_id', '=', $goods_id],
+                    ['sku_num', '=', $goods_num]
+                ];
+                Db::name('goods_sku')->insert($sku_data);
+            }
             $sto_data = [
                 'goods_id' => $goods_id,
                 'sto_num' => $goods_num,
