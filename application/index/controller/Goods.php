@@ -557,13 +557,13 @@ class Goods extends BaseController
      */
     public function storage()
     {
-        $uid = input('uid');
+        $uid = input('uid/d', '');
         $goods_id = input('goods_id/d', '');
         $goods_num = input('goods_num/d', '');
         $goods_price = input('goods_price/f', '');
         $remark = input('remark/s', '');
         $entry_time = input('entry_time/d', time());
-        if(is_empty($goods_id, $goods_num, $goods_price))
+        if(is_empty($goods_id, $goods_num, $goods_price, $uid))
         {
             $this->returnError('10000', '缺少参数');
         }
@@ -612,7 +612,7 @@ class Goods extends BaseController
         }catch (Exception $e)
         {
             Db::rollback();
-            $this->returnError(20001, '入库失败');
+            $this->returnError(20001, '入库失败' . $e->getMessage());
         }
     }
 
@@ -783,7 +783,8 @@ class Goods extends BaseController
                 'pay_id' => $pay_id,
                 'remark' => $remark,
                 'create_time' => $create_time,
-                'update_time' => $update_time
+                'update_time' => $update_time,
+                'status' => 1
             ];
             Db::name('goods_rental_log')->insert($data);
             $this->returnData(1, '租凭成功');
