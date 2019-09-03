@@ -155,7 +155,7 @@ class Organization extends Basess
     /*********************以上代码复制邱键的***************************/
     //根据获得当前机构列表
     public function get_org_list(){
-       return $this->return_data(1,0,"查询成功",get_org_list(input('post.or_id')));
+       return $this->return_data(1,0,"查询成功",$this->get_org_list_m(input('post.or_id')));
     }
     //提取机构列表公共方法
     public static function get_org_list_m($or_id)
