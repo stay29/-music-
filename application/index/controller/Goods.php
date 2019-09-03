@@ -367,7 +367,7 @@ class Goods extends BaseController
         {
             $db->where('goods_name', 'like', '%' . $goods_name . '%');
         }
-        $goods_list = $db->paginate($limit);
+        $goods_list = $db->order('create_time DESC')->paginate($limit);
         // 返回值
         $response = [
             'total' => $goods_list->total(),
@@ -547,7 +547,7 @@ class Goods extends BaseController
             $this->returnError(10000, '缺少参数');
         }
         $data = db('goods_detail')->field('goods_name, goods_img, cate_id, unit_name, goods_amount, margin_amount,
-                rent_amount_day, rent_amount_mon,  rent_amount_year, remarks')->find();
+                rent_amount_day, rent_amount_mon,  rent_amount_year, remarks')->where('goods_id', '=', $goods_id)->find();
         $this->returnData($data, '请求成功');
     }
 

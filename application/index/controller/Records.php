@@ -219,13 +219,22 @@ class Records extends BaseController
                     ->whereBetweenTime('create_time',  $start_time,  $end_time);
 
                 $total_margin = $table->sum('rent_margin'); // 总押金
+                $total_amount = $table->sum('rent_amount');  // 总租金
+                $total_prepaid_rent = $table->sum('prepaid_rent');  // 总预收租金
+                $data = [
+                    'total_margin' => $total_margin,
+                    'total_amount' => $total_amount,
+                    'total_prepaid_rent' => $total_prepaid_rent,
+                    'records' => array()
+                ];
+                $logs = $table->select();
+                foreach ($logs as $log)
+                {
+                    $g_id = $log['goods_id'];
+                    $rent_obj_type = $log['rent_onj_type'];
+                    $rent_obj_id = $log['rent_onj_id'];
 
-//                $rent_num;
-//                $total_margin = $table->count('rent_id') * $goods_margin;
-//                $prepaid_rent = $table->sum('prepaid_rent');
-//                $records = $table->select();
-//                $data['total_margin'] = $total_margin;
-//                $data['total_'];
+                }
             }
             else
             {
