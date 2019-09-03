@@ -296,7 +296,8 @@ class Records extends BaseController
         }
         try
         {
-            $data = db();
+            $log = db('goods_rental_log')->where('rent_id', '=', $rent_id)->find();
+            $goods_name = db('goods_detail')->field();
         }catch (Exception $e)
         {
             $this->returnError(50000, '系统错误' . $e->getMessage());

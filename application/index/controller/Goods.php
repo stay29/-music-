@@ -660,7 +660,8 @@ class Goods extends BaseController
                 'remarks' => $remarks,
                 'create_time'   => time(),
                 'update_time'    => time(),
-                'dep_code'  => random_code()
+                'dep_code'  => random_code(),
+                'manager' => $uid,
             ];
             // 出库记录
             Db::name('goods_deposit')->insert($dep_data);
@@ -669,7 +670,7 @@ class Goods extends BaseController
         }catch (Exception $e)
         {
             Db::rollback();
-            $this->returnError('50000', '系统出错, 出库失败');
+            $this->returnError('50000', '系统出错, 出库失败' . $e->getMessage());
         }
     }
 
