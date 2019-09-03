@@ -184,6 +184,7 @@ class Records extends BaseController
     }
 
 
+
     /*
      * 租凭记录列表
      */
@@ -218,12 +219,13 @@ class Records extends BaseController
                     ->whereBetweenTime('create_time',  $start_time,  $end_time);
 
                 $total_margin = $table->sum('rent_margin'); // 总押金
-                $rent_num;
-                $total_margin = $table->count('rent_id') * $goods_margin;
-                $prepaid_rent = $table->sum('prepaid_rent');
-                $records = $table->select();
-                $data['total_margin'] = $total_margin;
-                $data['total_'];
+
+//                $rent_num;
+//                $total_margin = $table->count('rent_id') * $goods_margin;
+//                $prepaid_rent = $table->sum('prepaid_rent');
+//                $records = $table->select();
+//                $data['total_margin'] = $total_margin;
+//                $data['total_'];
             }
             else
             {

@@ -537,6 +537,22 @@ class Goods extends BaseController
     }
 
     /*
+     * 商品详情
+     */
+    public function detail()
+    {
+        $goods_id = input('goods_id/d', '');
+        if (is_empty($goods_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+        $data = db('goods_detail')->field('goods_name, goods_img, cate_id, unit_name, goods_amount, margin_amount,
+                rent_amount_day, rent_amount_mon,  rent_amount_year, remarks')->find();
+        $this->returnData($data, '请求成功');
+    }
+
+
+    /*
      * 商品入库
      */
     public function storage()
