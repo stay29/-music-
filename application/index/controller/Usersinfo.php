@@ -425,7 +425,7 @@ class Usersinfo extends BaseController
         $orlist =Organization::get_org_list_m($orgid);
         $orlist['f'] = "1";
         $res['auth'] = $a;
-        $res['orglist'] = $orlist;
+        $res['orglist'] = $this->a_array_unique($orlist);
         $res['alist'] = $alist;
         $this->return_data(1,0,"查询成功",$res);
     }
