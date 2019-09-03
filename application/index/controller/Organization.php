@@ -156,10 +156,13 @@ class Organization extends Basess
     //根据获得当前机构列表
     public function get_org_list(){
         $or_id=input('post.or_id');
+        echo($or_id);
         $org=finds('erp2_organizations',['or_id'=>$or_id]);     //先查到这个机构
+        echo($org);
         $p_id=$org['uid'];//获得校长id
+        echo($p_id);
         $list = Organ::where('uid',$p_id)->select();
-        $this->return_data(1,0,$list);
+        $this->return_data(1,0,'查询成功',$list);
     }
 
 
