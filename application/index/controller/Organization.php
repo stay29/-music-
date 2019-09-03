@@ -159,7 +159,7 @@ class Organization extends Basess
         $org=finds('erp2_organizations',['or_id'=>$or_id]);     //先查到这个机构
         $p_id=$org['uid'];//获得校长id
         $list = Organ::where('uid',$p_id)->select();
-        $this->return_data(1,0,"$or_id $org  $p_id",$list);
+        $this->return_data(1,0,"查询成功",$list);
     }
 
 
