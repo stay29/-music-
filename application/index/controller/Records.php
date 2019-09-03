@@ -540,7 +540,7 @@ class Records extends BaseController
             {
                 $goods_db->where('cate_id', '=', $cate_id);
             }
-            $goods_list = $goods_db->field('goods_id, cate_id, unit_name')->select();
+            $goods_list = $goods_db->field('goods_id, cate_id, unit_name, goods_name')->select();
             $data = [];
             foreach ($goods_list as $goods)
             {
