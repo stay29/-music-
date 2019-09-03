@@ -167,7 +167,7 @@ class Organization extends Basess
             $list=Organ::where('or_id',$or_id)->field('or_id, or_name,f')->select()->toArray();
             return $list;
         }
-        $list = Organ::where('uid',$p_id)->field('or_id, or_name,f is null then 1')->select()->toArray();
+        $list = Organ::where('uid',$p_id)->field('or_id, or_name,f')->select()->toArray();
         return $list;
 
     }
