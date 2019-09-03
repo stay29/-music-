@@ -10,7 +10,7 @@ use think\Controller;
 use think\Db;
 use app\index\model\Users;
 use app\index\model\Organization as Organ;
-
+use app\index\controller\Organization;
 
 class Usersinfo extends BaseController
 {
@@ -421,12 +421,13 @@ class Usersinfo extends BaseController
             $v['f'] = "1";
             $v1['pidlist'] = selects('erp2_user_accesses',['is_del'=>0,'type'=>1,'pid'=>$v1['access_id']]);
         }
-        $orlist = finds('erp2_organizations',['is_del'=>0,'status'=>2,'or_id'=>$orgid]);
+
+        $orlist =Organization::get_org_list_m($orgid);
         $orlist['f'] = "1";
         $res['auth'] = $a;
         $res['orglist'] = $orlist;
         $res['alist'] = $alist;
-        $this->return_data(1,0,$res);
+        $this->return_data(1,0,"查询成功",$res);
     }
 
 
