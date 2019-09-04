@@ -35,9 +35,17 @@ class Seniorities extends BaseController
         $system_data = SenModel::where(['is_official'=>1, 'status'=>1, 'is_del'=>0])
             ->field('seniority_id as s_id, seniority_name as s_name, is_official')
             ->select();
-        $data = array_push($data, $system_data);
+        $response = [];
+        foreach ($system_data as $k=>$v)
+        {
+            $response[] = $v;
+        }
+        foreach ($data as $k=>$v)
+        {
+            $response[] = $v;
+        }
 //        $response = [];
-        $this->returnData($data, '请求成功');
+        $this->returnData($response, '请求成功');
     }
 
     /*
