@@ -10,13 +10,13 @@ class System extends AdminBase
     {
          $this->assign('title','资历列表');
          $this->assign('add',url('seniory_add'));
-         $data = db('seniorities')->field('seniority_name,seniority_id,status,manager,systemed,update_time')->paginate(20,false,['query'=>request()->param()])->each(function($v,$k){
+         $data = db('seniorities')->
+         field('seniority_name,seniority_id,status,manager,systemed,update_time')->where('is_del', '=', 0)->paginate(20,false,['query'=>request()->param()])->each(function($v,$k){
              if($v['status'] == 1){
                  $v['status_text'] = '正常';
              }elseif($v['status'] == 2){
                  $v['status_text'] = '已禁用';
              }
-
              $account = db('users')->where(['uid'=>$v['manager']])->value('account');
              $v['manager'] = isset($account) ? $account : '系统';
              return $v;
@@ -33,7 +33,6 @@ class System extends AdminBase
     		} 
     		$data['create_time'] = $data['update_time'] = time(); $data['manager'] = session('admin.id');
     		$data['is_official'] = 1;
-
     		$res = db('seniorities')->insertGetId($data);
     		if($res){
     			$this->return_data(1,'新增资历成功');

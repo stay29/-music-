@@ -741,7 +741,7 @@ class Goods extends BaseController
         $pay_id = input('pay_id/d', ''); // 支付方式
         $sale_num = input('sale_num/d', ''); // 销售数量
         $single_price = input('single_price/f', 0.0);   // 单价
-        $sum_payable = input('sum_payable/f', 0.0);     // 应付金额
+        $sum_payable = input('sum_payable/f', $single_price);     // 应付金额
         $remark = input('remark/s', ''); // 备注
         $sale_time = input('sale_time/d', time()); // 销售时间
         $pay_amount = input('pay_amount/f', 0.00);  // 实付金额

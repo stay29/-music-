@@ -13,6 +13,7 @@ namespace app\index\controller;
  */
 
 
+use think\Db;
 use Think\Exception;
 
 class Records extends BaseController
@@ -336,9 +337,57 @@ class Records extends BaseController
      */
     public function rental_recover()
     {
-        $pay_amount = input('pay_amount/f', '');
-        $refund_amount = input('refund_amount/f', '');
+        $pay_amount = input('pay_amount/f', ''); // 实际租金
+        $refund_amount = input('refund_amount/f', ''); // 实退金额
+        $pay_id = input('pay_id/d', '');    // 支付方式
+        $return_time = input('return_time/d', '');
+        $rent_id = input('rent_id/d', '');
 
+        if (is_empty($pay_amount, $refund_amount, $pay_id, $return_time, $rent_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+        Db::startTrans();
+        try
+        {
+            Db::name('goods_rental_log')->where('rent_id', '=', $rent_id)->update(['status' => 1]);
+            $data = [
+                'pay_amount' => $pay_amount,
+                'refund_amount' => $refund_amount,
+                'pay_id'    => $pay_id,
+                'return_time'   => $return_time,
+                'rent_id'   => $rent_id
+            ];
+            Db::name('goods_refund_log')->insert($data);
+            $this->returnData(true, '请求成功');
+        }catch (Exception $e)
+        {
+            $this->returnError(50000, '系统错误' . $e->getMessage());
+        }
+    }
+
+    /*
+     * 续租页面数据
+     */
+    public function rerent_detail()
+    {
+        $rent_id = input('rent_id/d',  '缺少参数');
+        if (is_empty($rent_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+    }
+
+    /*
+     * 续租提交
+     */
+    public function rerent_edit()
+    {
+        $rent_id = input('rent_id/d', '');
+        if (is_empty($rent_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
     }
 
 
