@@ -25,7 +25,7 @@ class Seniorities extends BaseController
             $this->return_data('0', '10000', '缺少参数');
         }
         $data = SenModel::where(['status'=>1, 'org_id'=>$orgid, 'is_del'=>0])
-            ->field('seniority_id as s_id, seniority_name as s_name')
+            ->field('seniority_id as s_id, seniority_name as s_name, is_official')
             ->order('sort')
             ->paginate(20);
         $this->return_data(1,'', '', $data);
@@ -79,8 +79,16 @@ class Seniorities extends BaseController
             $where[] = ['seniority_id', '=', $s_id];
             $where[] = ['is_del', '=', 0];
             $where[] = ['org_id', '=', $orgid];
-            SenModel::where($where)->update(['is_del'=>1]);
-            $this->return_data(1,'','删除成功');
+            $where[] = ['is_official', '=', 0];
+            $res = SenModel::where($where)->update(['is_del'=>1]);
+            if ($res)
+            {
+                $this->returnData('', '删除成功');
+            }
+            else
+            {
+                $this->returnError(20001, '删除失败');
+            }
         }catch (Exception $e)
         {
             $this->return_data(0, '50000', '系统错误');
