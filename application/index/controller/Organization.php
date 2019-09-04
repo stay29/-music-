@@ -12,7 +12,7 @@ use think\Db;
 use think\facade\Session;
 use app\index\model\Organization as Organ;
 use app\index\model\Users;
-
+use app\index\model\Seniorities as SenModel;
 /*               真米如初
                  _oo0oo_
                 o8888888o
@@ -76,6 +76,18 @@ class Organization extends Basess
             $data['rolelist'] = $rolelist;
             $data['userinfo'] = $userinfo;
             $data['orgid'] = $res['id'];
+            //给机构添加默认的资历
+            $senarray=SenModel::where('systemed ',1)->select();
+            foreach ($senarray as $key=>$value){
+                $data = [
+                    'seniority_name' => $value['seniority_name'],
+                    'sort' => $key,
+                    'is_del' => 0,
+                    'org_id' => $res['id']
+                ];
+                SenModel::create($data);
+            }
+            //返回数据
             $this->return_data(1,0,$data);
         }catch (\Exception $e){
             Db::rollback();
