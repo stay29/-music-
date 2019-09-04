@@ -224,13 +224,57 @@ class Goods extends BaseController
         $org_id = input('orgid/d', '');
         if (is_empty($org_id))
         {
-            $this->return_data(0, '10000', '缺少参数', '');
+            $this->returnError('10000', '缺少参数');
         }
         $page = input('page/d', 1);
         $limit = input('limit/d', 10);
         $data = db('salesmans')->where('org_id', '=', $org_id)
             ->field('sm_id, sm_name, sm_mobile, status')
             ->paginate($limit);
+        $this->returnData($data, '请求成功');
+    }
+
+    /*
+     * 全部销售员列表
+     */
+    public function all_mans_index()
+    {
+        $org_id = input('orgid/d', '');
+        if (is_empty($org_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+        $data = db('salesmans')->where('org_id', '=', $org_id)->where('status', '=', 1)
+            ->field('sm_id, sm_name')->select();
+        $this->returnData($data, '请求成功');
+    }
+
+    /*
+     * 全部学生列表
+     */
+    public function all_students()
+    {
+        $org_id = input('orgid/d', '');
+        if (is_empty($org_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+        $data = db('students')->where(['org_id'=> $org_id])->field('stu_id, truename as stu_name')->select();
+        $this->returnData($data, '请求成功');
+    }
+
+    /*
+     * 全部支付方式列表
+     */
+    public function all_pay_list()
+    {
+        $org_id = input('orgid/d', '');
+        if (is_empty($org_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+        $data = db('payments')->field('pay_id, payment_method as pay_name')
+            ->where('status', '=', 1)->select();
         $this->returnData($data, '请求成功');
     }
 
@@ -697,7 +741,7 @@ class Goods extends BaseController
         $pay_id = input('pay_id/d', ''); // 支付方式
         $sale_num = input('sale_num/d', ''); // 销售数量
         $single_price = input('single_price/f', 0.0);   // 单价
-        $sum_payable = input('sum_payable/f', 0.0);     // 应付金额
+        $sum_payable = input('sum_payable/f', $single_price);     // 应付金额
         $remark = input('remark/s', ''); // 备注
         $sale_time = input('sale_time/d', time()); // 销售时间
         $pay_amount = input('pay_amount/f', 0.00);  // 实付金额

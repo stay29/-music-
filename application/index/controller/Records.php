@@ -13,6 +13,7 @@ namespace app\index\controller;
  */
 
 
+use think\Db;
 use Think\Exception;
 
 class Records extends BaseController
@@ -304,36 +305,91 @@ class Records extends BaseController
             {
                 $rent_obj_name = db('students', '=', $log['rent_obj_id'])->value('truename');
             }
-            function get_amount_of_day($rent_type, $rent_money)
-            {
-                if ($rent_type == 1)
-                {
-
-                }elseif($rent_type == 2)
-                {
-
-                }elseif ($rent_type == 3)
-                {
-
-                }
-            }
+            // 每天费用
+            $rent_amount_day = $this->get_amount_of_day($log['rent_type'], $log['goods_id']);
+            $interval_time = timediff($log['start_time'], time());
+            $pay_amount = $rent_amount_day * $interval_time['day']; // 实际租金
+            $refund_amount = $log['prepaid_rent'] + $log['rent_margin'] - $pay_amount;
             $data = [
                 'rent_id' => $log['rent_id'],
                 'goods_name' => $goods_name, // 商品名称
                 'rent_num' => $log['rent_num'], // 租借数量
                 'rent_type' => $log['rent_type'], // 租借类型
                 'rent_margin' => $log['rent_margin'], // 租凭押金
+                'rent_obj_name' => $rent_obj_name,
                 'prepaid_rent' => $log['prepaid_rent'], // 预付租金
                 'start_time'    => $log['start_time'],
                 'end_time'  => $log['end_time'],
                 'remarks'   => $log['remarks'],
-                'pay_amount' => $log['']
+                'pay_id'    => $log['pay_id'],      // 支付方式id
+                'pay_amount' => $pay_amount,  // 实际付款
+                'refund_amount' => $refund_amount, // 实际退款
             ];
+            $this->returnData($data, '请求成功');
         }catch (Exception $e)
         {
             $this->returnError(50000, '系统错误' . $e->getMessage());
         }
     }
+
+    /*
+     * 租赁归还
+     */
+    public function rental_recover()
+    {
+        $pay_amount = input('pay_amount/f', ''); // 实际租金
+        $refund_amount = input('refund_amount/f', ''); // 实退金额
+        $pay_id = input('pay_id/d', '');    // 支付方式
+        $return_time = input('return_time/d', '');
+        $rent_id = input('rent_id/d', '');
+
+        if (is_empty($pay_amount, $refund_amount, $pay_id, $return_time, $rent_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+        Db::startTrans();
+        try
+        {
+            Db::name('goods_rental_log')->where('rent_id', '=', $rent_id)->update(['status' => 1]);
+            $data = [
+                'pay_amount' => $pay_amount,
+                'refund_amount' => $refund_amount,
+                'pay_id'    => $pay_id,
+                'return_time'   => $return_time,
+                'rent_id'   => $rent_id
+            ];
+            Db::name('goods_refund_log')->insert($data);
+            $this->returnData(true, '请求成功');
+        }catch (Exception $e)
+        {
+            $this->returnError(50000, '系统错误' . $e->getMessage());
+        }
+    }
+
+    /*
+     * 续租页面数据
+     */
+    public function rerent_detail()
+    {
+        $rent_id = input('rent_id/d',  '缺少参数');
+        if (is_empty($rent_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+    }
+
+    /*
+     * 续租提交
+     */
+    public function rerent_edit()
+    {
+        $rent_id = input('rent_id/d', '');
+        if (is_empty($rent_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+    }
+
 
     /*
      * 租借记录修改
@@ -381,6 +437,23 @@ class Records extends BaseController
         }catch (Exception $e)
         {
             $this->returnError(50000, '删除失败');
+        }
+    }
+
+    /*
+     * 计算每天的费用
+     */
+    private function get_amount_of_day($rent_type, $g_id)
+    {
+        if ($rent_type == 1)
+        {
+            return db('goods_detail')->where('goods_id', '=', $g_id)->value('rent_amount_day');
+        }elseif($rent_type == 2)
+        {
+            return db('goods_detail')->where('goods_id', '=', $g_id)->value('rent_amount_mon') / 30;
+        }elseif ($rent_type == 3)
+        {
+            return db('goods_detail')->where('goods_id', '=', $g_id)->value('rent_amount_year') / 365;
         }
     }
 

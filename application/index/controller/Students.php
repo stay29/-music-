@@ -24,39 +24,48 @@ class Students extends BaseController
         /*
          * 缺少购课记录，　排课记录
          */
-        $status = input('status', '');
-        $org_id = input('org_id', '');
-        $limit = input('limit', 10);
-        $stu_name = input('stu_name', '');
-        $teacher_name = input('t_name', '');
-        $course_name = input('c_name', '');
-        $where[] = ['org_id', '=', $orgid];
+//        $status = input('status', '');
+//        $org_id = input('org_id', '');
+//        $limit = input('limit', 10);
+//        $stu_name = input('stu_name', '');
+//        $teacher_name = input('t_name', '');
+//        $course_name = input('c_name', '');
+//        $where[] = ['org_id', '=', $orgid];
+//
+//        if(empty($orgid))
+//        {
+//            $this->returnError(0, '10000', '缺少参数');
+//        }
+//        if (!empty($status))
+//        {
+//            $where[] = ['status', '=', $status];
+//        }
+//        if (!empty($stu_name))
+//        {
+//            $where[] = ['stu_name', 'like', '%' . $stu_name . '%'];
+//        }
+//        if (!empty($teacher_name))
+//        {
+//            $where[] = ['teacher_name', 'like', '%' . $teacher_name . '%'];
+//        }
+//        if (!empty($course_name))
+//        {
+//            $where[] = ['cur_name', 'like', '%' . $course_name . '%'];
+//        }
+//        $where[] = ['is_del', '=', 0];
+//        $where[] = ['org_id', '=', $org_id];
+//        $students = db('students')->field('stu_id, truename as stu_name, sex, birthday,
+//                cellphone, wechat, address, remark')->where($where)->paginate($limit);
+//        $this->returnData(1, '', '', $students);
+        $org_id = input('orgid/d', '');
+        $stu_name = input('stu_name/s', '');
+        $t_name = input('t_name/s', '');
+        if (is_empty($org_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
 
-        if(empty($orgid))
-        {
-            $this->returnError(0, '10000', '缺少参数');
-        }
-        if (!empty($status))
-        {
-            $where[] = ['status', '=', $status];
-        }
-        if (!empty($stu_name))
-        {
-            $where[] = ['stu_name', 'like', '%' . $stu_name . '%'];
-        }
-        if (!empty($teacher_name))
-        {
-            $where[] = ['teacher_name', 'like', '%' . $teacher_name . '%'];
-        }
-        if (!empty($course_name))
-        {
-            $where[] = ['cur_name', 'like', '%' . $course_name . '%'];
-        }
-        $where[] = ['is_del', '=', 0];
-        $where[] = ['org_id', '=', $org_id];
-        $students = db('students')->field('stu_id, truename as stu_name, sex, birthday,
-                cellphone, wechat, address, remark')->where($where)->paginate($limit);
-        $this->returnData(1, '', '', $students);
+
     }
 
     /*
