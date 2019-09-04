@@ -406,7 +406,7 @@ class Usersinfo extends BaseController
 
     public function get_auth_orgid_list()
     {
-        $orgid = input('post.or_id');
+        $orgid = input('post.orgid');
         $list1 = selects('erp2_user_roles',['is_del'=>0,'deflau'=>1]);
         $list =  selects('erp2_user_roles',['is_del'=>0,'orgid'=>$orgid,'deflau'=>2]);
         $a = array_merge($list1,$list);
