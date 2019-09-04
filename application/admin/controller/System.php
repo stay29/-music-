@@ -32,6 +32,7 @@ class System extends AdminBase
     			$this->return_data(0,'该资历已存在');
     		} 
     		$data['create_time'] = $data['update_time'] = time(); $data['manager'] = session('admin.id');
+    		$data['is_official'] = 1;
 
     		$res = db('seniorities')->insertGetId($data);
     		if($res){

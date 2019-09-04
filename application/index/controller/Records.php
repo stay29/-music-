@@ -304,36 +304,43 @@ class Records extends BaseController
             {
                 $rent_obj_name = db('students', '=', $log['rent_obj_id'])->value('truename');
             }
-            function get_amount_of_day($rent_type, $rent_money)
-            {
-                if ($rent_type == 1)
-                {
-
-                }elseif($rent_type == 2)
-                {
-
-                }elseif ($rent_type == 3)
-                {
-
-                }
-            }
+            // 每天费用
+            $rent_amount_day = $this->get_amount_of_day($log['rent_type'], $log['goods_id']);
+            $interval_time = timediff($log['start_time'], time());
+            $pay_amount = $rent_amount_day * $interval_time['day']; // 实际租金
+            $refund_amount = $log['prepaid_rent'] + $log['rent_margin'] - $pay_amount;
             $data = [
                 'rent_id' => $log['rent_id'],
                 'goods_name' => $goods_name, // 商品名称
                 'rent_num' => $log['rent_num'], // 租借数量
                 'rent_type' => $log['rent_type'], // 租借类型
                 'rent_margin' => $log['rent_margin'], // 租凭押金
+                'rent_obj_name' => $rent_obj_name,
                 'prepaid_rent' => $log['prepaid_rent'], // 预付租金
                 'start_time'    => $log['start_time'],
                 'end_time'  => $log['end_time'],
                 'remarks'   => $log['remarks'],
-                'pay_amount' => $log['']
+                'pay_id'    => $log['pay_id'],      // 支付方式id
+                'pay_amount' => $pay_amount,  // 实际付款
+                'refund_amount' => $refund_amount, // 实际退款
             ];
+            $this->returnData($data, '请求成功');
         }catch (Exception $e)
         {
             $this->returnError(50000, '系统错误' . $e->getMessage());
         }
     }
+
+    /*
+     * 租赁归还
+     */
+    public function rental_recover()
+    {
+        $pay_amount = input('pay_amount/f', '');
+        $refund_amount = input('refund_amount/f', '');
+
+    }
+
 
     /*
      * 租借记录修改
@@ -381,6 +388,23 @@ class Records extends BaseController
         }catch (Exception $e)
         {
             $this->returnError(50000, '删除失败');
+        }
+    }
+
+    /*
+     * 计算每天的费用
+     */
+    private function get_amount_of_day($rent_type, $g_id)
+    {
+        if ($rent_type == 1)
+        {
+            return db('goods_detail')->where('goods_id', '=', $g_id)->value('rent_amount_day');
+        }elseif($rent_type == 2)
+        {
+            return db('goods_detail')->where('goods_id', '=', $g_id)->value('rent_amount_mon') / 30;
+        }elseif ($rent_type == 3)
+        {
+            return db('goods_detail')->where('goods_id', '=', $g_id)->value('rent_amount_year') / 365;
         }
     }
 

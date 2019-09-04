@@ -224,13 +224,28 @@ class Goods extends BaseController
         $org_id = input('orgid/d', '');
         if (is_empty($org_id))
         {
-            $this->return_data(0, '10000', '缺少参数', '');
+            $this->returnError('10000', '缺少参数');
         }
         $page = input('page/d', 1);
         $limit = input('limit/d', 10);
         $data = db('salesmans')->where('org_id', '=', $org_id)
             ->field('sm_id, sm_name, sm_mobile, status')
             ->paginate($limit);
+        $this->returnData($data, '请求成功');
+    }
+
+    /*
+     * 全部销售员列表
+     */
+    public function all_mans_index()
+    {
+        $org_id = input('orgid/d', '');
+        if (is_empty($org_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+        $data = db('salesmans')->where('org_id', '=', $org_id)->where('status', '=', 1)
+            ->field('sm_id, sm_name')->select();
         $this->returnData($data, '请求成功');
     }
 
