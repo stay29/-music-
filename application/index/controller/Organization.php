@@ -79,13 +79,13 @@ class Organization extends Basess
             //给机构添加默认的资历
             $senarray=SenModel::where('systemed ',1)->select();
             foreach ($senarray as $key=>$value){
-                $data = [
+                $sendata = [
                     'seniority_name' => $value['seniority_name'],
                     'sort' => $key,
                     'is_del' => 0,
                     'org_id' => $res['id']
                 ];
-                SenModel::create($data);
+                SenModel::create($sendata);
             }
             //返回数据
             $this->return_data(1,0,$data);
