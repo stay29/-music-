@@ -66,7 +66,6 @@ class Organization extends Basess
         Db::startTrans();
         try{
             $res = Organ::create($data);
-            Db::commit();
             $where['organization'] = $res['id'];
             $where['update_time'] = time();
             //$where['manager'] = ret_session_name('uid');
@@ -77,7 +76,7 @@ class Organization extends Basess
             $data['userinfo'] = $userinfo;
             $data['orgid'] = $res['id'];
             //给机构添加默认的资历
-            $senarray=SenModel::where(['systemed'=>1,'is_del'=>0])->select();
+            $senarray=SenModel::where(['is_official'=>1,'is_del'=>0])->select();
             foreach ($senarray as $key=>$value){
                 $sendata = [
                     'seniority_name' => $value['seniority_name'],
@@ -86,6 +85,7 @@ class Organization extends Basess
                     'org_id' => $res['id']
                 ];
                 SenModel::create($sendata);
+                Db::commit();
             }
             //返回数据
             $this->return_data(1,0,$data);
