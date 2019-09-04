@@ -79,8 +79,16 @@ class Seniorities extends BaseController
             $where[] = ['seniority_id', '=', $s_id];
             $where[] = ['is_del', '=', 0];
             $where[] = ['org_id', '=', $orgid];
-            SenModel::where($where)->update(['is_del'=>1]);
-            $this->return_data(1,'','删除成功');
+            $where[] = ['is_official', '=', 0];
+            $res = SenModel::where($where)->update(['is_del'=>1]);
+            if ($res)
+            {
+                $this->returnData('', '删除成功');
+            }
+            else
+            {
+                $this->returnError(20001, '删除失败');
+            }
         }catch (Exception $e)
         {
             $this->return_data(0, '50000', '系统错误');
