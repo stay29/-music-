@@ -776,13 +776,13 @@ class Goods extends BaseController
             Db::name('goods_sale_log')->insert($sale_data);
             $sku_num = Db::name('goods_sku')->where('goods_id', '=', $goods_id)->value('sku_num');
             $sku_num -= $sale_num;
-            Db::name('goods_sale_log')->where('goods_id', '=', $goods_id)->update(['sku_num' => $sku_num]);
+            Db::name('goods_sku')->where('goods_id', '=', $goods_id)->update(['sku_num' => $sku_num]);
             Db::commit();
             $this->returnData(1, '销售成功');
         }catch (Exception $e)
         {
             Db::rollback();
-            $this->returnError(50000, '系统出错，销售失败');
+            $this->returnError(50000, '系统出错，销售失败' . $e->getMessage());
         }
     }
 
