@@ -28,6 +28,8 @@ class Seniorities extends BaseController
             ->field('seniority_id as s_id, seniority_name as s_name, is_official')
             ->order('sort')
             ->paginate(20);
+        $system_data = SenModel::where(['is_official'=>1])->select();
+        $data = array_push($data, $system_data);
         $this->return_data(1,'', '', $data);
     }
 
