@@ -406,7 +406,7 @@ class Usersinfo extends BaseController
 
     public function get_auth_orgid_list()
     {
-        $orgid = ret_session_name('orgid');
+        $orgid = input('post.orgid');
         $list1 = selects('erp2_user_roles',['is_del'=>0,'deflau'=>1]);
         $list =  selects('erp2_user_roles',['is_del'=>0,'orgid'=>$orgid,'deflau'=>2]);
         $a = array_merge($list1,$list);
@@ -423,9 +423,13 @@ class Usersinfo extends BaseController
         }
 
         $orlist =Organization::get_org_list_m($orgid);
-        $orlist['f'] = "1";
+        foreach ($orlist as $k2=>&$v2)
+        {
+            $v2['f'] = "1";
+        }
+//        $orlist['f'] = "1";
         $res['auth'] = $a;
-        $res['orglist'] = $this->a_array_unique($orlist);
+        $res['orglist'] = $orlist;
         $res['alist'] = $alist;
         $this->return_data(1,0,"查询成功",$res);
     }

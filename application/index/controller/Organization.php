@@ -155,7 +155,7 @@ class Organization extends Basess
     /*********************以上代码复制邱键的***************************/
     //根据获得当前机构列表
     public function get_org_list(){
-       return $this->return_data(1,0,"查询成功",$this->get_org_list_m(input('post.or_id')));
+       return $this->return_data(1,0,"查询成功",$this->get_org_list_m(input('post.orgid')));
     }
     //提取机构列表公共方法
     public static function get_org_list_m($or_id)
@@ -164,10 +164,10 @@ class Organization extends Basess
         $p_id=$org['uid'];//获得校长id
 
         if($p_id==0){//uid默认为0的话只查询当下一个机构
-            $list=Organ::where('or_id',$or_id)->field('or_id, or_name')->select();
+            $list=Organ::where('or_id',$or_id)->field('or_id, or_name')->select()->toArray();
             return $list;
         }
-        $list = Organ::where('uid',$p_id)->field('or_id, or_name')->select();
+        $list = Organ::where('uid',$p_id)->field('or_id, or_name')->select()->toArray();
         return $list;
 
     }
