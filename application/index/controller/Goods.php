@@ -250,6 +250,35 @@ class Goods extends BaseController
     }
 
     /*
+     * 全部学生列表
+     */
+    public function all_students()
+    {
+        $org_id = input('orgid/d', '');
+        if (is_empty($org_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+        $data = db('students')->where(['org_id'=> $org_id])->field('stu_id, truename as stu_name')->select();
+        $this->returnData($data, '请求成功');
+    }
+
+    /*
+     * 全部支付方式列表
+     */
+    public function all_pay_list()
+    {
+        $org_id = input('orgid/d', '');
+        if (is_empty($org_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+        $data = db('payments')->field('pay_id, payment_method as pay_name')
+            ->where('status', '=', 1)->select();
+        $this->returnData($data, '请求成功');
+    }
+
+    /*
      * 删除销售员
      */
     public function mans_del()
