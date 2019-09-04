@@ -77,7 +77,7 @@ class Organization extends Basess
             $data['userinfo'] = $userinfo;
             $data['orgid'] = $res['id'];
             //给机构添加默认的资历
-            $senarray=SenModel::where('systemed ',1)->select();
+            $senarray=SenModel::where('systemed',1)->select();
             foreach ($senarray as $key=>$value){
                 $sendata = [
                     'seniority_name' => $value['seniority_name'],
