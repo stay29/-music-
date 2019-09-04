@@ -782,7 +782,7 @@ class Goods extends BaseController
         }catch (Exception $e)
         {
             Db::rollback();
-            $this->returnError(50000, '系统出错，销售失败');
+            $this->returnError(50000, '系统出错，销售失败' . $e->getMessage());
         }
     }
 
