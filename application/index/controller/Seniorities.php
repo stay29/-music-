@@ -25,7 +25,7 @@ class Seniorities extends BaseController
             $this->return_data('0', '10000', '缺少参数');
         }
         $data = SenModel::where(['status'=>1, 'org_id'=>$orgid, 'is_del'=>0])
-            ->field('seniority_id as s_id, seniority_name as s_name')
+            ->field('seniority_id as s_id, seniority_name as s_name, is_official')
             ->order('sort')
             ->paginate(20);
         $this->return_data(1,'', '', $data);

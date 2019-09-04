@@ -304,9 +304,18 @@ class Records extends BaseController
             {
                 $rent_obj_name = db('students', '=', $log['rent_obj_id'])->value('truename');
             }
-            function get_amount_of_day()
+            function get_amount_of_day($rent_type, $rent_money)
             {
+                if ($rent_type == 1)
+                {
 
+                }elseif($rent_type == 2)
+                {
+
+                }elseif ($rent_type == 3)
+                {
+
+                }
             }
             $data = [
                 'rent_id' => $log['rent_id'],
