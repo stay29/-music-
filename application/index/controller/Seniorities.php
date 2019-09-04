@@ -24,14 +24,20 @@ class Seniorities extends BaseController
         {
             $this->return_data('0', '10000', '缺少参数');
         }
-        $data = SenModel::where(['status'=>1, 'org_id'=>$orgid, 'is_del'=>0])
+//        $data = SenModel::where(['status'=>1, 'org_id'=>$orgid, 'is_del'=>0])
+//            ->field('seniority_id as s_id, seniority_name as s_name, is_official')
+//            ->order('sort')->select();
+        // 用户定义资历
+        $data = db('seniorities')->where(['status'=>1, 'org_id'=>$orgid, 'is_del'=>0])
             ->field('seniority_id as s_id, seniority_name as s_name, is_official')
-            ->order('sort')
-            ->select(20);
-        $system_data = SenModel::where(['is_official'=>1])->select();
+            ->select();
+        // 平台设定资历
+        $system_data = SenModel::where(['is_official'=>1, 'status'=>1, 'is_del'=>0])
+            ->field('seniority_id as s_id, seniority_name as s_name, is_official')
+            ->select();
         $data = array_push($data, $system_data);
 //        $response = [];
-        $this->return_data(1,'', '', $data);
+        $this->returnData($data, '请求成功');
     }
 
     /*
