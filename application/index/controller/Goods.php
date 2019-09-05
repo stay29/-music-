@@ -819,7 +819,7 @@ class Goods extends BaseController
         Db::startTrans();
         try
         {
-            $sku_num = db('goods_sku')->where(['goods_id'=>$goods_id])->value('sku_name');
+            $sku_num = db('goods_sku')->where(['goods_id'=>$goods_id])->value('sku_num');
             $sku_num -= $rent_num;
             Db::name('goods_sku')->where('goods_id')->
                 update(['sku_num'=>$sku_num, 'update_time'=>time()]);
