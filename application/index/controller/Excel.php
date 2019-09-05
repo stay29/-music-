@@ -763,7 +763,61 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
      */
     public function goods_ipt()
     {
+        $org_id = input('orgid', '');
+//        $uid = input('uid', '');
+        try {
+            $file = request()->file('excel');
+        }catch (Exception $e)
+        {
+            if (empty($file))
+            {
+                $this->returnError(10000, '缺少文件');
+            }
+        }
+        if (empty($org_id))
+        {
+            $this->returnError('10000', '缺少orgid');
+        }
+        Db::startTrans();
+        try{
 
+            $data = $this->getExcelData($file);
+            $ins_data = [];
+            foreach ($data as $k=>$v)
+            {
+                $goods_name = $v[0];
+                $cate_name = $v[1];
+                $goods_amount = $v[2];
+                $goods_sku = $v[2]?$v[2]:0;
+                $unit_name= $v[3];
+                $remarks = $v[4];
+                if (is_empty($goods_name, $cate_name, $goods_sku, $unit_name))
+                {
+                    $this->returnError(10000, '缺少参数');
+                }
+                if (strlen($remarks) > 500)
+                {
+                    $this->returnError(10001, '备注不能大于5000字');
+                }
+                $cate_id = db('goods_cate')->
+                    field('cate_name', 'like', '%' . $cate_name . '%')->value('cate_id');
+                if (empty($cate_id))
+                {
+                    $this->returnError(10000, '分类不存在');
+                }
+                $ins_data[] = [
+                    'goods_name' => $goods_name,
+                    'goods_img' => '',
+                    'unit_name' => $unit_name,
+                    'remarks' => $remarks,
+
+                ];
+            }
+        }catch (Exception $e)
+        {
+            Db::rollback();
+            $this->returnError(50000, '系统错误, 导入失败'.$e->getMessage());
+        }
     }
 
     /*
@@ -771,7 +825,101 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
      */
     public function goods_ept()
     {
+        $org_id = input('orgid' , '');
+        $cate_id = input('cate_id/d', '');
+        $goods_name = input('goods_name/s', '');
+        if(empty($org_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+        $db = db('goods_detail')->field('goods_id, goods_name, remarks,
+        unit_name, cate_id, goods_amount, goods_img');
+        if (!empty($cate_id))
+        {
+            $db->where('cate_id', '=', $cate_id);
+        }
+        if(!empty($goods_name))
+        {
+            $db->where('goods_name', 'like', '%' . $goods_name . '%');
+        }
+        $goods_list = $db->order('create_time DESC')->select();
+        try
+        {
+            $data = [];
+            foreach ($goods_list as $goods)
+            {
+                $goods_id = $goods['goods_id'];
+                // 分类名称
+                $goods['cate_name'] = db('goods_cate')->where(['cate_id'=>$goods['cate_id']])
+                    ->value('cate_name');
 
+//            // 入库均价
+//            $avg_sql ="SELECT (sum(sto_num*sto_single_price)/sum(sto_num))
+//                        as avg_sto_price FROM erp2_goods_storage WHERE goods_id={$goods['goods_id']}";
+
+                // 入库总量
+                $sto_total_num = db('goods_storage')->where(['goods_id'=>$goods_id])->sum('sto_num');
+//                $this->returnData($sto_total_num);
+                $sql = "SELECT sum(sto_single_price * sto_num) as sto_total FROM erp2_goods_storage WHERE goods_id={$goods_id}";
+                $res = Db::query($sql)[0]['sto_total'];
+                // 入库总额
+                $sto_total_money = $res?$res:0;
+
+                // 入库平均单价
+                $sto_avg_money = db('goods_storage')->
+                where('goods_id','=', $goods_id)->avg('sto_single_price');
+
+                // 出库总量
+                $dep_total_num = db('goods_deposit')->where(['goods_id'=>$goods_id])->sum('dep_num');
+                // 出库总额
+                $sql = "SELECT sum(dep_price*dep_num) as dep_total FROM erp2_goods_deposit WHERE goods_id={$goods_id};";
+                $res = Db::query($sql)[0]['dep_total'];
+                $dep_total_money = $res ? $res : 0;
+//                $dep_total_money = db('goods_deposit')->where(['goods_id'=>$goods_id])->sum('dep_price*dep_num');
+                // 出库均价
+                $dep_avg_money = db('goods_deposit')->where('goods_id', '=', $goods_id)->avg('dep_price');
+                // 销售总额
+                $sql = "SELECT sum(single_price * sale_num) as sale_total FROM erp2_goods_sale_log WHERE goods_id={$goods_id};";
+                $res = Db::query($sql)[0]['sale_total'];
+                $sale_total_money = $res ? $res : 0;
+                // 商品库存
+                $goods['goods_sku'] = db('goods_sku')->where(['goods_id'=>$goods_id])->value('sku_num');
+
+                $goods['sto_total_num'] = $sto_total_num;
+                $goods['sto_total_money'] = $sto_total_money;
+                $goods['sto_avg_money'] = $sto_avg_money;
+
+                $goods['dep_total_money'] = $dep_total_money;
+                $goods['dep_total_num'] = $dep_total_num;
+                $goods['dep_avg_money'] = $dep_avg_money;
+                $goods['sale_total_num'] = db('goods_sale_log')->where('goods_id', '=', $goods_id)->sum('sale_num');
+                $goods['sale_total_money'] = $sale_total_money;
+                $data[] = $goods;
+                unset($goods);
+            }
+            $xls_name = '商品信息表';
+            $xls_cell = array(
+                array('goods_name', '商品名称'),
+                array('cate_name','分类名称'),
+                array('unit_name', '计量单位'),
+                array('sto_avg_money', '平均进价'),
+                array('goods_amount', '商品售价'),
+                array('goods_sku', '商品库存'),
+                array('sto_total_num', '入库总量'),
+                array('sto_total_money', '入库总额'),
+                array('dep_total_num', '出库数量'),
+                array('dep_total_money', '出库总额'),
+                array('sale_total_num', '销售总量'),
+                array('sale_total_money', '销售总额'),
+                array('remarks', '备注')
+            );
+            $this->exportExcel($xls_name, $xls_cell, $data);
+        }catch (Exception $e)
+        {
+            Log::write($e->getMessage());
+            $this->returnError(50000, '系统出错' . $e->getMessage());
+//            $this->return_data(0, '50000', '系统出错');
+        }
     }
 
     /*
@@ -779,7 +927,89 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
      */
     public function sale_record_ept()
     {
+        $goods_name = input('goods_name/s', '');
+        $org_id = input('orgid/d', '');
+        $page = input('page/d', 1);
+        $limit = input('limit/d', 20);
+        if (is_empty($org_id))
+        {
+            $this->returnError(10000, $org_id);
+        }
+        $db = db('goods_detail')->where('orgid', '=', $org_id);
+        if(!empty($goods_name))
+        {
+            $db->where('goods_name', 'like', '%' . $goods_name . '%');
+        }
 
+        $goods_list = $db->field('goods_id, goods_name, cate_id')->select();
+        $response = [];
+
+        foreach ($goods_list as $goods)
+        {
+            $goods_id = $goods['goods_id'];
+            $cate_name = db('goods_cate')->where('cate_id', '=', $goods_id)->select();
+            $sale_logs = db('goods_sale_log')->
+            field('sale_id, sale_num, sale_code, sman_type, 
+                sman_id, sale_obj_type, sale_obj_id, single_price, sum_payable,
+                pay_amount, pay_id, remark, manager')->where('goods_id', '=', $goods_id)->select();
+            foreach ($sale_logs as $log)
+            {
+                $sman_name = '';
+                $sale_obj_name = '';
+                if ($log['sman_type'] == 1) // 销售员
+                {
+                    $sman_name = db('salesmans')->where('sm_id', '=', $log['sman_id'])->value('sm_name');
+                }elseif ($log['sman_type'] == 2)  // 老师
+                {
+                    $sman_name = db('salesmans')->where('t_id','=', $log['sman_id'])->value('t_name');
+                }
+                if ($log['sale_obj_type'] == 1)
+                {
+                    $sale_obj_name = db('students')->where('stu_id',
+                        '=', $log['sale_obj_id'])->value('true_name');
+                }else{
+                    $sale_obj_name = '其他';
+                }
+                $manager = db('users')->where('uid', '=', $log['manager'])->value('nickname');
+                $pay_type = db('payments')->where('pay_id', '=', $log['pay_id'])
+                    ->value('payment_method');
+                $response[] = [
+                    'goods_name' => $goods['goods_name'],
+                    'cate_name'  => $cate_name,
+                    'sale_id'  => $log['sale_id'],
+                    'sale_num'  => $log['sale_num'],
+                    'sale_code' => $log['sale_code'],
+                    'sman_name' => $sman_name,
+                    'sman_type' => $log['sman_type'],
+                    'sman_id'   => $log['sman_id'],
+                    'sale_obj_name' => $sale_obj_name,
+                    'manager' => $manager,
+                    'pay_type' => $pay_type,
+                    'pay_id' => $log['pay_id'],
+                    'single_price' => $log['single_price'],
+                    'sum_payable' => $log['sum_payable'],
+                    'pay_amount' => $log['pay_amount'],
+                    'remark' => $log['remark'],
+                ];
+            }
+
+        }
+        $xls_name = "销售记录列表";
+        $xls_cell = [
+            array('goods_name', '商品名称'),
+            array('cate_name', '分类名称'),
+            array('sale_num', '销售数量'),
+            array('sale_code', '销售单号'),
+            array('sman_name', '销售员姓名'),
+            array('sman_type', '销售员类型'),
+            array('sale_obj_name', '销售对象类型'),
+            array('single_price', '销售单价'),
+            array('sum_payable', '应付金额'),
+            array('pay_amount', '实际付款'),
+            array('remark', '备注')
+        ];
+//        $this->returnData($response, '');
+        $this->exportExcel($xls_name, $xls_cell, $response);
     }
 
     /*
@@ -787,7 +1017,53 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
      */
     public function sto_record_ept()
     {
+        $goods_name = input('goods_name/s', '');
+        $org_id = input('orgid/d', '');
 
+        if (is_empty($goods_name, $org_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+        $data = [];
+        $goods_list = db('goods_detail')->field('goods_id, goods_name')
+            ->where('goods_name', 'like', '%' . $goods_name . '%')->select();
+        try
+        {
+            foreach ($goods_list as $goods)
+            {
+                $goods_id = $goods['goods_id'];
+                $g_name = $goods['goods_name'];
+                $sto_logs =  db('goods_storage')->field('sto_id, sto_num, sto_single_price, sto_code, 
+                    entry_time, manager')->where('goods_id', '=', $goods_id)->select();
+                foreach ($sto_logs as $log)
+                {
+                    $manager = db('users')->where('uid', '=', $log['manager'])->value('nickname');
+                    $data[] = [
+                        'sto_id' => $log['sto_id'],
+                        'goods_name'  => $g_name,
+                        'sto_single_price'   => $log['sto_single_price'],
+                        'sto_num'   => $log['sto_num'],
+                        'sto_code'  => $log['sto_code'],
+                        'entry_time' => date('Y/m/d', $log['entry_time']),
+                        'sto_total_money' => $log['sto_num'] * $log['sto_single_price'],
+                        'manager' => $manager
+                    ];
+                }
+            }
+            $xls_name = '入库记录列表';
+            $xls_cell = [
+                array('sto_code', '入库单号'),
+                array('goods_name', '商品名称'),
+                array('sto_single_price', '入库单价'),
+                array('sto_num', '入库数量'),
+                array('entry_time', '入库时间'),
+                array('sto_total_money', '入款总额')
+            ];
+            $this->exportExcel($xls_name, $xls_cell, $data);
+        }catch (Exception $e)
+        {
+            $this->returnError(50000, '服务器错误');
+        }
     }
 
     /*
@@ -795,8 +1071,172 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
      */
     public function dep_record_ept()
     {
+        $goods_name = input('goods_name/s', '');
+        $org_id = input('orgid/d', '');
+//        $limit = input('limit/d', 20);
+//        $page = input('limit/d', 1);
+        $goods_db = db('goods_detail')->where('org_id', '=', $org_id);
+        if (!empty($goods_name))
+        {
+            $goods_db->where('goods_name', 'like', '%' . $goods_name . '%');
+        }
+        try
+        {
+            $goods_list = $goods_db->field('goods_id, goods_name')->select();
+            $data = [];
+            foreach ($goods_list as $goods)
+            {
+                $g_name = $goods['goods_name'];
+                $g_id = $goods['goods_id'];
 
+                $sto_logs = db('goods_deposit')->where('goods_id', '=', $g_id)->select();
+                foreach ($sto_logs as $log)
+                {
+                    $manager = db('users')->where('uid', '=', $log['manager'])->value('nickname');
+                    $data[] = [
+                        'dep_id' => $log['dep_id'],
+                        'goods_name' => $g_name,
+                        'dep_num'   => $log['dep_num'],
+                        'dep_price'  => $log['dep_price'],
+                        'dep_total'  => $log['dep_num'] * $log['dep_price'],
+                        'dep_time'  => date('Y/m/d', $log['dep_time']),
+                        'dep_code'  => $log['dep_code'],
+                        'manager'   => $manager,
+                        'remark'    => $log['remark'],
+                    ];
+                }
+            }
+            $xls_name = '出库记录列表';
+            $xls_cell = [
+                array('dep_code', '出库单号'),
+                array('goods_name', '商品名称'),
+                array('dep_num', '出库数量'),
+                array('dep_price', '出库单价'),
+                array('dep_total', '出库总额'),
+                array('dep_time', '出库时间'),
+                array('remark', '出库备注')
+            ];
+//            $response = [
+//                'per_page' => $limit,
+//                'current_page' => $page,
+//                'last_page' => count($data) / $limit + 1,
+//                'data' => array_slice($data, ($page-1)*$limit, $limit)
+//            ];
+//            $this->returnData($response, '请求成功');
+            $this->exportExcel($xls_name, $xls_cell, $data);
+        }catch (Exception $e)
+        {
+            $this->returnError(50000, '请求失败');
+        }
     }
+
+    public function rental_record_ept()
+    {
+        $status_arr = [1=>'在租', 2=>'超期', 3=>'已归还']; // 租凭状态对应状态
+        $rent_type_arr = [0=>'', 1=>'日', 2=>'月', 3=>'年'];       // 租凭方式对应含义
+        $rent_type_amount_arr = [0=>'', 1=>'rent_amount_day', 2=>'rent_amount_mon', 3=>'rent_amount_year'];
+        $org_id = input('orgid/d', '');
+        $start_time = input('start_time/d', '');
+        $end_time = input('end_time/d', '');
+        $key = input('key/s', '');  // 租客姓名/商品名称
+        $status = input('status/d', 1); // 1 全部， 2在租， 3超期， 4已归还。
+        if (empty($org_id))
+        {
+            $this->returnError(10000, '缺少机构ID');
+        }
+        try{
+            // 租客
+            $rent_obj_id = db('students')->
+            where('truename', 'like', '%' . $key . '%')->value('stu_id');
+            $goods_id = db('goods_detail')->
+            where('goods_name', 'like', '%' . $key . '%')->value('goods_id');
+            $table = db('goods_rental_log')->
+            whereOr('rent_obj_id', '=', $rent_obj_id)->where('status', '=', $status)->whereOr('goods_id', '=', $goods_id);
+            if (!empty($start_time) and !empty($end_time))
+            {
+                $table = $table->whereBetweenTime('create_time',  $start_time,  $end_time);
+            }
+            $data = [];
+//            $total_margin = $table->sum('rent_margin'); // 总押金
+//            $total_amount = $table->sum('rent_amount');  // 总租金
+//            $total_prepaid_rent = $table->sum('prepaid_rent');  // 总预收租金
+//            $data = [
+//                'total_margin' => $total_margin,
+//                'total_amount' => $total_amount,
+//                'total_prepaid_rent' => $total_prepaid_rent,
+//                'records' => array()
+//            ];
+            $logs = $table->select();   //
+            foreach ($logs as $log) {
+                $g_id = $log['goods_id'];
+                $rent_id = $log['rent_id'];
+                $rent_obj_type = $log['rent_onj_type'];
+                $rent_obj_id = $log['rent_obj_id'];
+                $goods_name = db('goods_detail')->where('goods_id', '=', $g_id)->value('goods_name');
+                $rent_obj_name = '其他';
+                if ($rent_obj_type == 1)  // 1是学生， 2是其他对象
+                {
+                    $rent_obj_name = db('students')->where('stu_id', '=', $rent_obj_id)
+                        ->value('truename');
+                }
+                $rent_num = $log['rent_num'];
+                $start_time = $log['start_time'];
+                $end_time = $log['end_time'];
+                $rent_type = $rent_type_arr[$log['rent_type']]; // 租借方式
+                $rent_type_money = db('goods_detail')->      // 租借方式
+                //对应的租金
+                where('goods_id', '=', $g_id)->value($rent_type_amount_arr[$log['rent_type']]);
+                $rent_amount = $log['rent_amount'];  // 租金金额
+                $prepaid_rent = $log['prepaid_rent']; // 预付租金
+                $status = $log['status'];
+                if (time() > $log['end_time'] and $status != 3) // 超时未归还
+                {
+                    $status = 2;
+                }
+                $status_arr = [1=>'租借中', 2=>'已归还', 3=>'已超期'];
+                $status = $status_arr[$status];
+                $status_text = $status_arr[$status];    // 租凭状态对应文字
+                $remarks = $log['remarks'];
+                $data[] = [
+                    'rent_id' => $rent_id,  // 租借记录id
+                    'goods_name' => $goods_name,
+                    'rent_code' => $log['rent_code'], // 租借单号
+                    'rent_obj_name' => $rent_obj_name, // 租借对象姓名
+                    'rent_obj_id'   => $rent_obj_id,    // 租借对象id
+                    'rent_obj_type' => $rent_obj_type,  // 租借对象类型1学生, 其他
+                    'rent_num'  => $rent_num,   // 租借数量
+                    'start_time' => date('Y/m/d', $start_time),    // 租借开始时间
+                    'end_time'  => date('Y/d/d', $end_time),   // 租借结束时间
+                    'rent_type' => $rent_type,  // 租借类型
+                    'rent_type_money' => $rent_type_money,  // 租借类型对应租金
+                    'rent_amount' => $rent_amount,  // 租金
+                    'prepaid_rent' => $prepaid_rent,    // 预付租金
+                    'status' => $status,    // 租借状态
+                    'status_text' => $status_text,
+                    'remarks' => $remarks,
+                    'pay_id' => $log['pay_id'], // 支付方式
+                ];
+            }
+            $xls_name = "租赁记录列表";
+            $xls_cell = [
+                array('goods_name', '商品名称'),
+                array('rent_code', '租赁单号'),
+                array('rent_obj_name', '租赁对象姓名'),
+                array('rent_num', '租赁数量'),
+                array('start_time', '租赁开始时间'),
+                array('end_time', '租赁结束时间'),
+                array('rent_amount', '租金'),
+                array('prepaid_rent', '预付租金'),
+                array('status', '租赁状态'),
+                array('remarks', '租赁备注')
+            ];
+            $this->exportExcel($xls_name, $xls_cell, $data);
+        }catch (Exception $e)
+        {
+            $this->returnError(50000, '系统错误');
+        }
+    }
+
 
     /*
  * 销售统计表导出

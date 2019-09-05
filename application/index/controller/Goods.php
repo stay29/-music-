@@ -260,7 +260,19 @@ class Goods extends BaseController
             $this->returnError(10000, '缺少参数');
         }
         $data = db('students')->where(['org_id'=> $org_id])->field('stu_id, truename as stu_name')->select();
-        $this->returnData($data, '请求成功');
+        $response = [];
+        foreach ($data as $k=>$v)
+        {
+            $stu_id = $v['stu_id'];
+            $res = db('stu_balance')->where('stu_id', '=', $stu_id)->field('gift_balance, recharge_balance')->find();
+            $stu_balance = $res['gift_balance'] + $res['recharge_balance'];
+            $response[] = [
+                'stu_id' => $stu_id,
+                'stu_name' => $v['stu_name'],
+                'stu_balance' => $stu_balance
+            ];
+        }
+        $this->returnData($response, '请求成功');
     }
 
 
@@ -406,7 +418,7 @@ class Goods extends BaseController
         }
 
         $db = db('goods_detail')->field('goods_id, goods_name, remarks,
-        unit_name, cate_id, goods_amount, goods_img');
+        unit_name, cate_id, goods_amount, goods_img')->where('org_id', '=', $org_id);
         if (!empty($cate_id))
         {
             $db->where('cate_id', '=', $cate_id);
@@ -773,6 +785,7 @@ class Goods extends BaseController
                 'remark' => $remark,
                 'create_time' => $create_time,
                 'update_time' => $update_time,
+                'manager' => $uid,
             ];
             Db::name('goods_sale_log')->insert($sale_data);
             $sku_num = Db::name('goods_sku')->where('goods_id', '=', $goods_id)->value('sku_num');
