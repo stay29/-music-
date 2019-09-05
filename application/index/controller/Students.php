@@ -266,7 +266,7 @@ class Students extends BaseController
         }catch (Exception $e)
         {
             Db::rollback();
-            $this->return_data(0, 50000, var_dump($e), false);
+            $this->return_data(0, 50000, $e->getMessage(), false);
         }
     }
 
