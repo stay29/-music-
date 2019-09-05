@@ -84,7 +84,7 @@ class Records extends BaseController
             foreach ($goods_list as $goods)
             {
                 $goods_id = $goods['goods_id'];
-
+                $cate_name = db('goods_cate')->where('cate_id', '=', $goods['cate_id'])->value('cate_name');
                 $sale_logs = db('goods_sale_log')->
                 field('sale_id, sale_num, sale_code, sman_type, 
                 sman_id, sale_obj_type, sale_obj_id, single_price, sum_payable,sale_time,
@@ -107,7 +107,7 @@ class Records extends BaseController
                     }else{
                         $sale_obj_name = '其他';
                     }
-                    $cate_name = db('goods_cate')->where('cate_id', '=', $log['cate_id'])->value('cate_name');
+
                     $manager = db('users')->where('uid', '=', $log['manager'])->value('nickname');
                     $pay_type = db('payments')->where('pay_id', '=', $log['pay_id'])
                         ->value('payment_method');
