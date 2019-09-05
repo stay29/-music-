@@ -239,7 +239,7 @@ class Students extends BaseController
             $this->return_data(0, '10007', '请用post方法提交数据');
         }
         $data = input();
-//        var_dump($data);
+        var_dump($data);
         $validate = new StuValidate();
         // validate data.
         if(!$validate->scene('add')->check($data)){
@@ -266,7 +266,7 @@ class Students extends BaseController
         }catch (Exception $e)
         {
             Db::rollback();
-            $this->return_data(0, 50000, $e->getData(), false);
+            $this->return_data(0, 50000, var_dump($e), false);
         }
     }
 
