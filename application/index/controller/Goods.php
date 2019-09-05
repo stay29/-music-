@@ -263,6 +263,7 @@ class Goods extends BaseController
         $this->returnData($data, '请求成功');
     }
 
+
     /*
      * 全部支付方式列表
      */
@@ -821,7 +822,7 @@ class Goods extends BaseController
         {
             $sku_num = db('goods_sku')->where(['goods_id'=>$goods_id])->value('sku_num');
             $sku_num -= $rent_num;
-            Db::name('goods_sku')->where('goods_id')->
+            Db::name('goods_sku')->where('goods_id', '=', $goods_id)->
                 update(['sku_num'=>$sku_num]);
             $data = [
                 'goods_id' => $goods_id,
