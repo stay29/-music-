@@ -793,7 +793,7 @@ class Goods extends BaseController
     {
         $goods_id = input('goods_id/d', ''); // 商品id
         $rent_code = random_code();
-        $rent_margin = input('rent_margin/f', ''); //租凭押金
+        $rent_margin = input('rent_margin/f', 0.0); //租凭押金
         $rent_type = input('rent_type/d', 0);   // 租凭类型
         $rent_amount = input('rent_amount/f', ''); // 租凭金额
         $rent_num = input('rent_num/d', ''); // 租凭数量
