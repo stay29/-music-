@@ -255,7 +255,7 @@ class Students extends BaseController
             $data  = [
                 'stu_id' => $stu_id,
                 'gift_balance' => 0.00,
-                'recharge balance' => 0.00,
+                'recharge_balance' => 0.00,
                 'create_time' => 0.00,
                 'update_time' => 0.00
             ];
