@@ -763,7 +763,61 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
      */
     public function goods_ipt()
     {
+        $org_id = input('orgid', '');
+//        $uid = input('uid', '');
+        try {
+            $file = request()->file('excel');
+        }catch (Exception $e)
+        {
+            if (empty($file))
+            {
+                $this->returnError(10000, '缺少文件');
+            }
+        }
+        if (empty($org_id))
+        {
+            $this->returnError('10000', '缺少orgid');
+        }
+        Db::startTrans();
+        try{
 
+            $data = $this->getExcelData($file);
+            $ins_data = [];
+            foreach ($data as $k=>$v)
+            {
+                $goods_name = $v[0];
+                $cate_name = $v[1];
+                $goods_amount = $v[2];
+                $goods_sku = $v[2]?$v[2]:0;
+                $unit_name= $v[3];
+                $remarks = $v[4];
+                if (is_empty($goods_name, $cate_name, $goods_sku, $unit_name))
+                {
+                    $this->returnError(10000, '缺少参数');
+                }
+                if (strlen($remarks) > 500)
+                {
+                    $this->returnError(10001, '备注不能大于5000字');
+                }
+                $cate_id = db('goods_cate')->
+                    field('cate_name', 'like', '%' . $cate_name . '%')->value('cate_id');
+                if (empty($cate_id))
+                {
+                    $this->returnError(10000, '分类不存在');
+                }
+                $ins_data[] = [
+                    'goods_name' => $goods_name,
+                    'goods_img' => '',
+                    'unit_name' => $unit_name,
+                    'remarks' => $remarks,
+
+                ];
+            }
+        }catch (Exception $e)
+        {
+            Db::rollback();
+            $this->returnError(50000, '系统错误, 导入失败'.$e->getMessage());
+        }
     }
 
     /*
@@ -771,7 +825,101 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
      */
     public function goods_ept()
     {
+        $org_id = input('orgid' , '');
+        $cate_id = input('cate_id/d', '');
+        $goods_name = input('goods_name/s', '');
+        if(empty($org_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+        $db = db('goods_detail')->field('goods_id, goods_name, remarks,
+        unit_name, cate_id, goods_amount, goods_img');
+        if (!empty($cate_id))
+        {
+            $db->where('cate_id', '=', $cate_id);
+        }
+        if(!empty($goods_name))
+        {
+            $db->where('goods_name', 'like', '%' . $goods_name . '%');
+        }
+        $goods_list = $db->order('create_time DESC')->select();
+        try
+        {
+            $data = [];
+            foreach ($goods_list as $goods)
+            {
+                $goods_id = $goods['goods_id'];
+                // 分类名称
+                $goods['cate_name'] = db('goods_cate')->where(['cate_id'=>$goods['cate_id']])
+                    ->value('cate_name');
 
+//            // 入库均价
+//            $avg_sql ="SELECT (sum(sto_num*sto_single_price)/sum(sto_num))
+//                        as avg_sto_price FROM erp2_goods_storage WHERE goods_id={$goods['goods_id']}";
+
+                // 入库总量
+                $sto_total_num = db('goods_storage')->where(['goods_id'=>$goods_id])->sum('sto_num');
+//                $this->returnData($sto_total_num);
+                $sql = "SELECT sum(sto_single_price * sto_num) as sto_total FROM erp2_goods_storage WHERE goods_id={$goods_id}";
+                $res = Db::query($sql)[0]['sto_total'];
+                // 入库总额
+                $sto_total_money = $res?$res:0;
+
+                // 入库平均单价
+                $sto_avg_money = db('goods_storage')->
+                where('goods_id','=', $goods_id)->avg('sto_single_price');
+
+                // 出库总量
+                $dep_total_num = db('goods_deposit')->where(['goods_id'=>$goods_id])->sum('dep_num');
+                // 出库总额
+                $sql = "SELECT sum(dep_price*dep_num) as dep_total FROM erp2_goods_deposit WHERE goods_id={$goods_id};";
+                $res = Db::query($sql)[0]['dep_total'];
+                $dep_total_money = $res ? $res : 0;
+//                $dep_total_money = db('goods_deposit')->where(['goods_id'=>$goods_id])->sum('dep_price*dep_num');
+                // 出库均价
+                $dep_avg_money = db('goods_deposit')->where('goods_id', '=', $goods_id)->avg('dep_price');
+                // 销售总额
+                $sql = "SELECT sum(single_price * sale_num) as sale_total FROM erp2_goods_sale_log WHERE goods_id={$goods_id};";
+                $res = Db::query($sql)[0]['sale_total'];
+                $sale_total_money = $res ? $res : 0;
+                // 商品库存
+                $goods['goods_sku'] = db('goods_sku')->where(['goods_id'=>$goods_id])->value('sku_num');
+
+                $goods['sto_total_num'] = $sto_total_num;
+                $goods['sto_total_money'] = $sto_total_money;
+                $goods['sto_avg_money'] = $sto_avg_money;
+
+                $goods['dep_total_money'] = $dep_total_money;
+                $goods['dep_total_num'] = $dep_total_num;
+                $goods['dep_avg_money'] = $dep_avg_money;
+                $goods['sale_total_num'] = db('goods_sale_log')->where('goods_id', '=', $goods_id)->sum('sale_num');
+                $goods['sale_total_money'] = $sale_total_money;
+                $data[] = $goods;
+                unset($goods);
+            }
+            $xls_name = '商品信息表';
+            $xls_cell = array(
+                array('goods_name', '商品名称'),
+                array('cate_name','分类名称'),
+                array('unit_name', '计量单位'),
+                array('sto_avg_money', '平均进价'),
+                array('goods_amount', '商品售价'),
+                array('goods_sku', '商品库存'),
+                array('sto_total_num', '入库总量'),
+                array('sto_total_money', '入库总额'),
+                array('dep_total_num', '出库数量'),
+                array('dep_total_money', '出库总额'),
+                array('sale_total_num', '销售总量'),
+                array('sale_total_money', '销售总额'),
+                array('remarks', '备注')
+            );
+            $this->exportExcel($xls_name, $xls_cell, $data);
+        }catch (Exception $e)
+        {
+            Log::write($e->getMessage());
+            $this->returnError(50000, '系统出错' . $e->getMessage());
+//            $this->return_data(0, '50000', '系统出错');
+        }
     }
 
     /*

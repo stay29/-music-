@@ -260,7 +260,19 @@ class Goods extends BaseController
             $this->returnError(10000, '缺少参数');
         }
         $data = db('students')->where(['org_id'=> $org_id])->field('stu_id, truename as stu_name')->select();
-        $this->returnData($data, '请求成功');
+        $response = [];
+        foreach ($data as $k=>$v)
+        {
+
+            $stu_id = $v['stu_id'];
+            $stu_balance = db('stu_balance')->where('stu_id', '=', $stu_id)->value('stu_balance');
+            $response[] = [
+                'stu_id' => $stu_id,
+                'stu_name' => $v['stu_name'],
+                'stu_balance' => $stu_balance
+            ];
+        }
+        $this->returnData($response, '请求成功');
     }
 
 
@@ -406,7 +418,7 @@ class Goods extends BaseController
         }
 
         $db = db('goods_detail')->field('goods_id, goods_name, remarks,
-        unit_name, cate_id, goods_amount, goods_img');
+        unit_name, cate_id, goods_amount, goods_img')->where('org_id', '=', $org_id);
         if (!empty($cate_id))
         {
             $db->where('cate_id', '=', $cate_id);
