@@ -44,6 +44,7 @@ class Schedules extends BaseController
     * 获得待排课的学生列表
     */
    public function  get_ready_arrange_stu(){
+
        $or_id= Request::instance()->header()['orgid'];  //从header里面拿orgid
 
      $data= Plessons::where('or_id',$or_id);
