@@ -263,6 +263,7 @@ class Goods extends BaseController
         $this->returnData($data, '请求成功');
     }
 
+
     /*
      * 全部支付方式列表
      */
@@ -793,7 +794,7 @@ class Goods extends BaseController
     {
         $goods_id = input('goods_id/d', ''); // 商品id
         $rent_code = random_code();
-        $rent_margin = input('rent_margin/f', ''); //租凭押金
+        $rent_margin = input('rent_margin/f', 0.0); //租凭押金
         $rent_type = input('rent_type/d', 0);   // 租凭类型
         $rent_amount = input('rent_amount/f', ''); // 租凭金额
         $rent_num = input('rent_num/d', ''); // 租凭数量
@@ -806,7 +807,7 @@ class Goods extends BaseController
         $remark = input('remark/s', ''); // 租凭备注
         $create_time = time();
         $update_time = time();
-        if (is_empty($goods_id, $rent_margin, $rent_type,
+        if (is_empty($goods_id, $rent_type,
             $rent_amount, $rent_num, $prepaid_rent, $rent_obj_type, $rent_obj_id,
             $start_time, $end_time, $end_time, $pay_id))
         {
@@ -819,10 +820,10 @@ class Goods extends BaseController
         Db::startTrans();
         try
         {
-            $sku_num = db('goods_sku')->where(['goods_id'=>$goods_id])->value('sku_name');
+            $sku_num = db('goods_sku')->where(['goods_id'=>$goods_id])->value('sku_num');
             $sku_num -= $rent_num;
-            Db::name('goods_sku')->where('goods_id')->
-                update(['sku_num'=>$sku_num, 'update_time'=>time()]);
+            Db::name('goods_sku')->where('goods_id', '=', $goods_id)->
+                update(['sku_num'=>$sku_num]);
             $data = [
                 'goods_id' => $goods_id,
                 'rent_code' => $rent_code,
@@ -846,7 +847,7 @@ class Goods extends BaseController
         }catch (Exception $e)
         {
             Db::rollback();
-            $this->returnError('50000', '租凭失败');
+            $this->returnError('50000', '租凭失败' . $e->getMessage());
         }
     }
 
