@@ -72,7 +72,7 @@ class Records extends BaseController
             {
                 $this->returnError(10000, $org_id);
             }
-            $db = db('goods_detail')->where('orgid', '=', $org_id);
+            $db = db('goods_detail')->where('org_id', '=', $org_id);
             if(!empty($goods_name))
             {
                 $db->where('goods_name', 'like', '%' . $goods_name . '%');
