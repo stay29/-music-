@@ -822,7 +822,7 @@ class Goods extends BaseController
             $sku_num = db('goods_sku')->where(['goods_id'=>$goods_id])->value('sku_num');
             $sku_num -= $rent_num;
             Db::name('goods_sku')->where('goods_id')->
-                update(['sku_num'=>$sku_num, 'update_time'=>time()]);
+                update(['sku_num'=>$sku_num]);
             $data = [
                 'goods_id' => $goods_id,
                 'rent_code' => $rent_code,
