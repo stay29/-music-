@@ -54,7 +54,7 @@ class Teacher extends BaseController
         {
             $this->returnError('10000', '缺少参数');
         }
-        $teacher = TeacherModel::where('org_id', '=', $org_id);
+        $teacher = TeacherModel::where('org_id', '=', $org_id)->alias("a");
         if(!empty($t_name))
         {
             $teacher->where('t_name', 'like', '%' . $t_name . '%');
@@ -68,13 +68,12 @@ class Teacher extends BaseController
         {
             $teacher->where('status', '=', $status);
         }
+        $teacher->where('a.is_del', '=', 0);
         if(!empty($cur_id)){
-            $teacher->alias('a')->join('erp2_cur_teacher_relations b','a.t_id=b.t_id and b.cur_id=$cur_id');
+            $teacher->join('erp2_cur_teacher_relations b','a.t_id=b.t_id and b.is_del=0 and b.cur_id='.$cur_id);
         }
-
-        $teacher->where('is_del', '=', 0);
-        $response = $teacher->field('t_id as id,t_name as name, avator,
-                sex,cellphone,entry_time,status, se_id, resume')->order('create_time DESC')->paginate($limit);
+        $response = $teacher->field('a.t_id as id,a.t_name as name, a.avator,
+                a.sex,a.cellphone,a.entry_time,a.status, a.se_id, a.resume')->order('create_time DESC')->paginate($limit);
         $this->returnData($response, '请求成功');
     }
 

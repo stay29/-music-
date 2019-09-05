@@ -188,7 +188,7 @@ class Organization extends Basess
     }
     //获取单个机构的信息
     public function get_org_info(){
-        $or_id=$header = Request::instance()->header()['orgid'];  //从header里面拿orgid
+        $or_id= Request::instance()->header()['orgid'];  //从header里面拿orgid
         $org=Organ::where('or_id',$or_id)->field('or_name,logo,describe,address,contact_man,telephone,wechat,lng,lat')->find();
         return $this->return_data(1,0,"",$org);
     }
