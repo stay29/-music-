@@ -263,9 +263,9 @@ class Goods extends BaseController
         $response = [];
         foreach ($data as $k=>$v)
         {
-
             $stu_id = $v['stu_id'];
-            $stu_balance = db('stu_balance')->where('stu_id', '=', $stu_id)->value('stu_balance');
+            $res = db('stu_balance')->where('stu_id', '=', $stu_id)->field('gift_balance, recharge_balance')->find();
+            $stu_balance = $res['gift_balance'] + $res['recharge_balance'];
             $response[] = [
                 'stu_id' => $stu_id,
                 'stu_name' => $v['stu_name'],
