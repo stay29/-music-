@@ -260,8 +260,8 @@ class Students extends BaseController
                 'stu_id' => $stu_id,
                 'gift_balance' => 0.00,
                 'recharge_balance' => 0.00,
-                'create_time' => 0.00,
-                'update_time' => 0.00
+                'create_time' => time(),
+                'update_time' => time()
             ];
             // 创建用户余额表
             Db::table('erp2_stu_balance')->insert($data);

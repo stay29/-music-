@@ -48,6 +48,7 @@ class Teacher extends BaseController
         $t_name = input('t_name/s', ''); // 教师名称
         $se_id = input('se_id/d', ''); // 资历ID
         $status = input('status/d', '');  // 离职状态
+        $cur_id=input('cur_id/d','');//课程id
         $limit = input('limit/d', 20);
         if(empty($org_id))
         {
@@ -66,6 +67,9 @@ class Teacher extends BaseController
         if(!empty($status))
         {
             $teacher->where('status', '=', $status);
+        }
+        if(!empty($cur_id)){
+            $teacher->alias('a')->join('erp2_cur_teacher_relations b','a.t_id=b.t_id and b.cur_id=$cur_id');
         }
 
         $teacher->where('is_del', '=', 0);
