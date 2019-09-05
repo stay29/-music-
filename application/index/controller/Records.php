@@ -66,71 +66,76 @@ class Records extends BaseController
         $org_id = input('orgid/d', '');
         $page = input('page/d', 1);
         $limit = input('limit/d', 20);
-        if (is_empty($org_id))
+        try
         {
-            $this->returnError(10000, $org_id);
-        }
-        $db = db('goods_detail')->where('orgid', '=', $org_id);
-        if(!empty($goods_name))
-        {
-            $db->where('goods_name', 'like', '%' . $goods_name . '%');
-        }
+            if (is_empty($org_id))
+            {
+                $this->returnError(10000, $org_id);
+            }
+            $db = db('goods_detail')->where('orgid', '=', $org_id);
+            if(!empty($goods_name))
+            {
+                $db->where('goods_name', 'like', '%' . $goods_name . '%');
+            }
 
-        $goods_list = $db->field('goods_id, goods_name, cate_id')->select();
-        $response = [];
+            $goods_list = $db->field('goods_id, goods_name, cate_id')->select();
+            $response = [];
 
-        // 改in查询好点
-        foreach ($goods_list as $goods)
-        {
-            $goods_id = $goods['goods_id'];
-            $cate_name = db('goods_cate')->where('cate_id', '=', $goods_id)->select();
-            $sale_logs = db('goods_sale_log')->
+            foreach ($goods_list as $goods)
+            {
+                $goods_id = $goods['goods_id'];
+                $cate_name = db('goods_cate')->where('cate_id', '=', $goods_id)->value('cate_name');
+                $sale_logs = db('goods_sale_log')->
                 field('sale_id, sale_num, sale_code, sman_type, 
                 sman_id, sale_obj_type, sale_obj_id, single_price, sum_payable,
                 pay_amount, pay_id, remark, manager')->where('goods_id', '=', $goods_id)->select();
-            foreach ($sale_logs as $log)
-            {
-                $sman_name = '';
-                $sale_obj_name = '';
-                if ($log['sman_type'] == 1) // 销售员
+                foreach ($sale_logs as $log)
                 {
-                    $sman_name = db('salesmans')->where('sm_id', '=', $log['sman_id'])->value('sm_name');
-                }elseif ($log['sman_type'] == 2)  // 老师
-                {
-                    $sman_name = db('salesmans')->where('t_id','=', $log['sman_id'])->value('t_name');
+                    $sman_name = '';
+                    $sale_obj_name = '';
+                    if ($log['sman_type'] == 1) // 销售员
+                    {
+                        $sman_name = db('salesmans')->where('sm_id', '=', $log['sman_id'])->value('sm_name');
+                    }elseif ($log['sman_type'] == 2)  // 老师
+                    {
+                        $sman_name = db('salesmans')->where('t_id','=', $log['sman_id'])->value('t_name');
+                    }
+                    if ($log['sale_obj_type'] == 1)
+                    {
+                        $sale_obj_name = db('students')->where('stu_id',
+                            '=', $log['sale_obj_id'])->value('true_name');
+                    }else{
+                        $sale_obj_name = '其他';
+                    }
+                    $manager = db('users')->where('uid', '=', $log['manager'])->value('nickname');
+                    $pay_type = db('payments')->where('pay_id', '=', $log['pay_id'])
+                        ->value('payment_method');
+                    $response[] = [
+                        'goods_name' => $goods['goods_name'],
+                        'cate_name'  => $cate_name,
+                        'sale_id'  => $log['sale_id'],
+                        'sale_num'  => $log['sale_num'],
+                        'sale_code' => $log['sale_code'],
+                        'sman_name' => $sman_name,
+                        'sman_type' => $log['sman_type'],
+                        'sman_id'   => $log['sman_id'],
+                        'sale_obj_name' => $sale_obj_name,
+                        'manager' => $manager,
+                        'pay_type' => $pay_type,
+                        'pay_id' => $log['pay_id'],
+                        'single_price' => $log['single_price'],
+                        'sum_payable' => $log['sum_payable'],
+                        'pay_amount' => $log['pay_amount'],
+                        'remark' => $log['remark'],
+                    ];
                 }
-                if ($log['sale_obj_type'] == 1)
-                {
-                    $sale_obj_name = db('students')->where('stu_id',
-                        '=', $log['sale_obj_id'])->value('true_name');
-                }else{
-                    $sale_obj_name = '其他';
-                }
-                $manager = db('users')->where('uid', '=', $log['manager'])->value('nickname');
-                $pay_type = db('payments')->where('pay_id', '=', $log['pay_id'])
-                    ->value('payment_method');
-                $response[] = [
-                    'goods_name' => $goods['goods_name'],
-                    'cate_name'  => $cate_name,
-                    'sale_id'  => $log['sale_id'],
-                    'sale_num'  => $log['sale_num'],
-                    'sale_code' => $log['sale_code'],
-                    'sman_name' => $sman_name,
-                    'sman_type' => $log['sman_type'],
-                    'sman_id'   => $log['sman_id'],
-                    'sale_obj_name' => $sale_obj_name,
-                    'manager' => $manager,
-                    'pay_type' => $pay_type,
-                    'pay_id' => $log['pay_id'],
-                    'single_price' => $log['single_price'],
-                    'sum_payable' => $log['sum_payable'],
-                    'pay_amount' => $log['pay_amount'],
-                    'remark' => $log['remark'],
-                ];
-            }
 
+            }
+            $this->returnData($response, '');
+        }catch (Exception $e)
+        {
+            $this->returnError(50000, '系统错误' . $e->getMessage());
         }
-        $this->returnData($response, '');
     }
 
     /*
