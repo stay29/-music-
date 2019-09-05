@@ -62,7 +62,7 @@ class Students extends BaseController
         $org_id = input('orgid/d', '');
         $stu_name = input('stu_name/s', '');
         $t_name = input('t_name/s', '');
-        $cur_name = input('cur_name/s', '');
+        $cur_name = input('c_name/s', '');
         if (is_empty($org_id)) {
             $this->returnError(10000, '缺少参数');
         }
@@ -107,6 +107,8 @@ class Students extends BaseController
             $already_done = db('teach_schedules')->where(['status'=>2, 'stu_id'=>$stu_id])->count('*');
 
             $surplus_lesson = 0;    // 剩余课程写死为0
+            $already_arrange=0;//已排课程
+            $remark=$v['remark'];
             $res_data[] = [
                 'stu_id' => $stu_id,
                 'stu_name' => $v['truename'],
@@ -116,6 +118,8 @@ class Students extends BaseController
                 'already_done' => $already_done,
                 'already_buy'   => $already_buy,
                 'surplus_lesson' => $surplus_lesson,
+                'already_arrange'=>$already_arrange,
+                'remarks'=>$remark
             ];
         }
         $response = [
@@ -239,7 +243,7 @@ class Students extends BaseController
             $this->return_data(0, '10007', '请用post方法提交数据');
         }
         $data = input();
-        var_dump($data);
+//        var_dump($data);
         $validate = new StuValidate();
         // validate data.
         if(!$validate->scene('add')->check($data)){

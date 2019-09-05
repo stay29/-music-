@@ -124,8 +124,7 @@ class BaseController extends Controller
         $response = [
             'status' => true,
             'data' => $data,
-            'sinfo' => $info,
-            'error_code' => ''
+            'sinfo' => $info
         ];
         echo json_encode($response);
         exit();
