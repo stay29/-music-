@@ -80,7 +80,7 @@ class Records extends BaseController
 
             $goods_list = $db->field('goods_id, goods_name, cate_id')->select();
             $response = [];
-
+            $data = [];
             foreach ($goods_list as $goods)
             {
                 $goods_id = $goods['goods_id'];
@@ -103,14 +103,14 @@ class Records extends BaseController
                     if ($log['sale_obj_type'] == 1)
                     {
                         $sale_obj_name = db('students')->where('stu_id',
-                            '=', $log['sale_obj_id'])->value('true_name');
+                            '=', $log['sale_obj_id'])->value('truename');
                     }else{
                         $sale_obj_name = '其他';
                     }
                     $manager = db('users')->where('uid', '=', $log['manager'])->value('nickname');
                     $pay_type = db('payments')->where('pay_id', '=', $log['pay_id'])
                         ->value('payment_method');
-                    $response[] = [
+                    $data[] = [
                         'goods_name' => $goods['goods_name'],
                         'cate_name'  => $cate_name,
                         'sale_id'  => $log['sale_id'],
@@ -131,6 +131,12 @@ class Records extends BaseController
                 }
 
             }
+            $response = [
+                'per_page' => $page,
+                'last_page' => intval(count($data) / $limit) + 1,
+                'total' => count($data),
+                'data' => array_slice($data, ($page - 1) * $limit, $limit)
+            ];
             $this->returnData($response, '');
         }catch (Exception $e)
         {
