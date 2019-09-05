@@ -9,6 +9,7 @@ namespace app\index\controller;
 use think\Controller;
 use think\Exception;
 use think\Db;
+use think\facade\Request;
 use think\facade\Session;
 use app\index\model\Organization as Organ;
 use app\index\model\Users;
@@ -52,7 +53,9 @@ class Organization extends Basess
             'address'=>input('post.map'),
             'remarks'=>input('post.remarks'),
             'status' =>2,
-             'uid'=>input('post.uid')
+             'uid'=>input('post.uid'),
+            'lng'=>input('post.lng'),
+            'lat'=>input('post.lat')
         ];
 
         $uid = input('post.uid');
@@ -183,6 +186,13 @@ class Organization extends Basess
         return $list;
 
     }
+    //获取单个机构的信息
+    public function get_org_info(){
+        $or_id=$header = Request::instance()->header()['orgid'];  //从header里面拿orgid
+        $org=Organ::where('or_id',$or_id)->field('or_name,logo,describe,address,contact_man,telephone,wechat,lng,lat')->find();
+        return $this->return_data(1,0,"",$org);
+    }
+
 
 
 }
