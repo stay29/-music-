@@ -79,15 +79,15 @@ class Records extends BaseController
             }
 
             $goods_list = $db->field('goods_id, goods_name, cate_id')->select();
-            $response = [];
+//            $response = [];
             $data = [];
             foreach ($goods_list as $goods)
             {
                 $goods_id = $goods['goods_id'];
-                $cate_name = db('goods_cate')->where('cate_id', '=', $goods_id)->value('cate_name');
+
                 $sale_logs = db('goods_sale_log')->
                 field('sale_id, sale_num, sale_code, sman_type, 
-                sman_id, sale_obj_type, sale_obj_id, single_price, sum_payable,
+                sman_id, sale_obj_type, sale_obj_id, single_price, sum_payable,sale_time,
                 pay_amount, pay_id, remark, manager')->where('goods_id', '=', $goods_id)->select();
                 foreach ($sale_logs as $log)
                 {
@@ -107,6 +107,7 @@ class Records extends BaseController
                     }else{
                         $sale_obj_name = '其他';
                     }
+                    $cate_name = db('goods_cate')->where('cate_id', '=', $log['cate_id'])->value('cate_name');
                     $manager = db('users')->where('uid', '=', $log['manager'])->value('nickname');
                     $pay_type = db('payments')->where('pay_id', '=', $log['pay_id'])
                         ->value('payment_method');
@@ -119,6 +120,7 @@ class Records extends BaseController
                         'sman_name' => $sman_name,
                         'sman_type' => $log['sman_type'],
                         'sman_id'   => $log['sman_id'],
+                        'sale_time' => $log['sale_time'],
                         'sale_obj_name' => $sale_obj_name,
                         'manager' => $manager,
                         'pay_type' => $pay_type,

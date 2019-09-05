@@ -785,6 +785,7 @@ class Goods extends BaseController
                 'remark' => $remark,
                 'create_time' => $create_time,
                 'update_time' => $update_time,
+                'manager' => $uid,
             ];
             Db::name('goods_sale_log')->insert($sale_data);
             $sku_num = Db::name('goods_sku')->where('goods_id', '=', $goods_id)->value('sku_num');
