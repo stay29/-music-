@@ -806,7 +806,7 @@ class Goods extends BaseController
         $remark = input('remark/s', ''); // 租凭备注
         $create_time = time();
         $update_time = time();
-        if (is_empty($goods_id, $rent_margin, $rent_type,
+        if (is_empty($goods_id, $rent_type,
             $rent_amount, $rent_num, $prepaid_rent, $rent_obj_type, $rent_obj_id,
             $start_time, $end_time, $end_time, $pay_id))
         {
@@ -846,7 +846,7 @@ class Goods extends BaseController
         }catch (Exception $e)
         {
             Db::rollback();
-            $this->returnError('50000', '租凭失败');
+            $this->returnError('50000', '租凭失败' . $e->getMessage());
         }
     }
 

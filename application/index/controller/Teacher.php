@@ -239,7 +239,6 @@ class Teacher extends BaseController
         {
             $this->returnError('10000', '缺少参数');
         }
-
         // 教师详细信息
         $teacher_details = db('teachers')->alias('A')
                             ->join('erp2_seniorities B', 'A.se_id=B.seniority_id')
