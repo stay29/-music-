@@ -47,9 +47,7 @@ class Schedules extends BaseController
     *@param  cur_name 课程姓名
     */
    public function  get_ready_arrange_stu(){
-
        $or_id= Request::instance()->header()['orgid'];  //从header里面拿orgid
-
      $data= Plessons::where('or_id',$or_id);
     $this->returnData($data,"");
    }

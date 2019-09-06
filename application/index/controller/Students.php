@@ -306,6 +306,7 @@ class Students extends BaseController
      */
     public function buyLesson()
     {
+        $orgid= \think\facade\Request::instance()->header()['orgid'];
         $data = [
             'stu_id' => input('post.stu_id/d', ''),
             'uid'   => input('post.uid/d', ''),
@@ -322,6 +323,7 @@ class Students extends BaseController
             'real_price'    => input('post.real_price/f', ''),
             'valid_day'   => input('post.real_price/f', ''),
             'buy_time'      => input('post.buy_time/d', ''),
+            'or_id'     =>$orgid
         ];
         foreach ($data as $key => $val)
         {
