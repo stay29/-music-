@@ -25,7 +25,7 @@ class Index extends Basess
    }
 
     public  function  index(){
-      return view();
+        $this->redirect('/index.html');
     }
 
 

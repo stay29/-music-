@@ -88,7 +88,8 @@ class Records extends BaseController
                 $sale_logs = db('goods_sale_log')->
                 field('sale_id, sale_num, sale_code, sman_type, 
                 sman_id, sale_obj_type, sale_obj_id, single_price, sum_payable,sale_time,
-                pay_amount, pay_id, remark, manager')->where('goods_id', '=', $goods_id)->select();
+                pay_amount, pay_id, remark, manager')->where('goods_id', '=', $goods_id)->order('create_time DESC')
+                ->select();
                 foreach ($sale_logs as $log)
                 {
                     $sman_name = '';

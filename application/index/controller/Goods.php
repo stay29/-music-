@@ -768,7 +768,10 @@ class Goods extends BaseController
         $sale_code = random_code();  // 销售单号
         if (is_empty($goods_id, $sman_type, $sman_id, $sale_obj_type, $sale_obj_id, $pay_id))
         {
-            $this->returnError('10000', '缺少必填参数');
+            if ($sale_obj_type!=2 && $sale_obj_id!=0)
+            {
+                $this->returnError('10000', '缺少必填参数');
+            }
         }
         Db::startTrans();
         try
