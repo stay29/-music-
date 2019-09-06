@@ -98,7 +98,7 @@ class Records extends BaseController
                         $sman_name = db('salesmans')->where('sm_id', '=', $log['sman_id'])->value('sm_name');
                     }elseif ($log['sman_type'] == 2)  // 老师
                     {
-                        $sman_name = db('salesmans')->where('t_id','=', $log['sman_id'])->value('t_name');
+                        $sman_name = db('teachers')->where('t_id','=', $log['sman_id'])->value('t_name');
                     }
                     if ($log['sale_obj_type'] == 1)
                     {
@@ -175,14 +175,17 @@ class Records extends BaseController
     {
         $data = [
             'sale_id' => input('sale_id/d', ''),
-            'sman_type' => input('sman_id/d', ''),
+            'sman_type' => input('sman_type/d', ''),
             'sale_num' => input('sale_num/d', ''),
+            'sman_id' => input('sman_id/d', ''),
+            'sale_obj_type' => input('sale_obj_type/d', ''),
+            'sale_obj_id' => input('sale_obj_id/d', ''),
             'single_price' => input('single_price/f', ''),
             'sum_payable' => input('sum_payable/f', ''),
             'pay_amount' => input('pay_amount/f', ''),
             'sale_time' => input('sale_time/d', ''),
             'pay_id' => input('pay_id/d', ''),
-            'remarks' => input('remarks/s', ''),
+            'remark' => input('remarks/s', ''),
             'update_time' => time(),
         ];
         $validate = new \app\index\validate\SaleLog();
@@ -192,10 +195,13 @@ class Records extends BaseController
         }
         try
         {
-            db('goods_sale_log')->update($data);
+            $sale_id = $data['sale_id'];
+            unset($data['sale_id']);
+            db('goods_sale_log')->where('sale_id', '=', $sale_id)->update($data);
+            $this->returnData(true, '修改成功');
         }catch (Exception $e)
         {
-            $this->returnError(50000, '系统出错');
+            $this->returnError(50000, '系统出错' . $e->getMessage());
         }
 
     }
