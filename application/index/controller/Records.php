@@ -185,7 +185,7 @@ class Records extends BaseController
             'pay_amount' => input('pay_amount/f', ''),
             'sale_time' => input('sale_time/d', ''),
             'pay_id' => input('pay_id/d', ''),
-            'remarks' => input('remarks/s', ''),
+            'remark' => input('remarks/s', ''),
             'update_time' => time(),
         ];
         $validate = new \app\index\validate\SaleLog();
