@@ -195,7 +195,9 @@ class Records extends BaseController
         }
         try
         {
-            db('goods_sale_log')->update($data);
+            $sale_id = $data['sale_id'];
+            unset($data['sale_id']);
+            db('goods_sale_log')->where('sale_id', '=', $sale_id)->update($data);
             $this->returnData(true, '修改成功');
         }catch (Exception $e)
         {
