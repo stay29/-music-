@@ -109,6 +109,7 @@ class Records extends BaseController
                     }
 
                     $manager = db('users')->where('uid', '=', $log['manager'])->value('nickname');
+                    $manager = $manager ? $manager : '管理员';
                     $pay_type = db('payments')->where('pay_id', '=', $log['pay_id'])
                         ->value('payment_method');
                     $data[] = [
@@ -121,6 +122,8 @@ class Records extends BaseController
                         'sman_type' => $log['sman_type'],
                         'sman_id'   => $log['sman_id'],
                         'sale_time' => $log['sale_time'],
+                        'sale_obj_type' => $log['sale_obj_type'],
+                        'sale_obj_id' => $log['sale_obj_id'],
                         'sale_obj_name' => $sale_obj_name,
                         'manager' => $manager,
                         'pay_type' => $pay_type,
