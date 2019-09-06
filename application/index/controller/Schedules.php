@@ -41,14 +41,21 @@ class Schedules extends BaseController
 
    }
    /**
-    * 获得待排课的学生列表
+    * 获得待排课的列表
     * @param  stu_name学生姓名
     * @param tea_name 老师姓名
     *@param  cur_name 课程姓名
     */
    public function  get_ready_arrange_stu(){
        $or_id= Request::instance()->header()['orgid'];  //从header里面拿orgid
-     $data= Plessons::where('or_id',$or_id);
+       $data=null;
+       $stu_name=input('get.stu_name');
+       $cur_name=input('get.cur_name');
+       $tea_name=input('get.tea_name');
+        $data= Plessons::where('or_id',$or_id)->alias('a')->join('erp2_students b','a.stu_id=b.stu_id')->whereLike('b.truename','%'.$stu_name.'%')->select();
+        $data=$data->join('erp2_curriculums c','c.cur_id=a.cur_id')->whereLike('c.cur_name','%'.$cur_name.'%')->select();
+        $data=$data->field('a.stu_id,c.cur_name,b.true_name,c.tmethods,after_price,a.class_hour')->join("erp2_teachers d",'d.t_id=a.t_id')->whereLike('d.t_name','%'.$tea_name.'%')->select();
+
     $this->returnData($data,"");
    }
 }
