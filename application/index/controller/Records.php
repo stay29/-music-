@@ -175,7 +175,7 @@ class Records extends BaseController
     {
         $data = [
             'sale_id' => input('sale_id/d', ''),
-            'sman_type' => input('sman_id/d', ''),
+            'sman_type' => input('sman_type/d', ''),
             'sale_num' => input('sale_num/d', ''),
             'sman_id' => input('sman_id/d', ''),
             'sale_obj_type' => input('sale_obj_type/d', ''),
