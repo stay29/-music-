@@ -19,6 +19,10 @@ class SaleLog extends Validate
     protected $rule = [
         'sale_id' => 'require|number',
         'sale_num' =>  'require|number',
+        'sman_type' => 'require',
+        'sman_id' => 'require',
+        'sale_obj_type' => 'require',
+        'sale_obj_id' => 'require',
         'single_price'  => 'require|number',
         'sum_payable'  => 'require|number',
         'pay_amount'    => 'require|number',
@@ -38,6 +42,9 @@ class SaleLog extends Validate
         'sale_time.require' => '销售时间必填|10000',
         'sale_time.number'  => '销售时间必须为数字|100001',
         'pay_id.require'    => '支付方式必填|10000',
+        'sman_id' => '销售员id必填|10001',
+        'sale_obj_type' => '销售对象类型|10001',
+        'sale_obj_id' => '销售对象id必填|10001',
         'pay_id.number' => '支付方式必须为数字|10001',
 
     ];

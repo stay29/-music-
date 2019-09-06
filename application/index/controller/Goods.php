@@ -715,6 +715,10 @@ class Goods extends BaseController
             {
                 $this->returnError( '20001', '出库失败,库存不足');
             }
+            if ($sku_num < 1 || $sku_num < $dep_num)
+            {
+                $this->returnError(10001, '库存不足');
+            }
             // 出库
             $sku_num -= $dep_num;
             Db::name('goods_sku')->where('goods_id', '=', $goods_id)->update(['sku_num' => $sku_num]);
@@ -789,6 +793,10 @@ class Goods extends BaseController
             ];
             Db::name('goods_sale_log')->insert($sale_data);
             $sku_num = Db::name('goods_sku')->where('goods_id', '=', $goods_id)->value('sku_num');
+            if ($sku_num < 1 ||  $sku_num < $sale_num)
+            {
+                $this->returnError(10001, '库存不足');
+            }
             $sku_num -= $sale_num;
             Db::name('goods_sku')->where('goods_id', '=', $goods_id)->update(['sku_num' => $sku_num]);
             Db::commit();
@@ -834,6 +842,10 @@ class Goods extends BaseController
         try
         {
             $sku_num = db('goods_sku')->where(['goods_id'=>$goods_id])->value('sku_num');
+            if ($sku_num < 1 || $sku_num < $rent_num)
+            {
+                $this->returnError(10001, '库存不足');
+            }
             $sku_num -= $rent_num;
             Db::name('goods_sku')->where('goods_id', '=', $goods_id)->
                 update(['sku_num'=>$sku_num]);
