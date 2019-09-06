@@ -196,6 +196,7 @@ class Records extends BaseController
         try
         {
             db('goods_sale_log')->update($data);
+            $this->returnData(true, '修改成功');
         }catch (Exception $e)
         {
             $this->returnError(50000, '系统出错' . $e->getMessage());
