@@ -98,7 +98,7 @@ class Records extends BaseController
                         $sman_name = db('salesmans')->where('sm_id', '=', $log['sman_id'])->value('sm_name');
                     }elseif ($log['sman_type'] == 2)  // 老师
                     {
-                        $sman_name = db('salesmans')->where('t_id','=', $log['sman_id'])->value('t_name');
+                        $sman_name = db('teachers')->where('t_id','=', $log['sman_id'])->value('t_name');
                     }
                     if ($log['sale_obj_type'] == 1)
                     {
