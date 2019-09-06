@@ -34,14 +34,17 @@ class Schedules extends BaseController
 
 
     }
-   /*
+   /**
     * 获得学生待排课
     */
    public function  get_ready_arrange_cur(){
 
    }
-   /*
+   /**
     * 获得待排课的学生列表
+    * @param  stu_name学生姓名
+    * @param tea_name 老师姓名
+    *@param  cur_name 课程姓名
     */
    public function  get_ready_arrange_stu(){
 
