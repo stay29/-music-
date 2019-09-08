@@ -1,7 +1,7 @@
 <?php
 
-/* javascript/display.twig */
-class __TwigTemplate_d74f6d7a4febaed36f9be608db8463d4fab07b8964e089a5f5728fdf2ff91bec extends Twig_Template
+/* fk_checkbox.twig */
+class __TwigTemplate_bfb622cf1564f2594620294aab7bdb3e18504a1d66413f8c7776f218194ea95d extends Twig_Template
 {
     public function __construct(Twig_Environment $env)
     {
@@ -16,23 +16,21 @@ class __TwigTemplate_d74f6d7a4febaed36f9be608db8463d4fab07b8964e089a5f5728fdf2ff
     protected function doDisplay(array $context, array $blocks = [])
     {
         // line 1
-        echo "<script type=\"text/javascript\">
-if (typeof configInlineParams === \"undefined\" || !Array.isArray(configInlineParams)) configInlineParams = [];
-configInlineParams.push(function() {
-";
+        echo "<input type=\"hidden\" name=\"fk_checks\" value=\"0\">
+<input type=\"checkbox\" name=\"fk_checks\" id=\"fk_checks\" value=\"1\"";
+        // line 3
+        echo ((($context["checked"] ?? null)) ? (" checked") : (""));
+        echo ">
+<label for=\"fk_checks\">";
         // line 4
-        echo twig_join_filter(($context["js_array"] ?? null), ";
-");
-        echo ";
-});
-if (typeof configScriptLoaded !== \"undefined\" && configInlineParams) loadInlineConfig();
-</script>
+        echo _gettext("Enable foreign key checks");
+        echo "</label>
 ";
     }
 
     public function getTemplateName()
     {
-        return "javascript/display.twig";
+        return "fk_checkbox.twig";
     }
 
     public function isTraitable()
@@ -42,7 +40,7 @@ if (typeof configScriptLoaded !== \"undefined\" && configInlineParams) loadInlin
 
     public function getDebugInfo()
     {
-        return array (  24 => 4,  19 => 1,);
+        return array (  26 => 4,  22 => 3,  19 => 1,);
     }
 
     /** @deprecated since 1.27 (to be removed in 2.0). Use getSourceContext() instead */
@@ -55,6 +53,6 @@ if (typeof configScriptLoaded !== \"undefined\" && configInlineParams) loadInlin
 
     public function getSourceContext()
     {
-        return new Twig_Source("", "javascript/display.twig", "E:\\phpstudy_pro\\WWW\\erp\\phpMyAdmin4.8.5\\templates\\javascript\\display.twig");
+        return new Twig_Source("", "fk_checkbox.twig", "E:\\phpstudy_pro\\WWW\\erp\\phpMyAdmin4.8.5\\templates\\fk_checkbox.twig");
     }
 }
