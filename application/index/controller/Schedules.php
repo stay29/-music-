@@ -52,10 +52,26 @@ class Schedules extends BaseController
        $stu_name=input('get.stu_name');
        $cur_name=input('get.cur_name');
        $tea_name=input('get.tea_name');
-        $data= Plessons::where('or_id',$or_id)->alias('a')->join('erp2_students b','a.stu_id=b.stu_id')->whereLike('b.truename','%'.$stu_name.'%')->select();
-        $data=$data->join('erp2_curriculums c','c.cur_id=a.cur_id')->whereLike('c.cur_name','%'.$cur_name.'%')->select();
-        $data=$data->field('a.stu_id,c.cur_name,b.true_name,c.tmethods,after_price,a.class_hour')->join("erp2_teachers d",'d.t_id=a.t_id')->whereLike('d.t_name','%'.$tea_name.'%')->select();
+       if($tea_name){
+         $where[]=  ['d.t_name','like','%'.$tea_name.'%'];
+       }
+       if($stu_name){
+           $where[]=['b.truename','like','%'.$stu_name.'%'];
+       }
+       if($cur_name){
+           $where[]=['c.cur_name','like','%'.$cur_name.'%'];
+       }
+       $data= Plessons::where('or_id',$or_id)->alias('a')
+           ->join('erp2_teachers d ','d.t_id=a.t_id')
+           ->join('erp2_students b','a.stu_id=b.stu_id')
+           ->join('erp2_curriculums c','c.cur_id=a.cur_id')
+           ->field('a.stu_id,c.cur_name,b.truename,c.tmethods,original_price,a.class_hour');
+       if(isset($where)){
+           $data=$data ->where($where);
+       }
+          $data=$data  ->select();
+//           ->where(['d.t_name LIKE '.'%'.$tea_name.'%','b.truename LIKE '.'%'.$stu_name.'%','c.cur_name LIKE'.'%'.$cur_name.'%'])
 
-    $this->returnData($data,"");
+       $this->returnData($data,"");
    }
 }

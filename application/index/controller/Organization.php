@@ -353,4 +353,39 @@ class Organization extends Basess
 
     }
 
+    /**
+     * 置顶banner图
+     */
+    public function stick_banner(){
+//        $or_id=Request::instance()->header()['orgid'];
+        $b_id=input('post.b_id');
+        $data['update_time']=time();
+        Db::startTrans();
+        try{
+            Banner::where('b_id',$b_id)->update($data);
+            Db::commit();
+            $this->return_data(1,0,"置顶成功！");
+        }catch(Exception $e){
+            Db::rollback();
+            $this->return_data(0,20002,$e->getMessage());
+        }
+    }
+    /**
+     * 下架banner图
+     */
+    public function sold_out_b(){
+        $data['sold_out']=1;
+        $b_id=input('post.b_id');
+        $data['update_time']=time();
+        Db::startTrans();
+        try{
+            Banner::where('b_id',$b_id)->update($data);
+            Db::commit();
+            $this->return_data(1,0,"下架成功！");
+        }catch(Exception $e){
+            Db::rollback();
+            $this->return_data(0,20002,$e->getMessage());
+        }
+    }
+
 }
