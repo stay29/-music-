@@ -25,6 +25,7 @@ final class Categories
      */
     static public function getIndexCate($array, $pid=0, $level=0)
     {
+
         static $list = array();
         // 分类等级显示 need Chinese。
         static $map = ['顶', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
@@ -52,6 +53,7 @@ class Goods extends BaseController
      */
     public function cate_index()
     {
+        $this->auth_get_token();
         $org_id = input('orgid/d', '');
         $page = input('page/d', 1);
         $limit = input('limit/d', 20);
@@ -84,6 +86,7 @@ class Goods extends BaseController
      */
     public function cate_add()
     {
+        $this->auth_get_token();
         $org_id = input('orgid/d', '');
         $cate_pid = input('cate_pid', 0);
         $cate_name = input('cate_name', '');
@@ -130,6 +133,7 @@ class Goods extends BaseController
      */
     public function cate_edit()
     {
+        $this->auth_get_token();
         $cate_id = input('cate_id/d', '');
         $cate_name = input('cate_name/s', '');
         $order = input('order/d', 0);
@@ -165,6 +169,7 @@ class Goods extends BaseController
      */
     public function cate_list()
     {
+        $this->auth_get_token();
         $org_id = input('orgid/d', '');
         if (is_empty($org_id))
         {
@@ -193,6 +198,7 @@ class Goods extends BaseController
 
     public function cate_del()
     {
+        $this->auth_get_token();
         $cate_id = input('cate_id/d', '');
         $org_id = input('orgid/d', '');
         if(is_empty($cate_id, $org_id))
@@ -221,6 +227,7 @@ class Goods extends BaseController
      */
     public function mans_index()
     {
+        $this->auth_get_token();
         $org_id = input('orgid/d', '');
         if (is_empty($org_id))
         {
@@ -239,6 +246,7 @@ class Goods extends BaseController
      */
     public function all_mans_index()
     {
+        $this->auth_get_token();
         $org_id = input('orgid/d', '');
         if (is_empty($org_id))
         {
@@ -254,6 +262,7 @@ class Goods extends BaseController
      */
     public function all_students()
     {
+        $this->auth_get_token();
         $org_id = input('orgid/d', '');
         if (is_empty($org_id))
         {
@@ -281,6 +290,7 @@ class Goods extends BaseController
      */
     public function all_pay_list()
     {
+        $this->auth_get_token();
         $org_id = input('orgid/d', '');
         if (is_empty($org_id))
         {
@@ -296,6 +306,7 @@ class Goods extends BaseController
      */
     public function mans_del()
     {
+        $this->auth_get_token();
         $sm_id = input('sm_id/d', '');
         if(is_empty($sm_id))
         {
@@ -310,6 +321,7 @@ class Goods extends BaseController
      */
     public function mans_edit()
     {
+        $this->auth_get_token();
         $data = [
             'sm_id' => input('sm_id/d', ''),
             'sm_name' => input('sm_name/s', ''),
@@ -336,6 +348,7 @@ class Goods extends BaseController
      */
     public function mans_add()
     {
+        $this->auth_get_token();
         $data = [
 //            'sm_id' => input('sm_id/d', ''),
             'sm_name' => input('sm_name/s', ''),
@@ -366,6 +379,7 @@ class Goods extends BaseController
      */
     public function mans_departure()
     {
+        $this->auth_get_token();
         $sm_id = input('sm_id/d', '');
         if(empty($sm_id))
         {
@@ -387,6 +401,7 @@ class Goods extends BaseController
      */
     public function mans_recovery()
     {
+        $this->auth_get_token();
         $sm_id = input('sm_id/d', '');
         if(empty($sm_id))
         {
@@ -406,7 +421,7 @@ class Goods extends BaseController
      */
     public function index()
     {
-
+        $this->auth_get_token();
         $org_id = input('orgid' , '');
         $page = input('page/d', 1);
         $limit = input('limit/d', 20);
@@ -423,7 +438,7 @@ class Goods extends BaseController
         {
             $db->where('cate_id', '=', $cate_id);
         }
-        if(!empty($goods_name))
+        if(!empty($goods_name) || $goods_name==0)
         {
             $db->where('goods_name', 'like', '%' . $goods_name . '%');
         }
@@ -504,6 +519,7 @@ class Goods extends BaseController
      */
     public function add()
     {
+        $this->auth_get_token();
         $uid = input('uid');
         $data = input('post.');
         $data['org_id'] = input('orgid');
@@ -538,7 +554,7 @@ class Goods extends BaseController
      */
     public function del()
     {
-
+        $this->auth_get_token();
         $goods_id = input('goods_id', '');
         if(empty($goods_id))
         {
@@ -573,6 +589,7 @@ class Goods extends BaseController
      */
     public function edit()
     {
+        $this->auth_get_token();
         $goods_id = input('goods_id/d', '');
         if (is_empty($goods_id))
         {
@@ -601,6 +618,7 @@ class Goods extends BaseController
      */
     public function detail()
     {
+        $this->auth_get_token();
         $goods_id = input('goods_id/d', '');
         if (is_empty($goods_id))
         {
@@ -623,6 +641,7 @@ class Goods extends BaseController
      */
     public function storage()
     {
+        $this->auth_get_token();
         $uid = input('uid/d', '');
         $goods_id = input('goods_id/d', '');
         $goods_num = input('goods_num/d', '');
@@ -688,6 +707,7 @@ class Goods extends BaseController
      */
     public function checkout()
     {
+        $this->auth_get_token();
         $uid = input('uid');
         $goods_id = input('goods_id/d', '');
         $dep_num = input('dep_num/d', '');
@@ -749,6 +769,7 @@ class Goods extends BaseController
      */
     public function sale()
     {
+        $this->auth_get_token();
         $uid = input('uid/d', '');
         $goods_id = input('goods_id/d', '');  // 商品id
         $sman_type = input('sman_type/d', ''); //销售员类型, 1销售员,2老师
@@ -816,6 +837,7 @@ class Goods extends BaseController
      */
     function rental()
     {
+        $this->auth_get_token();
         $goods_id = input('goods_id/d', ''); // 商品id
         $rent_code = random_code();
         $rent_margin = input('rent_margin/f', 0.0); //租凭押金

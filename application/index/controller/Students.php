@@ -58,6 +58,7 @@ class Students extends BaseController
 //        $students = db('students')->field('stu_id, truename as stu_name, sex, birthday,
 //                cellphone, wechat, address, remark')->where($where)->paginate($limit);
 //        $this->returnData(1, '', '', $students);
+        $this->auth_get_token();
         $page = input('page/d', 1);
         $limit = input('limit/d', 20);
         $org_id = input('orgid/d', '');
@@ -139,6 +140,7 @@ class Students extends BaseController
      */
     public function edit()
     {
+        $this->auth_get_token();
         $data = input();
         if(!$this->request->isPost())
         {
@@ -169,6 +171,7 @@ class Students extends BaseController
         /*
          * 缺少验证余额是否清空.
          */
+        $this->auth_get_token();
         $stu_id = input('stu_id', '');
         $org_id = input('org_id', '');
         if(empty($stu_id) || empty($org_id))
@@ -189,6 +192,7 @@ class Students extends BaseController
      */
     public function classInfo()
     {
+        $this->auth_get_token();
         $stu_id = input('stu_id', '');
         $org_id = input('org_id', '');
         $page = input('page', 1);
@@ -211,6 +215,7 @@ class Students extends BaseController
      */
     public function changeClass()
     {
+        $this->auth_get_token();
         $stu_id = input('stu_id/d', '');  // student's id.
         $org_id = input('org_id/d', '');  // student's organization id.
         $cls_id = input('cls_id/d', ''); // student's original class id.
@@ -240,7 +245,7 @@ class Students extends BaseController
      */
     public function add()
     {
-
+        $this->auth_get_token();
         if(!$this->request->isPost())
         {
             $this->return_data(0, '10007', '请用post方法提交数据');
@@ -282,6 +287,7 @@ class Students extends BaseController
      */
     public function schedule()
     {
+        $this->auth_get_token();
         $stu_id = input('stu_id', '');
         $org_id = input('orgid', '');
         if(empty($stu_id) || empty($org_id))
@@ -294,6 +300,7 @@ class Students extends BaseController
      * Student's balance.
      */
     public function balance(){
+        $this->auth_get_token();
         $stu_id = input('stu_id', '');
         if (empty($stu_id)) {
             $this->return_data('10000', '缺少参数');
@@ -303,10 +310,10 @@ class Students extends BaseController
 
     /*
      * Buying Lesson
-     * 用jwt是不需要传用户id的，没办法另外那个php是要这么搞，我只能迎合他。
      */
     public function buyLesson()
     {
+        $this->auth_get_token();
         $orgid= \think\facade\Request::instance()->header()['orgid'];
         $data = [
             'stu_id' => input('post.stu_id/d', ''),
@@ -378,6 +385,7 @@ class Students extends BaseController
      */
     public function recharge()
     {
+        $this->auth_get_token();
         $recharge_amount = input('recharge/f', 0.00);
         $give_amount = input('give/f', 0.00);
         $remark = input('remark/s', '');
