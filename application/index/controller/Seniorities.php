@@ -19,6 +19,7 @@ class Seniorities extends BaseController
      */
     public function index()
     {
+        $this->auth_get_token();
         $orgid = input('orgid', '');
         if (empty($orgid))
         {
@@ -53,6 +54,7 @@ class Seniorities extends BaseController
      */
     public function add()
     {
+        $this->auth_get_token();
         $orgid = input('orgid', '');
         if (empty($orgid))
         {
@@ -86,6 +88,7 @@ class Seniorities extends BaseController
      */
     public function del()
     {
+        $this->auth_get_token();
         $s_id = input('post.s_id/d', '');
         $orgid = input('orgid/d', '');
         if (empty($orgid) || empty($s_id))
@@ -117,6 +120,7 @@ class Seniorities extends BaseController
      */
     public function edit()
     {
+        $this->auth_get_token();
         $orgid = input('orgid', '');
         $s_name = input('post.s_name');
         $s_id = input('post.s_id');

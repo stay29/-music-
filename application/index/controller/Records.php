@@ -62,6 +62,7 @@ class Records extends BaseController
      */
     public function sale_index()
     {
+        $this->auth_get_token();
         $goods_name = input('goods_name/s', '');
         $org_id = input('orgid/d', '');
         $page = input('page/d', 1);
@@ -155,6 +156,7 @@ class Records extends BaseController
        */
     public function sale_del()
     {
+        $this->auth_get_token();
         $sale_id = input('sale_id/d', '');
         if (is_empty($sale_id))
         {
@@ -174,6 +176,7 @@ class Records extends BaseController
      */
     public function sale_edit()
     {
+        $this->auth_get_token();
         $data = [
             'sale_id' => input('sale_id/d', ''),
             'sman_type' => input('sman_type/d', ''),
@@ -219,6 +222,7 @@ class Records extends BaseController
             e)	总预收租金：当前筛选条件下的租赁记录信息中预收租金之和
             f)	已收租金：当前筛选条件下的租赁记录信息中已实收租金之和
          */
+        $this->auth_get_token();
         $status_arr = [1=>'在租', 2=>'超期', 3=>'已归还']; // 租凭状态对应状态
         $rent_type_arr = [0=>'', 1=>'日', 2=>'月', 3=>'年'];       // 租凭方式对应含义
         $rent_type_amount_arr = [0=>'', 1=>'rent_amount_day', 2=>'rent_amount_mon', 3=>'rent_amount_year'];
@@ -313,6 +317,7 @@ class Records extends BaseController
      */
     public function rental_detail()
     {
+        $this->auth_get_token();
         $rent_id = input('rent_id/d', '');
         if (is_empty($rent_id)) {
             $this->returnData(10000, '缺少参数');
@@ -359,6 +364,7 @@ class Records extends BaseController
      */
     public function rental_recover()
     {
+        $this->auth_get_token();
         $pay_amount = input('pay_amount/f', ''); // 实际租金
         $refund_amount = input('refund_amount/f', ''); // 实退金额
         $pay_id = input('pay_id/d', '');    // 支付方式
@@ -393,6 +399,7 @@ class Records extends BaseController
      */
     public function rerent_detail()
     {
+        $this->auth_get_token();
         $rent_id = input('rent_id/d',  '缺少参数');
         if (is_empty($rent_id))
         {
@@ -405,6 +412,7 @@ class Records extends BaseController
      */
     public function rerent_edit()
     {
+        $this->auth_get_token();
         $rent_id = input('rent_id/d', '');
         if (is_empty($rent_id))
         {
@@ -418,6 +426,7 @@ class Records extends BaseController
      */
     public function rental_edit()
     {
+        $this->auth_get_token();
         $rent_id = input('rent_id/d', ''); // 租借记录id
         $rent_margin = input('rent_margin/f', '');  // 租金押金
         $prepaid_rent = input('prepaid_rent/f', ''); // 预付租金
@@ -447,6 +456,7 @@ class Records extends BaseController
      */
     public function rental_del()
     {
+        $this->auth_get_token();
         $rent_id = input('rent_id/d', '');
         if (is_empty($rent_id))
         {
@@ -467,6 +477,7 @@ class Records extends BaseController
      */
     private function get_amount_of_day($rent_type, $g_id)
     {
+        $this->auth_get_token();
         if ($rent_type == 1)
         {
             return db('goods_detail')->where('goods_id', '=', $g_id)->value('rent_amount_day');
@@ -484,6 +495,7 @@ class Records extends BaseController
      */
     public function storage_index()
     {
+        $this->auth_get_token();
         $goods_name = input('goods_name/s', '');
         $org_id = input('orgid/d', '');
         $page = input('page/d', 1);
@@ -536,6 +548,7 @@ class Records extends BaseController
      */
     public function storage_edit()
     {
+        $this->auth_get_token();
         $sto_id = input('sto_id/d', '');
         $sto_num = input('sto_num/d', '');
         $sto_price = input('sto_price/f', '');
@@ -571,6 +584,7 @@ class Records extends BaseController
      */
     public function storage_del()
     {
+        $this->auth_get_token();
         $sto_id = input('sto_id/d', '');
         if (is_empty($sto_id))
         {
@@ -591,6 +605,7 @@ class Records extends BaseController
      */
     public function checkout_index()
     {
+        $this->auth_get_token();
         $goods_name = input('goods_name/s', '');
         $org_id = input('orgid/d', '');
         $limit = input('limit/d', 20);
@@ -644,6 +659,7 @@ class Records extends BaseController
      */
     public function checkout_edit()
     {
+        $this->auth_get_token();
         $dep_id = input('dep_id/d', '');
         $dep_price = input('dep_price/f', '');
         $dep_num = input('dep_num/d', '');
@@ -672,6 +688,7 @@ class Records extends BaseController
      */
     public function checkout_del()
     {
+        $this->auth_get_token();
         $dep_id = input('dep_id/d', '');
         if (is_empty($dep_id))
         {
@@ -717,6 +734,7 @@ class Records extends BaseController
      */
     public function sale_census_index()
     {
+        $this->auth_get_token();
         $cate_id = input('cate_id/d', ''); // 分类id
         $org_id = input('orgid/d', ''); // 机构id
         $sman_type = input('sman_type/d', ''); // 销售员类型, 1销售员, 2 老师
