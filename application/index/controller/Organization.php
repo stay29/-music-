@@ -222,12 +222,12 @@ class Organization extends Basess
         $data['creat_time']=time();
         Db::startTrans();
         try{
-            DynamicState::create($data);
+             $result=DynamicState::create($data);
             Db::commit();
-            $this->return_data(1,0,"发布成功！","");
+            $this->return_data(1,0,"发布成功！",$result);
         }catch(Exception $e){
             Db::rollback();
-            $this->returnError(20001,$e->getMessage());
+            $this->return_data(0,20001,$e->getMessage());
         }
 
 
@@ -242,7 +242,7 @@ class Organization extends Basess
             $res_data=  DynamicState::where('or_id',$or_id)->order('creat_time','desc')->paginate($limit);
             $this->return_data(1,0,"",$res_data);
         }catch(Exception $e){
-            $this->returnError(20001,$e->getMessage());
+            $this->return_data(0,20001,$e->getMessage());
         }
 
 
@@ -295,7 +295,7 @@ class Organization extends Basess
             $this->return_data(1,0,"发布成功！","");
         }catch(Exception $e){
             Db::rollback();
-            $this->returnError(20001,$e->getMessage());
+            $this->return_data(0,20001,$e->getMessage());
         }
 
     }
