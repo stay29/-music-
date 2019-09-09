@@ -219,12 +219,12 @@ class Organization extends Basess
     public  function add_dynamic_state(){
         $data=input();
         $data['or_id']=Request::instance()->header()['orgid'];
-        $data['creat_time']=time();
+        $data['create_time']=time();
         Db::startTrans();
         try{
-             $result=DynamicState::create($data);
+            DynamicState::create($data);
             Db::commit();
-            $this->return_data(1,0,"发布成功！",$result);
+            $this->return_data(1,0,"发布成功！");
         }catch(Exception $e){
             Db::rollback();
             $this->return_data(0,20001,$e->getMessage());
@@ -278,7 +278,7 @@ class Organization extends Basess
             $this->return_data(1,0,"删除成功！","");
         }catch(Exception $e){
             Db::rollback();
-            $this->returnError(20002,$e->getMessage());
+            $this->return_data(0,20002,$e->getMessage());
         }
     }
     /**
@@ -329,7 +329,7 @@ class Organization extends Basess
             $this->return_data(1,0,"更新成功！","");
         }catch(Exception $e){
             Db::rollback();
-            $this->returnError(20002,$e->getMessage());
+            $this->return_data(0,20002,$e->getMessage());
         }
 
     }
@@ -348,7 +348,7 @@ class Organization extends Basess
             $this->return_data(1,0,"删除成功！","");
         }catch(Exception $e){
             Db::rollback();
-            $this->returnError(20002,$e->getMessage());
+            $this->return_data(0,20002,$e->getMessage());
         }
 
     }
