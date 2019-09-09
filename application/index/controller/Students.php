@@ -3,6 +3,7 @@
 namespace app\index\controller;
 
 use MongoDB\BSON\Decimal128;
+use function PHPSTORM_META\type;
 use think\Controller;
 use think\Db;
 use think\Exception;
@@ -329,6 +330,9 @@ class Students extends BaseController
         {
             if (empty($val))
             {
+                if($key=='type_num'&&$data[type]=='1'){
+
+                }else
                 $this->return_data('0', '10000', $key."不能为空");
             }
         }
