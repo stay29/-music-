@@ -326,7 +326,7 @@ class Students extends BaseController
             'give_class' => input('post.give_class/d', ''),
             'class_hour' => input('post.class_hour/d', ''),
             'original_price' => input('post.original/f', ''),
-            'after_price'   => input('post.after_price/f', ''),
+            'disc_price'   => input('post.disc_price/f', ''),
             'real_price'    => input('post.real_price/f', ''),
             'valid_day'   => input('post.real_price/f', ''),
             'buy_time'      => input('post.buy_time/d', ''),
