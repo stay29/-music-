@@ -1132,6 +1132,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         }
     }
 
+    // 租赁记录导出
     public function rental_record_ept()
     {
         $status_arr = [1=>'在租', 2=>'超期', 3=>'已归还']; // 租凭状态对应状态
@@ -1241,8 +1242,8 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
 
 
     /*
- * 销售统计表导出
- */
+     * 销售统计表导出
+     * */
     public function sale_census_ept()
     {
 

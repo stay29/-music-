@@ -981,7 +981,7 @@ class Teacher extends BaseController
         foreach ($data as $k=>$v) {
             $temp = db('curriculums')->
                     field('cur_id, cur_name')->
-                    where(['orgid'=>$orgid, 'subject'=>$v['sid']])->select();
+                    where(['orgid'=>$orgid, 'subject'=>$v['sid'], 'is_del'=>0])->select();
             $data[$k]['courses']=$temp;
             unset($temp);
         }
