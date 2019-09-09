@@ -455,6 +455,10 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $t['status'] = $v[8];
                 $t['manager'] = $uid;
                 $t['org_id'] = $org_id;
+                if (empty($t['t_name']))
+                {
+                    $this->returnError(10000, '姓名不能为空');
+                }
                 if ($t['t_name'] > 20 )
                 {
                     $this->returnError('10000', '教师名称大于10个字符');
@@ -1132,6 +1136,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         }
     }
 
+    // 租赁记录导出
     public function rental_record_ept()
     {
         $status_arr = [1=>'在租', 2=>'超期', 3=>'已归还']; // 租凭状态对应状态
@@ -1241,8 +1246,8 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
 
 
     /*
- * 销售统计表导出
- */
+     * 销售统计表导出
+     * */
     public function sale_census_ept()
     {
 
