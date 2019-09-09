@@ -23,11 +23,11 @@ class SaleLog extends Validate
         'sman_id' => 'require',
         'sale_obj_type' => 'require',
         'sale_obj_id' => 'require',
-        'single_price'  => 'require|number',
-        'sum_payable'  => 'require|number',
-        'pay_amount'    => 'require|number',
-        'sale_time'     => 'require|number',
-        'pay_id'        => 'require|number',
+        'single_price'  => 'require',
+        'sum_payable'  => 'require',
+        'pay_amount'    => 'require',
+        'sale_time'     => 'require',
+        'pay_id'        => 'require',
     ];
 
     protected $message = [
