@@ -298,7 +298,20 @@ class Goods extends BaseController
         }
         $data = db('payments')->field('pay_id, payment_method as pay_name')
             ->where('status', '=', 1)->select();
-        $this->returnData($data, '请求成功');
+        $response = [];
+        foreach ($data as $k=>$v)
+        {
+            if ($v['pay_name'] == '账户余额')
+            {
+                $v['is_only_stu'] = 1;
+            }
+            else
+            {
+                $v['is_only_stu'] = 0;
+            }
+            $response[] = $v;
+        }
+        $this->returnData($response, '请求成功');
     }
 
     /*
