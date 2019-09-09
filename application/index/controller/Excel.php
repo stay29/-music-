@@ -450,7 +450,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $t['cellphone'] = $v[3];
                 $t['entry_time'] = $v[4];
                 $t['identity_card'] = trim($v[5]);
-                $t['birthday'] = $v[6];
+                $t['birthday'] = trim($v[6]);
                 $t['resume'] = $v[7];
                 $t['status'] = $v[8];
                 $t['manager'] = $uid;
@@ -481,7 +481,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 if (!$this->validate_date($t['birthday']))
                 {
                     Db::rollback();
-                    $this->returnError('10000', '生日日期格式错误');
+                    $this->returnError('10000', '生日日期格式错误' . $t['birthday']);
                 }
                 $card_pattern ='/^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}([0-9]|X)$/i';
                 if(!preg_match($card_pattern, $t['identity_card']))
