@@ -455,6 +455,10 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $t['status'] = $v[8];
                 $t['manager'] = $uid;
                 $t['org_id'] = $org_id;
+                if (empty($t['t_name']))
+                {
+                    $this->returnError(10000, '姓名不能为空');
+                }
                 if ($t['t_name'] > 20 )
                 {
                     $this->returnError('10000', '教师名称大于10个字符');
