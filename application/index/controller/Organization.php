@@ -239,7 +239,7 @@ class Organization extends Basess
         $limit = input('limit/d', 20);
         try{
             $or_id=Request::instance()->header()['orgid'];
-            $res_data=  DynamicState::where('or_id',$or_id)->order('creat_time','desc')->paginate($limit);
+            $res_data=  DynamicState::where(['or_id'=>$or_id,'is_del'=>0])->order('create_time','desc')->paginate($limit);
             $this->return_data(1,0,"",$res_data);
         }catch(Exception $e){
             $this->return_data(0,20001,$e->getMessage());

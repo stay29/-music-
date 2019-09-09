@@ -335,7 +335,7 @@ class Students extends BaseController
         ];
         foreach ($data as $key => $val)
         {
-            if (empty($val))
+            if ($val='')
             {
                 if($key=='type_num'&&$data['type']==1){
 
