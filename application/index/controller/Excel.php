@@ -476,7 +476,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 if (!$this->validate_date($t['entry_time']))
                 {
                     Db::rollback();
-                    $this->returnError('10000', '入职日期格式错误' );
+                    $this->returnError('10000', '入职日期格式错误' . $t['entry_time']);
                 }
                 if (!$this->validate_date($t['birthday']))
                 {
