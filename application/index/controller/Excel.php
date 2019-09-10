@@ -197,13 +197,13 @@ class ExcelBase extends Controller
      */
     public function validate_date($date)
     {
-        $pattern = "/^\d{4}\/\d{1,2}\/\d{1,2}$/";
+        $pattern = "/^\d{1,2}\/\d{1,2}\/\d{4}$/";
         if (!preg_match($pattern, $date))
         {
             return false;
         }
         $t = explode('/', $date);
-        if (checkdate($t[1], $t[2], $t[0]))
+        if (checkdate($t[1], $t[0], $t[2]))
         {
             return true;
         }
@@ -460,9 +460,9 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $t['sex'] = $v[1];
                 $t['se_id'] = 1;
                 $t['cellphone'] = $v[3];
-                $t['entry_time'] = $this->trans_date($v[4]);
+                $t['entry_time'] = $v[4]);
                 $t['identity_card'] = $v[5];
-                $t['birthday'] = $this->trans_date($v[6]);
+                $t['birthday'] = $v[6];
                 $t['resume'] = $v[7];
                 $t['status'] = $v[8];
                 $t['manager'] = $uid;
@@ -494,7 +494,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 {
 
                     Db::rollback();
-                    $this->returnError('10000', '生日日期格式错误' . $t['birthday']);
+                    $this->returnError('10000', '生日日期格式错误');
                 }
                 $card_pattern ='/^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}([0-9]|X)$/i';
                 if(!preg_match($card_pattern, $t['identity_card']))
