@@ -6,7 +6,9 @@
  * Time: 15:03
  */
 namespace app\index\controller;
+use app\index\model\Record;
 use think\Controller;
+use think\Exception;
 use think\facade\Request;
 use think\Db;
 use think\facade\Session;
@@ -234,5 +236,28 @@ class BaseController extends Controller
         } catch (Exception $e) {
             $this->return_data(0, '50000', '未知错误，请检查');
         }
+    }
+
+    /**
+     * 生成操作记录
+     */
+    protected function create_record($or_id,$type,$userid,$content){
+        $data=['or_id'=>$or_id,
+                'o_content'=>$content,
+                'o_type'=>$type,
+                'o_user'=>$userid,
+                'o_time'=>time()
+            ];
+        db::startTrans();
+        try{
+            Record::create($data);
+            db::commit();
+        }catch (Exception $e){
+            db::rollback();
+
+        }
+
+
+
     }
 }

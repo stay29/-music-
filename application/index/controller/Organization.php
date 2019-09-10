@@ -8,6 +8,7 @@
 namespace app\index\controller;
 use app\index\model\Banner;
 use app\index\model\DynamicState;
+use app\index\model\Record;
 use think\Controller;
 use think\Exception;
 use think\Db;
@@ -387,5 +388,37 @@ class Organization extends Basess
             $this->return_data(0,20002,$e->getMessage());
         }
     }
+    /**
+     * 获得机构操作记录
+     * @Param  userid  用户id
+     * @Param  o_type  操作类型
+     * @Param  s_time  开始时间
+     * @Param  e_time 结束时间
+     * @param  key  关键词
+     * @param  limit 每页多少个数量
+     */
+     public function  get_record(){
+         $or_id=Request::instance()->header()['orgid'];
+         $userid=Request::instance()->header()['x_userid'];
+         $o_type=input('post.o_type');
+         $key=input('post.key');
+         $limit=input('post.limit',20);
+         $where[]=['or_id','=',$or_id];
+         if($userid){
+             $where[]=['userid','=',$userid];
+         }
+         if($o_type){
+             $where[]=['o_type','=',$o_type];
+         }
+         if($key){
+             $where[]=['key','like','%'.$key.'%'];
+         }
+         $data=Record::where($where);
+         $data=$data->alias('a')
+             ->join('erp2_user b','a.userid=b.userid')
+             ->field('a.create_time,b_username,a.o_type,a.content');
+         $data=$data->order('o_time','desc')->paginate($limit);
+         $this->return_data(1,0,"",$data);
 
+     }
 }
