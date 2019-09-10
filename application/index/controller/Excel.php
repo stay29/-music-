@@ -460,7 +460,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $t['sex'] = $v[1];
                 $t['se_id'] = 1;
                 $t['cellphone'] = $v[3];
-                $t['entry_time'] = $v[4]);
+                $t['entry_time'] = $v[4];
                 $t['identity_card'] = $v[5];
                 $t['birthday'] = $v[6];
                 $t['resume'] = $v[7];
