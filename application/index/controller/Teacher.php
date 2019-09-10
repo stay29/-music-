@@ -658,7 +658,7 @@ class Teacher extends BaseController
                 $tables->whereTime('cur_time', 'm');
             }
         }
-        $data = $tables->paginate($limit);
+        $data = $tables->order('create_time DESC')->paginate($limit);
         $response = [
             'total' => $data->total(),
             'per_page' => $limit,
@@ -977,7 +977,7 @@ class Teacher extends BaseController
         {
             $this->returnError( '10000', '缺少参数orgid');
         }
-        $data = db('subjects')->field('sid, sname')->select();
+        $data = db('subjects')->field('sid, sname')->order('create_time DESC')->select();
         foreach ($data as $k=>$v) {
             $temp = db('curriculums')->
                     field('cur_id, cur_name')->
