@@ -494,7 +494,6 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 {
 
                     Db::rollback();
-                    $this->returnError('10000', $v);
                     $this->returnError('10000', '生日日期格式错误');
                 }
                 $card_pattern ='/^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}([0-9]|X)$/i';
