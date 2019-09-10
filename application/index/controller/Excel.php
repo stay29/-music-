@@ -212,6 +212,18 @@ class ExcelBase extends Controller
             return false;
         }
     }
+
+    /*
+     * 读取excel 单元格yyyy/mm/dd 会自动转换为 dd/mm/yyyy
+     * 将读取excel的时间字段转换为正常格式
+     */
+    public function trans_date($date)
+    {
+        $data = explode('/', $date);
+        $data = array_reverse($data);
+        $str = implode('/', $data);
+        return $str;
+    }
 }
 
 /*
@@ -448,9 +460,9 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $t['sex'] = $v[1];
                 $t['se_id'] = 1;
                 $t['cellphone'] = $v[3];
-                $t['entry_time'] = $v[4];
+                $t['entry_time'] = $this->trans_date($v[4]);
                 $t['identity_card'] = $v[5];
-                $t['birthday'] = $v[6];
+                $t['birthday'] = $this->trans_date($v[6]);
                 $t['resume'] = $v[7];
                 $t['status'] = $v[8];
                 $t['manager'] = $uid;
@@ -476,14 +488,14 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 if (!$this->validate_date($t['entry_time']))
                 {
                     Db::rollback();
-                    $this->returnError('10000', '入职日期格式错误' . $t['entry_time']);
+                    $this->returnError('10000', '入职日期格式错误');
                 }
                 if (!$this->validate_date($t['birthday']))
                 {
 
                     Db::rollback();
                     $this->returnError('10000', $v);
-                    $this->returnError('10000', '生日日期格式错误' . $t['birthday']);
+                    $this->returnError('10000', '生日日期格式错误');
                 }
                 $card_pattern ='/^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}([0-9]|X)$/i';
                 if(!preg_match($card_pattern, $t['identity_card']))
