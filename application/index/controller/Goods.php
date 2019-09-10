@@ -236,7 +236,7 @@ class Goods extends BaseController
         $page = input('page/d', 1);
         $limit = input('limit/d', 10);
         $data = db('salesmans')->where('org_id', '=', $org_id)
-            ->field('sm_id, sm_name, sm_mobile, status')
+            ->field('sm_id, sm_name, sm_mobile, status')->order('create_time DESC')
             ->paginate($limit);
         $this->returnData($data, '请求成功');
     }
@@ -253,7 +253,7 @@ class Goods extends BaseController
             $this->returnError(10000, '缺少参数');
         }
         $data = db('salesmans')->where('org_id', '=', $org_id)->where('status', '=', 1)
-            ->field('sm_id, sm_name')->select();
+            ->field('sm_id, sm_name')->order('create_time DESC')->select();
         $this->returnData($data, '请求成功');
     }
 
@@ -268,7 +268,9 @@ class Goods extends BaseController
         {
             $this->returnError(10000, '缺少参数');
         }
-        $data = db('students')->where(['org_id'=> $org_id])->field('stu_id, truename as stu_name')->select();
+        $data = db('students')->where(['org_id'=> $org_id])->field('stu_id, truename as stu_name')
+            ->order('create_time DESC')
+            ->select();
         $response = [];
         foreach ($data as $k=>$v)
         {
@@ -297,7 +299,7 @@ class Goods extends BaseController
             $this->returnError(10000, '缺少参数');
         }
         $data = db('payments')->field('pay_id, payment_method as pay_name')
-            ->where('status', '=', 1)->select();
+            ->where('status', '=', 1)->order('create_time DESC')->select();
         $response = [];
         foreach ($data as $k=>$v)
         {
@@ -446,7 +448,7 @@ class Goods extends BaseController
         }
 
         $db = db('goods_detail')->field('goods_id, goods_name, remarks,
-        unit_name, cate_id, goods_amount, goods_img')->where('org_id', '=', $org_id);
+        unit_name, cate_id, goods_amount, goods_img')->order('create_time DESC')->where('org_id', '=', $org_id);
         if (!empty($cate_id))
         {
             $db->where('cate_id', '=', $cate_id);
@@ -644,7 +646,7 @@ class Goods extends BaseController
 //        {
 //            $rent_obj_name = db('students')->where('stu_id')->value('truename');
 //        }
-        $data = db('goods_detail')->where('goods_id', '=', $goods_id)->find();
+        $data = db('goods_detail')->where('goods_id', '=', $goods_id)->order('create_time')->find();
         $this->returnData($data, '请求成功');
     }
 

@@ -79,7 +79,7 @@ class Records extends BaseController
                 $db->where('goods_name', 'like', '%' . $goods_name . '%');
             }
 
-            $goods_list = $db->field('goods_id, goods_name, cate_id')->select();
+            $goods_list = $db->field('goods_id, goods_name, cate_id')->order('create_time DESC')->select();
 //            $response = [];
             $data = [];
             foreach ($goods_list as $goods)
@@ -256,7 +256,7 @@ class Records extends BaseController
                 'total_prepaid_rent' => $total_prepaid_rent,
                 'records' => array()
             ];
-            $logs = $table->select();   //
+            $logs = $table->order('create_time DESC')->select();   //
             foreach ($logs as $log) {
                 $g_id = $log['goods_id'];
                 $rent_id = $log['rent_id'];
@@ -506,7 +506,8 @@ class Records extends BaseController
         }
         $data = [];
         $goods_list = db('goods_detail')->field('goods_id, goods_name')
-            ->where('goods_name', 'like', '%' . $goods_name . '%')->select();
+            ->where('goods_name', 'like', '%' . $goods_name . '%')
+            ->order('create_time DESC')->select();
         try
         {
             foreach ($goods_list as $goods)
@@ -624,7 +625,8 @@ class Records extends BaseController
                 $g_name = $goods['goods_name'];
                 $g_id = $goods['goods_id'];
 
-                $sto_logs = db('goods_deposit')->where('goods_id', '=', $g_id)->select();
+                $sto_logs = db('goods_deposit')->where('goods_id', '=', $g_id)
+                    ->order('create_time DESC')->select();
                 foreach ($sto_logs as $log)
                 {
                     $manager = db('users')->where('uid', '=', $log['manager'])->value('nickname');
@@ -758,7 +760,7 @@ class Records extends BaseController
             {
                 $goods_db->where('cate_id', '=', $cate_id);
             }
-            $goods_list = $goods_db->field('goods_id, cate_id, unit_name, goods_name')->select();
+            $goods_list = $goods_db->field('goods_id, cate_id, unit_name, goods_name')->order('create_time DESC')->select();
             $data = [];
             foreach ($goods_list as $goods)
             {
