@@ -871,7 +871,7 @@ class Goods extends BaseController
         $create_time = time();
         $update_time = time();
         if (is_empty($goods_id, $rent_type,
-            $rent_amount, $rent_num, $prepaid_rent, $rent_obj_type, $rent_obj_id,
+            $rent_amount, $rent_num, $prepaid_rent, $rent_obj_type,
             $start_time, $end_time, $end_time, $pay_id))
         {
             $this->returnError(10000, '缺少参数');
