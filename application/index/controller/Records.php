@@ -229,6 +229,8 @@ class Records extends BaseController
         $end_time = input('end_time/d', '');
         $key = input('key/s', '');  // 租客姓名/商品名称
         $status = input('status/d', 1); // 1 全部， 2在租， 3超期， 4已归还。
+        $page = input('page/d', 1);
+        $limit = input('limit/d', 20);
         if (empty($org_id))
         {
             $this->returnError(10000, '缺少机构ID');
@@ -311,7 +313,13 @@ class Records extends BaseController
                     'pay_id' => $log['pay_id'], // 支付方式
                 ];
             }
-            $this->returnData($data, '请求成功');
+            $response = [
+                'last_page' => intval(count($data) / $limit) + 1,
+                'per_page' => $limit,
+                'total' => count($data),
+                'data' => $data
+            ];
+            $this->returnData($response, '请求成功');
         }catch (Exception $e)
         {
             $this->returnError(50000, '系统错误: ' . $e->getMessage());
