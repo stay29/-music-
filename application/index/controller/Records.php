@@ -241,8 +241,19 @@ class Records extends BaseController
                 where('truename', 'like', '%' . $key . '%')->value('stu_id');
             $goods_id = db('goods_detail')->
                 where('goods_name', 'like', '%' . $key . '%')->value('goods_id');
-            $table = db('goods_rental_log')->
-            whereOr('rent_obj_id', '=', $rent_obj_id)->where('status', '=', $status)->whereOr('goods_id', '=', $goods_id);
+            $table = db('goods_rental_log');
+            if ($rent_obj_id)
+            {
+                $table->where('goods_id', '=', $goods_id);
+            }
+            if ($goods_id)
+            {
+                $this->where('rent_obj_id', '=', $rent_obj_id);
+            }
+            if ($status)
+            {
+                $table->where('status', '=', $status);
+            }
             if (!empty($start_time) and !empty($end_time))
             {
                 $table = $table->whereBetweenTime('create_time',  $start_time,  $end_time);
@@ -285,7 +296,7 @@ class Records extends BaseController
                 }
                 $status_text = $status_arr[$status];    // 租凭状态对应文字
                 $remarks = $log['remarks'];
-                $data['records'] = [
+                $data['records'][] = [
                     'rent_id' => $rent_id,  // 租借记录id
                     'goods_name' => $goods_name,
                     'rent_code' => $log['rent_code'], // 租借单号
@@ -824,6 +835,3 @@ class Records extends BaseController
     }
 
 }
-
-
-
