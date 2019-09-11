@@ -197,13 +197,13 @@ class ExcelBase extends Controller
      */
     public function validate_date($date)
     {
-        $pattern = "/^\d{4}\/\d{1,2}\/\d{1,2}$/";
+        $pattern = "/^\d{1,2}\/\d{1,2}\/\d{4}$/";
         if (!preg_match($pattern, $date))
         {
             return false;
         }
         $t = explode('/', $date);
-        if (checkdate($t[1], $t[2], $t[0]))
+        if (checkdate($t[1], $t[0], $t[2]))
         {
             return true;
         }
@@ -211,6 +211,18 @@ class ExcelBase extends Controller
         {
             return false;
         }
+    }
+
+    /*
+     * 读取excel 单元格yyyy/mm/dd 会自动转换为 dd/mm/yyyy
+     * 将读取excel的时间字段转换为正常格式
+     */
+    public function trans_date($date)
+    {
+        $data = explode('/', $date);
+        $data = array_reverse($data);
+        $str = implode('/', $data);
+        return $str;
     }
 }
 
@@ -445,23 +457,27 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             foreach ($data as $k => $v)
             {
                 $t['t_name'] = $v[0];
-                $t['sex'] = trim($v[1]);
+                $t['sex'] = $v[1];
                 $t['se_id'] = 1;
                 $t['cellphone'] = $v[3];
                 $t['entry_time'] = $v[4];
-                $t['identity_card'] = trim($v[5]);
+                $t['identity_card'] = $v[5];
                 $t['birthday'] = $v[6];
                 $t['resume'] = $v[7];
                 $t['status'] = $v[8];
                 $t['manager'] = $uid;
                 $t['org_id'] = $org_id;
+                if (empty($t['t_name']))
+                {
+                    $this->returnError(10000, '姓名不能为空');
+                }
                 if ($t['t_name'] > 20 )
                 {
                     $this->returnError('10000', '教师名称大于10个字符');
                 }
                 if (!in_array($t['sex'], ['男', '女']))
                 {
-                    $this->returnError('10000', '性别只能是男, 女: ' . $t['sex']);
+                    $this->returnError('10000', '性别只能是男, 女: ');
                 }
 
                 if (!preg_match("/^1[345789]\d{9}$/", $t['cellphone'], $matches))
@@ -472,10 +488,11 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 if (!$this->validate_date($t['entry_time']))
                 {
                     Db::rollback();
-                    $this->returnError('10000', '入职日期格式错误' . $t['entry_time']);
+                    $this->returnError('10000', '入职日期格式错误');
                 }
                 if (!$this->validate_date($t['birthday']))
                 {
+
                     Db::rollback();
                     $this->returnError('10000', '生日日期格式错误');
                 }
@@ -1132,6 +1149,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         }
     }
 
+    // 租赁记录导出
     public function rental_record_ept()
     {
         $status_arr = [1=>'在租', 2=>'超期', 3=>'已归还']; // 租凭状态对应状态
@@ -1241,8 +1259,8 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
 
 
     /*
- * 销售统计表导出
- */
+     * 销售统计表导出
+     * */
     public function sale_census_ept()
     {
 

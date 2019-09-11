@@ -8,6 +8,7 @@
 namespace app\index\controller;
 use app\index\model\Banner;
 use app\index\model\DynamicState;
+use app\index\model\Record;
 use think\Controller;
 use think\Exception;
 use think\Db;
@@ -219,15 +220,15 @@ class Organization extends Basess
     public  function add_dynamic_state(){
         $data=input();
         $data['or_id']=Request::instance()->header()['orgid'];
-        $data['creat_time']=time();
+        $data['create_time']=time();
         Db::startTrans();
         try{
             DynamicState::create($data);
             Db::commit();
-            $this->return_data(1,0,"发布成功！","");
+            $this->return_data(1,0,"发布成功！");
         }catch(Exception $e){
             Db::rollback();
-            $this->returnError(20001,$e->getMessage());
+            $this->return_data(0,20001,$e->getMessage());
         }
 
 
@@ -239,10 +240,10 @@ class Organization extends Basess
         $limit = input('limit/d', 20);
         try{
             $or_id=Request::instance()->header()['orgid'];
-            $res_data=  DynamicState::where('or_id',$or_id)->order('creat_time','desc')->paginate($limit);
+            $res_data=  DynamicState::where(['or_id'=>$or_id,'is_del'=>0])->order('create_time','desc')->paginate($limit);
             $this->return_data(1,0,"",$res_data);
         }catch(Exception $e){
-            $this->returnError(20001,$e->getMessage());
+            $this->return_data(0,20001,$e->getMessage());
         }
 
 
@@ -278,7 +279,7 @@ class Organization extends Basess
             $this->return_data(1,0,"删除成功！","");
         }catch(Exception $e){
             Db::rollback();
-            $this->returnError(20002,$e->getMessage());
+            $this->return_data(0,20002,$e->getMessage());
         }
     }
     /**
@@ -295,7 +296,7 @@ class Organization extends Basess
             $this->return_data(1,0,"发布成功！","");
         }catch(Exception $e){
             Db::rollback();
-            $this->returnError(20001,$e->getMessage());
+            $this->return_data(0,20001,$e->getMessage());
         }
 
     }
@@ -329,7 +330,7 @@ class Organization extends Basess
             $this->return_data(1,0,"更新成功！","");
         }catch(Exception $e){
             Db::rollback();
-            $this->returnError(20002,$e->getMessage());
+            $this->return_data(0,20002,$e->getMessage());
         }
 
     }
@@ -348,9 +349,76 @@ class Organization extends Basess
             $this->return_data(1,0,"删除成功！","");
         }catch(Exception $e){
             Db::rollback();
-            $this->returnError(20002,$e->getMessage());
+            $this->return_data(0,20002,$e->getMessage());
         }
 
     }
 
+    /**
+     * 置顶banner图
+     */
+    public function stick_banner(){
+//        $or_id=Request::instance()->header()['orgid'];
+        $b_id=input('post.b_id');
+        $data['update_time']=time();
+        Db::startTrans();
+        try{
+            Banner::where('b_id',$b_id)->update($data);
+            Db::commit();
+            $this->return_data(1,0,"置顶成功！");
+        }catch(Exception $e){
+            Db::rollback();
+            $this->return_data(0,20002,$e->getMessage());
+        }
+    }
+    /**
+     * 下架banner图
+     */
+    public function sold_out_b(){
+        $data['sold_out']=1;
+        $b_id=input('post.b_id');
+        $data['update_time']=time();
+        Db::startTrans();
+        try{
+            Banner::where('b_id',$b_id)->update($data);
+            Db::commit();
+            $this->return_data(1,0,"下架成功！");
+        }catch(Exception $e){
+            Db::rollback();
+            $this->return_data(0,20002,$e->getMessage());
+        }
+    }
+    /**
+     * 获得机构操作记录
+     * @Param  userid  用户id
+     * @Param  o_type  操作类型
+     * @Param  s_time  开始时间
+     * @Param  e_time 结束时间
+     * @param  key  关键词
+     * @param  limit 每页多少个数量
+     */
+     public function  get_record(){
+         $or_id=Request::instance()->header()['orgid'];
+         $userid=Request::instance()->header()['x_userid'];
+         $o_type=input('post.o_type');
+         $key=input('post.key');
+         $limit=input('post.limit',20);
+         $where[]=['or_id','=',$or_id];
+         if($userid){
+             $where[]=['userid','=',$userid];
+         }
+         if($o_type){
+             $where[]=['o_type','=',$o_type];
+         }
+         if($key){
+             $where[]=['key','like','%'.$key.'%'];
+         }
+         $data=Record::where($where);
+         $data=$data->alias('a')
+             ->join('erp2_user b','a.userid=b.userid')
+             ->field('a.create_time,b_username,a.o_type,a.content');
+         $data=$data->order('o_time','desc')->paginate($limit);
+         $this->return_data(1,0,"",$data);
+
+     }
 }

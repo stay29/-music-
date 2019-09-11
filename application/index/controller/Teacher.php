@@ -44,6 +44,7 @@ class Teacher extends BaseController
 //    use Response;
     public function index()
     {
+        $this->auth_get_token();
         $org_id = input('orgid', '');
         $t_name = input('t_name/s', ''); // 教师名称
         $se_id = input('se_id/d', ''); // 资历ID
@@ -55,7 +56,7 @@ class Teacher extends BaseController
             $this->returnError('10000', '缺少参数');
         }
         $teacher = TeacherModel::where('org_id', '=', $org_id)->alias("a");
-        if(!empty($t_name))
+        if(!empty($t_name) || $t_name==0)
         {
             $teacher->where('t_name', 'like', '%' . $t_name . '%');
         }
@@ -81,6 +82,7 @@ class Teacher extends BaseController
      * Modifying Teacher Information Method
      */
     public function edit(){
+        $this->auth_get_token();
         $t_id = input('post.t_id/d', '');
         $org_id = input('post.orgid/d', '');
 
@@ -189,6 +191,7 @@ class Teacher extends BaseController
      */
     public function del()
     {
+        $this->auth_get_token();
         $t_id = input('t_id/d', '');
         $org_id = input('orgid/d', '');
         if(empty($t_id) || empty($org_id))
@@ -236,6 +239,7 @@ class Teacher extends BaseController
      */
     public function detail()
     {
+        $this->auth_get_token();
         $org_id = input('orgid', null);
         $t_id = input('t_id', null);
         if (!isset($org_id) || !isset($t_id))
@@ -357,7 +361,7 @@ class Teacher extends BaseController
      */
 
     public function add(){
-
+        $this->auth_get_token();
         if (!$this->request->isPost())
         {
             $this->returnError('40000', '非法请求');
@@ -415,6 +419,7 @@ class Teacher extends BaseController
      */
     public function jobStatus()
     {
+        $this->auth_get_token();
         $org_id = input('org_id', null);
         $t_id = input('post.t_id', '');
         $status = input('post.status', '');
@@ -454,6 +459,7 @@ class Teacher extends BaseController
      */
     public function lessonDel()
     {
+        $this->auth_get_token();
 //        $org_id = input('orgid');
         if(!$this->request->isPost())
         {
@@ -488,6 +494,7 @@ class Teacher extends BaseController
      */
     public function lessonAdd()
     {
+        $this->auth_get_token();
         if(!$this->request->isPost())
         {
             $this->return_data(0, '10002', '请用POST方法提交');
@@ -515,6 +522,7 @@ class Teacher extends BaseController
      */
     public function dispatch()
     {
+        $this->auth_get_token();
         $t_id = input('t_id', null);
         $org_id = input('org_id', null);
         if (!isset($t_id) || !isset($org_id))
@@ -544,6 +552,7 @@ class Teacher extends BaseController
      */
     public function changeTeacher()
     {
+        $this->auth_get_token();
         //erp2_classes_teachers_realations
         $cls_id = input('cls_id', '');  //　班级id
         $t_id = input('t_id', ''); // 当前教师id
@@ -570,6 +579,7 @@ class Teacher extends BaseController
      */
     public function teacher_courses()
     {
+        $this->auth_get_token();
         $t_id = input('t_id', '');
         $org_id = input('orgid', '');
         if (empty($t_id) || empty($org_id))
@@ -610,6 +620,7 @@ class Teacher extends BaseController
     */
     public function schedule()
     {
+        $this->auth_get_token();
 //        $this->return_data(1,'', '', '');
         $allCode = 1;  // 全部
         $org_id = input('orgid/d', '');
@@ -647,7 +658,7 @@ class Teacher extends BaseController
                 $tables->whereTime('cur_time', 'm');
             }
         }
-        $data = $tables->paginate($limit);
+        $data = $tables->order('create_time DESC')->paginate($limit);
         $response = [
             'total' => $data->total(),
             'per_page' => $limit,
@@ -689,6 +700,7 @@ class Teacher extends BaseController
      */
     public function close_cancel_course()
     {
+        $this->auth_get_token();
         $sc_id = input('sc_id/d', '');
         $password = input('password', '');
         $uid = input('uid', '');
@@ -717,6 +729,7 @@ class Teacher extends BaseController
      */
     public function schedule_del()
     {
+        $this->auth_get_token();
         $sc_id = input('sc_id', '');
         if(empty($sc_id))
         {
@@ -737,6 +750,7 @@ class Teacher extends BaseController
      */
     public function changeSchedule()
     {
+        $this->auth_get_token();
         $sc_id = input('sc_id/d', '');
         $cur_id = input('cur_id/d', '');
         if (empty($sc_id) || empty($cur_id))
@@ -791,6 +805,7 @@ class Teacher extends BaseController
      */
     public function schedulePostpone()
     {
+        $this->auth_get_token();
         $sc_id = input('sc_id/d', '');
         if(empty($sc_id))
         {
@@ -832,6 +847,7 @@ class Teacher extends BaseController
      */
     public function updatePending()
     {
+        $this->auth_get_token();
         /** erp2_teach_schedule表状态:
          *1 是正常
          *2 是消课
@@ -861,6 +877,7 @@ class Teacher extends BaseController
      */
     public function cancelPending()
     {
+        $this->auth_get_token();
         $status = 1;  //　设为正常状态
         $sc_id = input('sc_id', '');
         $level = 0; // 1事假, 2病假, 3老师请假, 0 非请假
@@ -884,6 +901,7 @@ class Teacher extends BaseController
      */
     public function updateTruancy()
     {
+        $this->auth_get_token();
         $status = 4;  //　设为旷课状态
         $sc_id = input('sc_id', '');
         if(empty($sc_id))
@@ -906,6 +924,7 @@ class Teacher extends BaseController
      */
     public function cancelTruancy()
     {
+        $this->auth_get_token();
         $status = 1;  //　设为正常状态
         $sc_id = input('sc_id', '');
         if(empty($sc_id))
@@ -928,6 +947,7 @@ class Teacher extends BaseController
      */
     public function scheduleRecover()
     {
+        $this->auth_get_token();
         $status = 1;  //　设为正常状态
         $sc_id = input('sc_id/d', '');
         if(empty($sc_id))
@@ -951,16 +971,17 @@ class Teacher extends BaseController
      */
     public function course()
     {
+        $this->auth_get_token();
         $orgid = input('orgid');
         if (empty($orgid))
         {
             $this->returnError( '10000', '缺少参数orgid');
         }
-        $data = db('subjects')->field('sid, sname')->select();
+        $data = db('subjects')->field('sid, sname')->order('create_time DESC')->select();
         foreach ($data as $k=>$v) {
             $temp = db('curriculums')->
                     field('cur_id, cur_name')->
-                    where(['orgid'=>$orgid, 'subject'=>$v['sid']])->select();
+                    where(['orgid'=>$orgid, 'subject'=>$v['sid'], 'is_del'=>0])->select();
             $data[$k]['courses']=$temp;
             unset($temp);
         }
@@ -972,6 +993,7 @@ class Teacher extends BaseController
      */
     public function selectedTeacher()
     {
+        $this->auth_get_token();
         $org_id = input('orgid', '');
         if(empty($org_id))
         {
@@ -986,6 +1008,7 @@ class Teacher extends BaseController
      */
     public function selectedRoom()
     {
+        $this->auth_get_token();
         $org_id = input('orgid', '');
         if(empty($org_id))
         {
@@ -1000,6 +1023,7 @@ class Teacher extends BaseController
      */
     public function salary_pay_type()
     {
+        $this->auth_get_token();
         $orgid = input('orgid/d', '');
         if(empty($orgid))
         {

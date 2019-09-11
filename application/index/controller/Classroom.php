@@ -24,6 +24,7 @@ class Classroom extends BaseController
      */
     public function index()
     {
+        $this->auth_get_token();
         $oid = input('orgid', '');
         if(empty($oid))
         {
@@ -40,7 +41,7 @@ class Classroom extends BaseController
         {
             $where[] = ['status', '=', $status];
         }
-        if(!empty($room_name))
+        if(!empty($room_name) || $room_name==0) // 0也要可以搜索
         {
             $where[] = ['room_name', 'like', '%' . $room_name. '%'];
         }
@@ -55,6 +56,7 @@ class Classroom extends BaseController
      * Adding Classroom Interface
      */
     public function add(){
+        $this->auth_get_token();
         $oid = input('orgid', '');
         if (empty($oid))
         {
@@ -92,6 +94,7 @@ class Classroom extends BaseController
      * Edit classroom's information.
      */
     public function edit(){
+        $this->auth_get_token();
         $oid = input('orgid', '');
         if (empty($oid))
         {
@@ -129,6 +132,7 @@ class Classroom extends BaseController
      * delete classroom information.
      */
     public function del(){
+        $this->auth_get_token();
         $id = input('id/d');
         $oid = ret_session_name('orgid');
 
