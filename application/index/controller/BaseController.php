@@ -28,7 +28,7 @@ class BaseController extends Controller
         $mup['a_coller'] = Request::instance()->controller();
         $mup['a_action'] = Request::instance()->action();
         $mup['is_del'] = 0;
-        $mup['status'] = 1;
+        $mup['status'] = 2;
         $res = finds('erp2_user_accesses',$mup);
         if($res){
             $header = Request::instance()->header();
