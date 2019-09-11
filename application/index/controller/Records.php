@@ -243,11 +243,11 @@ class Records extends BaseController
             $table = db('goods_rental_log');
             if ($rent_obj_id)
             {
-                $table->whereOr('goods_id', '=', $goods_id);
+                $table->where('goods_id', '=', $goods_id);
             }
             if ($goods_id)
             {
-                $this->whereOr('rent_obj_id', '=', $rent_obj_id);
+                $this->where('rent_obj_id', '=', $rent_obj_id);
             }
             if ($status)
             {
