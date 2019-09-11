@@ -15,7 +15,9 @@ use think\facade\Log;
 use app\index\model\Goods as GoodsModel;
 use app\index\validate\Goods as GoodsValidate;
 
-
+/*
+ * 商品管理，分类管理，销售员管理，以及商品相关操作。
+ */
 
 
 final class Categories

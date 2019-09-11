@@ -9,7 +9,7 @@
 namespace app\index\controller;
 
 /*
- * 销售记录，入库记录， 租借记录， 租借记录相关接口
+ * 销售记录，入库记录， 租赁记录， 销售统计相关接口
  */
 
 
@@ -210,7 +210,6 @@ class Records extends BaseController
 
     }
 
-
     /*
      * 租凭记录列表
      */
@@ -244,11 +243,11 @@ class Records extends BaseController
             $table = db('goods_rental_log');
             if ($rent_obj_id)
             {
-                $table->where('goods_id', '=', $goods_id);
+                $table->whereOr('goods_id', '=', $goods_id);
             }
             if ($goods_id)
             {
-                $this->where('rent_obj_id', '=', $rent_obj_id);
+                $this->whereOr('rent_obj_id', '=', $rent_obj_id);
             }
             if ($status)
             {
@@ -716,31 +715,6 @@ class Records extends BaseController
             $this->returnError(50000, '删除失败');
         }
     }
-
-
-    /*
-     * 8、	销售统计：商品销售统计信息管理模块
-            a)	分类筛选：选择商品所属分类以筛选查看
-            b)	选择销售员：（与艺点点不同）选择销售员类型，可选老师或销售员，默认为全部
-            c)	日期筛选：（与艺点点不同）可单选全部、本月、上月、本年，默认为全部，也可自定义选择日期区间，分别选择起始日期、截止日期
-            d)	搜索：通过输入商品名称进行搜索查看
-            e)	总金额&总利润：显示当前筛选条件下的总销售金额和总利润
-            f)	导出Excel：默认保存名称为“销售统计”，包含字段：
-            i.	商品名称
-            ii.	单位
-            iii.	入库量
-            iv.	销售量
-            v.	销售额
-            vi.	利润
-            g)	刷新：刷新当前销售统计表
-            h)	销售统计表，包含信息：
-            i.	商品名称
-            ii.	入库量：该商品总的入库数量，同时显示单位
-            iii.	销售量：该商品销售总量
-            iv.	销售额（元）：商品销售总额
-            v.	平均成本（元）：即该商品的平均成本，计算规则：平均成本=入库总额/入库量
-            vi.	利润（元）：该商品销售获得的总利润，计算规则：总利润=销售额-平均成本*销售量
-     */
 
     /*
      * 销售统计表
