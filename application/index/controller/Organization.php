@@ -6,12 +6,38 @@
  * Time: 10:24
  */
 namespace app\index\controller;
+use app\index\model\Banner;
+use app\index\model\DynamicState;
 use think\Controller;
 use think\Exception;
 use think\Db;
+use think\facade\Request;
 use think\facade\Session;
 use app\index\model\Organization as Organ;
 use app\index\model\Users;
+use app\index\model\Seniorities as SenModel;
+/*               真米如初
+                 _oo0oo_
+                o8888888o
+                88" . "88
+                (| -_- |)
+                0\  =  /0
+              ___/'---'\___
+            .' \\|     |// '.
+           / \\|||  :  |||// \
+          / _||||| -:- |||||- \
+         |    | \\\ - /// |    |
+         | .-\  ''\---/''  /-. |
+         \ . -\___ '-' ___/- . /
+       ___'. .'   /--.--\  '. .'___
+     /."" '< '.___\_<|>_/___.' >' "".\
+    | | :  `- \'.;'\ _ /';.'/ -`  : | |
+    \  \ '_.   \_ __\ /__ _/   .-` /  /
+=====`-.____`.___ \_____/ ___.-`___.-'=====
+                  '=----='
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          佛祖保佑        永无Bug
+*/
 
 class Organization extends Basess
 {
@@ -29,9 +55,12 @@ class Organization extends Basess
             'address'=>input('post.map'),
             'remarks'=>input('post.remarks'),
             'status' =>2,
+             'uid'=>input('post.uid'),
+            'lng'=>input('post.lng'),
+            'lat'=>input('post.lat')
         ];
 
-        $uid = ret_session_name('uid');
+        $uid = input('post.uid');
         $validate = new \app\index\validate\Organization();
         if(!$validate->scene('add')->check($data)){
             //为了可以得到错误码
@@ -42,16 +71,28 @@ class Organization extends Basess
         Db::startTrans();
         try{
             $res = Organ::create($data);
-            Db::commit();
             $where['organization'] = $res['id'];
             $where['update_time'] = time();
             //$where['manager'] = ret_session_name('uid');
-            // Users::where('uid',$uid)->update($where);
+            Users::where('uid',$uid)->update($where);
             $userinfo = Users::loginsession($uid);
             $rolelist =  $this->get_role_a($uid);
             $data['rolelist'] = $rolelist;
             $data['userinfo'] = $userinfo;
             $data['orgid'] = $res['id'];
+            //给机构添加默认的资历
+            $senarray=SenModel::where(['is_official'=>1,'is_del'=>0])->select();
+            foreach ($senarray as $key=>$value){
+                $sendata = [
+                    'seniority_name' => $value['seniority_name'],
+                    'sort' => $key,
+                    'is_del' => 0,
+                    'org_id' => $res['id']
+                ];
+                SenModel::create($sendata);
+                Db::commit();
+            }
+            //返回数据
             $this->return_data(1,0,$data);
         }catch (\Exception $e){
             Db::rollback();
@@ -127,9 +168,189 @@ class Organization extends Basess
         }
         return $out;
 
-    }// 写的非常非常好，比官方库还流弊，留一堆bug。
+    }
     /*********************以上代码复制邱键的***************************/
+    //根据获得当前机构列表
+    public function get_org_list(){
+       return $this->return_data(1,0,"查询成功",$this->get_org_list_m(input('post.orgid')));
+    }
+    //提取机构列表公共方法
+    public static function get_org_list_m($or_id)
+    {
+        $org=finds('erp2_organizations',['is_del'=>0,'or_id'=>$or_id]);     //先查到这个机构
+        $p_id=$org['uid'];//获得校长id
+
+        if($p_id==0){//uid默认为0的话只查询当下一个机构
+            $list=Organ::where('or_id',$or_id)->field('or_id, or_name')->select()->toArray();
+            return $list;
+        }
+        $list = Organ::where('uid',$p_id)->field('or_id, or_name')->select()->toArray();
+        return $list;
+
+    }
+    /**
+     * 获取单个机构的信息
+     */
+    public function get_org_info(){
+        $or_id= Request::instance()->header()['orgid'];  //从header里面拿orgid
+        $org=Organ::where('or_id',$or_id)->field('or_name,logo,describe,address,contact_man,telephone,wechat,lng,lat')->find();
+        return $this->return_data(1,0,"",$org);
+    }
+    /*
+     * 修改机构信息
+     */
+    public function edit_org_info(){
+        $or_id= Request::instance()->header()['orgid'];  //从header里面拿orgid
+        $data=input();
+        Db::startTrans();
+        try{
+            Organ::where('or_id',$or_id)->update($data);
+            Db::commit();
+            return $this->return_data(1,0,"修改成功！","");
+        }catch (Exception $e){
+            Db::rollback();
+            $this->return_data(0,20002,$e->getMessage(),"");
+        }
+
+    }
+    /**
+ * 发布机构新动态
+ */
+    public  function add_dynamic_state(){
+        $data=input();
+        $data['or_id']=Request::instance()->header()['orgid'];
+        $data['creat_time']=time();
+        Db::startTrans();
+        try{
+            DynamicState::create($data);
+            Db::commit();
+            $this->return_data(1,0,"发布成功！","");
+        }catch(Exception $e){
+            Db::rollback();
+            $this->returnError(20001,$e->getMessage());
+        }
 
 
+    }
+    /**
+     * 获得机构动态列表
+     */
+    public  function get_ds_list(){
+        $limit = input('limit/d', 20);
+        try{
+            $or_id=Request::instance()->header()['orgid'];
+            $res_data=  DynamicState::where('or_id',$or_id)->order('creat_time','desc')->paginate($limit);
+            $this->return_data(1,0,"",$res_data);
+        }catch(Exception $e){
+            $this->returnError(20001,$e->getMessage());
+        }
+
+
+    }
+    /**
+     * 编辑机构新动态
+     */
+    public  function edit_dynamic_state(){
+        $data=input();
+//        $or_id=Request::instance()->header()['orgid'];
+        $ds_id=input('post.ds_id');
+        Db::startTrans();
+        try{
+            DynamicState::where('ds_id',$ds_id)->update($data);
+            Db::commit();
+            $this->return_data(1,0,"更新成功！","");
+        }catch(Exception $e){
+            Db::rollback();
+            $this->returnError(20002,$e->getMessage());
+        }
+    }
+    /**
+     * 删除机构动态
+     */
+    public  function del_dynamic_state(){
+        $data['is_del']=1;
+//        $or_id=Request::instance()->header()['orgid'];
+        $ds_id=input('post.ds_id');
+        Db::startTrans();
+        try{
+            DynamicState::where('ds_id',$ds_id)->update($data);
+            Db::commit();
+            $this->return_data(1,0,"删除成功！","");
+        }catch(Exception $e){
+            Db::rollback();
+            $this->returnError(20002,$e->getMessage());
+        }
+    }
+    /**
+     * 发布机构banner
+     */
+    public function add_banner(){
+        $data=input();
+        $data['or_id']=Request::instance()->header()['orgid'];
+        $data['update_time']=time();
+        Db::startTrans();
+        try{
+            Banner::create($data);
+            Db::commit();
+            $this->return_data(1,0,"发布成功！","");
+        }catch(Exception $e){
+            Db::rollback();
+            $this->returnError(20001,$e->getMessage());
+        }
+
+    }
+    /**
+     * 获得机构banner列表
+     */
+    public  function get_banner_list(){
+        $limit = input('limit/d', 20);
+        try{
+            $or_id=Request::instance()->header()['orgid'];
+            $res_data=  Banner::where('or_id',$or_id)->order('update_time','desc')->paginate($limit);
+            $this->return_data(1,0,"",$res_data);
+        }catch(Exception $e){
+            $this->return_data(0,20001,$e->getMessage(),"");
+        }
+
+
+    }
+    /**
+     * 编辑机构banner
+     */
+    public function edit_banner(){
+        $data=input();
+//        $or_id=Request::instance()->header()['orgid'];
+        $b_id=input('post.b_id');
+        $data['update_time']=time();
+        Db::startTrans();
+        try{
+            Banner::where('b_id',$b_id)->update($data);
+            Db::commit();
+            $this->return_data(1,0,"更新成功！","");
+        }catch(Exception $e){
+            Db::rollback();
+            $this->returnError(20002,$e->getMessage());
+        }
+
+    }
+    /**
+     * 删除机构banner
+     */
+    public function del_banner(){
+        $data['is_del']=1;
+//        $or_id=Request::instance()->header()['orgid'];
+        $b_id=input('post.b_id');
+        $data['update_time']=time();
+        Db::startTrans();
+        try{
+            Banner::where('b_id',$b_id)->update($data);
+            Db::commit();
+            $this->return_data(1,0,"删除成功！","");
+        }catch(Exception $e){
+            Db::rollback();
+            $this->returnError(20002,$e->getMessage());
+        }
+
+    }
 
 }

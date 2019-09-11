@@ -10,7 +10,7 @@ use think\Controller;
 use think\Db;
 use app\index\model\Users;
 use app\index\model\Organization as Organ;
-
+use app\index\controller\Organization;
 
 class Usersinfo extends BaseController
 {
@@ -406,7 +406,7 @@ class Usersinfo extends BaseController
 
     public function get_auth_orgid_list()
     {
-        $orgid = ret_session_name('orgid');
+        $orgid = input('post.orgid');
         $list1 = selects('erp2_user_roles',['is_del'=>0,'deflau'=>1]);
         $list =  selects('erp2_user_roles',['is_del'=>0,'orgid'=>$orgid,'deflau'=>2]);
         $a = array_merge($list1,$list);
@@ -421,12 +421,17 @@ class Usersinfo extends BaseController
             $v['f'] = "1";
             $v1['pidlist'] = selects('erp2_user_accesses',['is_del'=>0,'type'=>1,'pid'=>$v1['access_id']]);
         }
-        $orlist = finds('erp2_organizations',['is_del'=>0,'status'=>2,'or_id'=>$orgid]);
-        $orlist['f'] = "1";
+
+        $orlist =Organization::get_org_list_m($orgid);
+        foreach ($orlist as $k2=>&$v2)
+        {
+            $v2['f'] = "1";
+        }
+//        $orlist['f'] = "1";
         $res['auth'] = $a;
         $res['orglist'] = $orlist;
         $res['alist'] = $alist;
-        $this->return_data(1,0,$res);
+        $this->return_data(1,0,"查询成功",$res);
     }
 
 

@@ -48,12 +48,13 @@ class Teacher extends BaseController
         $t_name = input('t_name/s', ''); // 教师名称
         $se_id = input('se_id/d', ''); // 资历ID
         $status = input('status/d', '');  // 离职状态
+        $cur_id=input('cur_id/d','');//课程id
         $limit = input('limit/d', 20);
         if(empty($org_id))
         {
             $this->returnError('10000', '缺少参数');
         }
-        $teacher = TeacherModel::where('org_id', '=', $org_id);
+        $teacher = TeacherModel::where('org_id', '=', $org_id)->alias("a");
         if(!empty($t_name))
         {
             $teacher->where('t_name', 'like', '%' . $t_name . '%');
@@ -67,10 +68,12 @@ class Teacher extends BaseController
         {
             $teacher->where('status', '=', $status);
         }
-
-        $teacher->where('is_del', '=', 0);
-        $response = $teacher->field('t_id as id,t_name as name, avator,
-                sex,cellphone,entry_time,status, se_id, resume')->order('create_time DESC')->paginate($limit);
+        $teacher->where('a.is_del', '=', 0);
+        if(!empty($cur_id)){
+            $teacher->join('erp2_cur_teacher_relations b','a.t_id=b.t_id and b.is_del=0 and b.cur_id='.$cur_id);
+        }
+        $response = $teacher->field('a.t_id as id,a.t_name as name, a.avator,
+                a.sex,a.cellphone,a.entry_time,a.status, a.se_id, a.resume')->order('create_time DESC')->paginate($limit);
         $this->returnData($response, '请求成功');
     }
 
@@ -239,7 +242,6 @@ class Teacher extends BaseController
         {
             $this->returnError('10000', '缺少参数');
         }
-
         // 教师详细信息
         $teacher_details = db('teachers')->alias('A')
                             ->join('erp2_seniorities B', 'A.se_id=B.seniority_id')

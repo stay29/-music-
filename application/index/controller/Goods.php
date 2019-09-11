@@ -188,6 +188,9 @@ class Goods extends BaseController
     /**
      * 删除分类
      */
+
+
+
     public function cate_del()
     {
         $cate_id = input('cate_id/d', '');
@@ -221,13 +224,70 @@ class Goods extends BaseController
         $org_id = input('orgid/d', '');
         if (is_empty($org_id))
         {
-            $this->return_data(0, '10000', '缺少参数', '');
+            $this->returnError('10000', '缺少参数');
         }
         $page = input('page/d', 1);
         $limit = input('limit/d', 10);
         $data = db('salesmans')->where('org_id', '=', $org_id)
             ->field('sm_id, sm_name, sm_mobile, status')
             ->paginate($limit);
+        $this->returnData($data, '请求成功');
+    }
+
+    /*
+     * 全部销售员列表
+     */
+    public function all_mans_index()
+    {
+        $org_id = input('orgid/d', '');
+        if (is_empty($org_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+        $data = db('salesmans')->where('org_id', '=', $org_id)->where('status', '=', 1)
+            ->field('sm_id, sm_name')->select();
+        $this->returnData($data, '请求成功');
+    }
+
+    /*
+     * 全部学生列表
+     */
+    public function all_students()
+    {
+        $org_id = input('orgid/d', '');
+        if (is_empty($org_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+        $data = db('students')->where(['org_id'=> $org_id])->field('stu_id, truename as stu_name')->select();
+        $response = [];
+        foreach ($data as $k=>$v)
+        {
+            $stu_id = $v['stu_id'];
+            $res = db('stu_balance')->where('stu_id', '=', $stu_id)->field('gift_balance, recharge_balance')->find();
+            $stu_balance = $res['gift_balance'] + $res['recharge_balance'];
+            $response[] = [
+                'stu_id' => $stu_id,
+                'stu_name' => $v['stu_name'],
+                'stu_balance' => $stu_balance
+            ];
+        }
+        $this->returnData($response, '请求成功');
+    }
+
+
+    /*
+     * 全部支付方式列表
+     */
+    public function all_pay_list()
+    {
+        $org_id = input('orgid/d', '');
+        if (is_empty($org_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+        $data = db('payments')->field('pay_id, payment_method as pay_name')
+            ->where('status', '=', 1)->select();
         $this->returnData($data, '请求成功');
     }
 
@@ -358,7 +418,7 @@ class Goods extends BaseController
         }
 
         $db = db('goods_detail')->field('goods_id, goods_name, remarks,
-        unit_name, cate_id, goods_amount');
+        unit_name, cate_id, goods_amount, goods_img')->where('org_id', '=', $org_id);
         if (!empty($cate_id))
         {
             $db->where('cate_id', '=', $cate_id);
@@ -367,7 +427,7 @@ class Goods extends BaseController
         {
             $db->where('goods_name', 'like', '%' . $goods_name . '%');
         }
-        $goods_list = $db->paginate($limit);
+        $goods_list = $db->order('create_time DESC')->paginate($limit);
         // 返回值
         $response = [
             'total' => $goods_list->total(),
@@ -447,6 +507,12 @@ class Goods extends BaseController
         $uid = input('uid');
         $data = input('post.');
         $data['org_id'] = input('orgid');
+        $data['goods_amount'] = input('goods_amount/f', 0.0);
+        $data['rent_amount_day'] = input('rent_amount_day/f', 0.0);
+        $data['rent_amount_mon'] = input('rent_amount_mon/f', 0.0);
+        $data['rent_amount_year'] = input('rent_amount_year/f', 0.0);
+        $data['margin_amount'] = input('margin_amount/f', 0.0);
+        $data['remarks'] = input('remarks/s', '');
         $data['manager'] = $uid;
         try{
             $validate = new GoodsValidate();
@@ -514,6 +580,7 @@ class Goods extends BaseController
         }
         $data = input('post.');
         $data['manager'] = input('post.uid/d');
+        $data['org_id'] = input('orgid/d');
         try{
             $validate = new GoodsValidate();
             if(!$validate->check($data))
@@ -530,17 +597,39 @@ class Goods extends BaseController
     }
 
     /*
+     * 商品详情
+     */
+    public function detail()
+    {
+        $goods_id = input('goods_id/d', '');
+        if (is_empty($goods_id))
+        {
+            $this->returnError(10000, '缺少参数');
+        }
+//        $log = db('goods_rental_log')->where('goods_id', '=', $goods_id)->find();
+//        $goods_name = db('goods_detail')->where('goods_id', '=', $goods_id)->value('goods_name');
+//        $rent_obj_name = '其他';
+//        if ($log['rent_obj_type'] == 1) // 学生
+//        {
+//            $rent_obj_name = db('students')->where('stu_id')->value('truename');
+//        }
+        $data = db('goods_detail')->where('goods_id', '=', $goods_id)->find();
+        $this->returnData($data, '请求成功');
+    }
+
+
+    /*
      * 商品入库
      */
     public function storage()
     {
-        $uid = input('uid');
+        $uid = input('uid/d', '');
         $goods_id = input('goods_id/d', '');
         $goods_num = input('goods_num/d', '');
         $goods_price = input('goods_price/f', '');
         $remark = input('remark/s', '');
         $entry_time = input('entry_time/d', time());
-        if(is_empty($goods_id, $goods_num, $goods_price))
+        if(is_empty($goods_id, $goods_num, $goods_price, $uid))
         {
             $this->returnError('10000', '缺少参数');
         }
@@ -567,12 +656,13 @@ class Goods extends BaseController
                 $sku_num = $sku['sku_num'] + $goods_num;
                 Db::name('goods_sku')->where('sku_id', '=', $sku_id)->update(['sku_num' => $sku_num]);
             }
-            $sku_data = [
-                ['goods_id', '=', $goods_id],
-                ['sku_num', '=', $goods_num]
-            ];
-            Db::name('goods_sku')->insert($sku_data);
-
+            else{
+                $sku_data = [
+                    ['goods_id', '=', $goods_id],
+                    ['sku_num', '=', $goods_num]
+                ];
+                Db::name('goods_sku')->insert($sku_data);
+            }
             $sto_data = [
                 'goods_id' => $goods_id,
                 'sto_num' => $goods_num,
@@ -589,7 +679,7 @@ class Goods extends BaseController
         }catch (Exception $e)
         {
             Db::rollback();
-            $this->returnError(20001, '入库失败');
+            $this->returnError(20001, '入库失败' . $e->getMessage());
         }
     }
 
@@ -625,6 +715,10 @@ class Goods extends BaseController
             {
                 $this->returnError( '20001', '出库失败,库存不足');
             }
+            if ($sku_num < 1 || $sku_num < $dep_num)
+            {
+                $this->returnError(10001, '库存不足');
+            }
             // 出库
             $sku_num -= $dep_num;
             Db::name('goods_sku')->where('goods_id', '=', $goods_id)->update(['sku_num' => $sku_num]);
@@ -636,7 +730,8 @@ class Goods extends BaseController
                 'remarks' => $remarks,
                 'create_time'   => time(),
                 'update_time'    => time(),
-                'dep_code'  => random_code()
+                'dep_code'  => random_code(),
+                'manager' => $uid,
             ];
             // 出库记录
             Db::name('goods_deposit')->insert($dep_data);
@@ -645,7 +740,7 @@ class Goods extends BaseController
         }catch (Exception $e)
         {
             Db::rollback();
-            $this->returnError('50000', '系统出错, 出库失败');
+            $this->returnError('50000', '系统出错, 出库失败' . $e->getMessage());
         }
     }
 
@@ -663,7 +758,7 @@ class Goods extends BaseController
         $pay_id = input('pay_id/d', ''); // 支付方式
         $sale_num = input('sale_num/d', ''); // 销售数量
         $single_price = input('single_price/f', 0.0);   // 单价
-        $sum_payable = input('sum_payable/f', 0.0);     // 应付金额
+        $sum_payable = input('sum_payable/f', $single_price);     // 应付金额
         $remark = input('remark/s', ''); // 备注
         $sale_time = input('sale_time/d', time()); // 销售时间
         $pay_amount = input('pay_amount/f', 0.00);  // 实付金额
@@ -673,7 +768,10 @@ class Goods extends BaseController
         $sale_code = random_code();  // 销售单号
         if (is_empty($goods_id, $sman_type, $sman_id, $sale_obj_type, $sale_obj_id, $pay_id))
         {
-            $this->returnError('10000', '缺少必填参数');
+            if ($sale_obj_type!=2 && $sale_obj_id!=0)
+            {
+                $this->returnError('10000', '缺少必填参数');
+            }
         }
         Db::startTrans();
         try
@@ -694,17 +792,22 @@ class Goods extends BaseController
                 'remark' => $remark,
                 'create_time' => $create_time,
                 'update_time' => $update_time,
+                'manager' => $uid,
             ];
             Db::name('goods_sale_log')->insert($sale_data);
             $sku_num = Db::name('goods_sku')->where('goods_id', '=', $goods_id)->value('sku_num');
+            if ($sku_num < 1 ||  $sku_num < $sale_num)
+            {
+                $this->returnError(10001, '库存不足');
+            }
             $sku_num -= $sale_num;
-            Db::name('goods_sale_log')->where('goods_id', '=', $goods_id)->update(['sku_num' => $sku_num]);
+            Db::name('goods_sku')->where('goods_id', '=', $goods_id)->update(['sku_num' => $sku_num]);
             Db::commit();
             $this->returnData(1, '销售成功');
         }catch (Exception $e)
         {
             Db::rollback();
-            $this->returnError(50000, '系统出错，销售失败');
+            $this->returnError(50000, '系统出错，销售失败' . $e->getMessage());
         }
     }
 
@@ -715,7 +818,7 @@ class Goods extends BaseController
     {
         $goods_id = input('goods_id/d', ''); // 商品id
         $rent_code = random_code();
-        $rent_margin = input('rent_margin/f', ''); //租凭押金
+        $rent_margin = input('rent_margin/f', 0.0); //租凭押金
         $rent_type = input('rent_type/d', 0);   // 租凭类型
         $rent_amount = input('rent_amount/f', ''); // 租凭金额
         $rent_num = input('rent_num/d', ''); // 租凭数量
@@ -728,7 +831,7 @@ class Goods extends BaseController
         $remark = input('remark/s', ''); // 租凭备注
         $create_time = time();
         $update_time = time();
-        if (is_empty($goods_id, $rent_margin, $rent_type,
+        if (is_empty($goods_id, $rent_type,
             $rent_amount, $rent_num, $prepaid_rent, $rent_obj_type, $rent_obj_id,
             $start_time, $end_time, $end_time, $pay_id))
         {
@@ -741,10 +844,14 @@ class Goods extends BaseController
         Db::startTrans();
         try
         {
-            $sku_num = db('goods_sku')->where(['goods_id'=>$goods_id])->value('sku_name');
+            $sku_num = db('goods_sku')->where(['goods_id'=>$goods_id])->value('sku_num');
+            if ($sku_num < 1 || $sku_num < $rent_num)
+            {
+                $this->returnError(10001, '库存不足');
+            }
             $sku_num -= $rent_num;
-            Db::name('goods_sku')->where('goods_id')->
-                update(['sku_num'=>$sku_num, 'update_time'=>time()]);
+            Db::name('goods_sku')->where('goods_id', '=', $goods_id)->
+                update(['sku_num'=>$sku_num]);
             $data = [
                 'goods_id' => $goods_id,
                 'rent_code' => $rent_code,
@@ -760,14 +867,15 @@ class Goods extends BaseController
                 'pay_id' => $pay_id,
                 'remark' => $remark,
                 'create_time' => $create_time,
-                'update_time' => $update_time
+                'update_time' => $update_time,
+                'status' => 1
             ];
             Db::name('goods_rental_log')->insert($data);
             $this->returnData(1, '租凭成功');
         }catch (Exception $e)
         {
             Db::rollback();
-            $this->returnError('50000', '租凭失败');
+            $this->returnError('50000', '租凭失败' . $e->getMessage());
         }
     }
 
