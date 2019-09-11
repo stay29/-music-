@@ -216,7 +216,6 @@ class Records extends BaseController
     public function rental_index()
     {
         /*
-         *  c)
             d)	总押金：当前筛选条件下的租赁记录信息中押金之和
             e)	总预收租金：当前筛选条件下的租赁记录信息中预收租金之和
             f)	已收租金：当前筛选条件下的租赁记录信息中已实收租金之和
@@ -235,28 +234,25 @@ class Records extends BaseController
             $this->returnError(10000, '缺少机构ID');
         }
         try{
-            // 租客
-            $rent_obj_id = db('students')->
+            $rent_obj_id = '';
+            $goods_id = '';
+
+            if ($key)
+            {
+                $rent_obj_id = db('students')->
                 where('truename', 'like', '%' . $key . '%')->value('stu_id');
-            $goods_id = db('goods_detail')->
+                $goods_id = db('goods_detail')->
                 where('goods_name', 'like', '%' . $key . '%')->value('goods_id');
+
+            }
+
             $table = db('goods_rental_log');
-            if ($rent_obj_id)
-            {
-                $table->where('goods_id', '=', $goods_id);
-            }
-            if ($goods_id)
-            {
-                $this->where('rent_obj_id', '=', $rent_obj_id);
-            }
-            if ($status)
-            {
-                $table->where('status', '=', $status);
-            }
-            if (!empty($start_time) and !empty($end_time))
-            {
-                $table = $table->whereBetweenTime('create_time',  $start_time,  $end_time);
-            }
+
+            if ($goods_id) {$table->where('goods_id', '=', $goods_id);}
+            if ($rent_obj_id) {$table->where('rent_obj_id', '=', $rent_obj_id);}
+            if ($status) {$table->where('status', '=', $status);}
+            if (!empty($start_time) and !empty($end_time)) {$table = $table->whereBetweenTime('create_time',  $start_time,  $end_time);}
+
             $total_margin = $table->sum('rent_margin'); // 总押金
             $total_amount = $table->sum('rent_amount');  // 总租金
             $total_prepaid_rent = $table->sum('prepaid_rent');  // 总预收租金
@@ -284,8 +280,8 @@ class Records extends BaseController
                 $end_time = $log['end_time'];
                 $rent_type = $rent_type_arr[$log['rent_type']]; // 租借方式
                 $rent_type_money = db('goods_detail')->      // 租借方式
-                //对应的租金
-                where('goods_id', '=', $g_id)->value($rent_type_amount_arr[$log['rent_type']]);
+                                        where('goods_id', '=', $g_id)->
+                                        value($rent_type_amount_arr[$log['rent_type']]);
                 $rent_amount = $log['rent_amount'];  // 租金金额
                 $prepaid_rent = $log['prepaid_rent']; // 预付租金
                 $status = $log['status'];
@@ -318,7 +314,7 @@ class Records extends BaseController
             $this->returnData($data, '请求成功');
         }catch (Exception $e)
         {
-            $this->returnError(50000, '如果你看到这个，证明有Bug');
+            $this->returnError(50000, '系统错误: ' . $e->getMessage());
         }
     }
 
