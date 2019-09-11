@@ -276,11 +276,12 @@ class Records extends BaseController
                 ];
             }
             $response = [
-                'last_page' => intval(count($data) / $limit) + 1,
+                'last_page' => intval(count($data['records']) / $limit) + 1,
                 'per_page' => $limit,
-                'total' => count($data),
-                'data' => array_slice($data, ($page-1)*$limit, $limit)
+                'total' => count($data['records']),
+                'data' => $data
             ];
+            $response['data']['records'] = array_slice($data['records'], ($page-1)*$limit, $limit);
             $this->returnData($response, '请求成功');
         }catch (Exception $e)
         {
