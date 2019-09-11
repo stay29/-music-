@@ -279,7 +279,7 @@ class Records extends BaseController
                 'last_page' => intval(count($data) / $limit) + 1,
                 'per_page' => $limit,
                 'total' => count($data),
-                'data' => $data
+                'data' => array_slice($data, ($page-1)*$limit, $limit)
             ];
             $this->returnData($response, '请求成功');
         }catch (Exception $e)
