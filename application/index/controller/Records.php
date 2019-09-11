@@ -257,6 +257,7 @@ class Records extends BaseController
                 $data['records'][] = [
                     'rent_id' => $rent_id,  // 租借记录id
                     'goods_name' => $goods_name,
+                    'rent_margin' => $log['rent_margin'],
                     'rent_code' => $log['rent_code'], // 租借单号
                     'rent_obj_name' => $rent_obj_name, // 租借对象姓名
                     'rent_obj_id'   => $rent_obj_id,    // 租借对象id
