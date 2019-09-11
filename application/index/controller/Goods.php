@@ -450,7 +450,7 @@ class Goods extends BaseController
         }
 
         $db = db('goods_detail')->field('goods_id, goods_name, remarks,
-        unit_name, cate_id, goods_amount, goods_img')->order('create_time DESC')->where('org_id', '=', $org_id);
+        unit_name, cate_id, margin_amount, goods_amount, goods_img')->order('create_time DESC')->where('org_id', '=', $org_id);
         if (!empty($cate_id))
         {
             $db->where('cate_id', '=', $cate_id);
