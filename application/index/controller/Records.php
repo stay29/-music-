@@ -266,7 +266,7 @@ class Records extends BaseController
             foreach ($logs as $log) {
                 $g_id = $log['goods_id'];
                 $rent_id = $log['rent_id'];
-                $rent_obj_type = $log['rent_onj_type'];
+                $rent_obj_type = $log['rent_obj_type'];
                 $rent_obj_id = $log['rent_obj_id'];
                 $goods_name = db('goods_detail')->where('goods_id', '=', $g_id)->value('goods_name');
                 $rent_obj_name = '其他';
