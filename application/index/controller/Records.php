@@ -339,6 +339,7 @@ class Records extends BaseController
         }
     }
 
+
     /*
      * 租赁归还
      */
@@ -416,7 +417,7 @@ class Records extends BaseController
         $prepaid_rent = input('prepaid_rent/f', ''); // 预付租金
         $end_time = input('end_time/d', '');
         $remarks = input('remark');
-        if (is_empty($rent_id, $rent_margin, $prepaid_rent, $end_time))
+        if (is_empty($rent_id, $rent_margin, $prepaid_rent))
         {
             $this->returnError(10000, '缺少参数');
         }
