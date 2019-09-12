@@ -554,6 +554,10 @@ class Goods extends BaseController
                 $error = explode('|', $validate->getError());
                 $this->returnError($error[0], $error[1]);
             }
+            if ($data['cate_id'] == 0)
+            {
+                $this->returnError(10000, '分类有误');
+            }
             $goods = new GoodsModel($data);
             $goods->save();
             $goods_id = $goods->goods_id;
