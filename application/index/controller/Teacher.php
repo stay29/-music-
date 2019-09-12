@@ -481,11 +481,11 @@ class Teacher extends BaseController
             }
             else
             {
-                $this->returnError(20003, '', '删除失败, 至少保留一门课程。');
+                $this->returnError('20003',  '删除失败, 至少保留一门课程。');
             }
         }catch (Exception $e)
         {
-            $this->returnError( '20003', '删除失败');
+            $this->returnError('20003', '删除失败');
         }
     }
 
