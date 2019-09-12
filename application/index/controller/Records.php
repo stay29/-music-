@@ -764,7 +764,7 @@ class Records extends BaseController
             $response = [
                 'current_page' => $page,
                 'per_page' => $limit,
-                'last_page' => (count($data) / $limit) +1,
+                'last_page' => intval((count($data) / $limit)) +1,
                 'total' => count($data),
                 'data' => array_slice($data, ($page-1)*$limit, $limit)
             ];
