@@ -197,18 +197,20 @@ class Records extends BaseController
             $this->returnError(10000, '缺少机构ID');
         }
         try{
-            $rent_obj_id = '';
-            $goods_id = '';
+            $rent_obj_id = '';  # 租赁对象ID
+            $goods_id = ''; # 商品ID
 
+            # 租客名称或者商品民粹
             if ($key)
             {
                 $rent_obj_id = db('students')->
                 where('truename', 'like', '%' . $key . '%')->value('stu_id');
+
                 $goods_id = db('goods_detail')->
                 where('goods_name', 'like', '%' . $key . '%')->value('goods_id');
 
             }
-
+            # 租赁记录表
             $table = db('goods_rental_log');
 
             if ($goods_id) {$table->where('goods_id', '=', $goods_id);}
@@ -379,6 +381,7 @@ class Records extends BaseController
     {
         $this->auth_get_token();
         $rent_id = input('rent_id/d',  '缺少参数');
+
         if (is_empty($rent_id))
         {
             $this->returnError(10000, '缺少参数');
@@ -409,8 +412,8 @@ class Records extends BaseController
         $rent_margin = input('rent_margin/f', '');  // 租金押金
         $prepaid_rent = input('prepaid_rent/f', ''); // 预付租金
         $end_time = input('end_time/d', '');
-        $remarks = input('');
-        if (is_empty($rent_id, $rent_margin, $prepaid_rent, $end_time, $remarks))
+        $remarks = input('remark');
+        if (is_empty($rent_id, $rent_margin, $prepaid_rent, $end_time))
         {
             $this->returnError(10000, '缺少参数');
         }
