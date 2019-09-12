@@ -441,7 +441,7 @@ class Teacher extends BaseController
             $res = TeacherModel::where('t_id', '=', $t_id)->update(['status'=>$status]);
             if($res)
             {
-                $this->returnData(1, '', '操作成功');
+                $this->returnData('', '操作成功');
             }
             else
             {
