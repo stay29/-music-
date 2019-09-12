@@ -213,7 +213,8 @@ class Records extends BaseController
 
             if ($goods_id) {$table->where('goods_id', '=', $goods_id);}
             if ($rent_obj_id) {$table->where('rent_obj_id', '=', $rent_obj_id);}
-            if ($status) {$table->where('status', '=', $status);}
+            # 前端参数１是全部，数据库存储状态１是在租
+            if ($status and $status!=1) {$table->where('status', '=', $status-1);}
             if (!empty($start_time) and !empty($end_time)) {$table = $table->whereBetweenTime('create_time',  $start_time,  $end_time);}
 
             $total_margin = $table->sum('rent_margin'); // 总押金
