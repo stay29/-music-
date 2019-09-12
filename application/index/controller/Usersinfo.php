@@ -15,7 +15,10 @@ use app\index\controller\Organization;
 class Usersinfo extends BaseController
 {
     public  function  addusers(){
-        $orgid = input('organization');
+        $orgid = input('organization', '');
+        if(empty($orgid)){
+            $this->returnError(20003, '所属门店不能为空');
+        }
         $password =input('password');
         $rpassword =input('rpassword');
         if($password!=$rpassword){
