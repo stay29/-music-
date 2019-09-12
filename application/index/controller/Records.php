@@ -426,6 +426,7 @@ class Records extends BaseController
                 'remarks' => $remarks
             ];
             db('goods_rental_log')->where('rent_id')->update($data);
+            $this->returnData('', '修改成功');
         }catch (Exception $e)
         {
             $this->returnError(50000, '系统出错' . $e->getMessage());
