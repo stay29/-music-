@@ -197,23 +197,26 @@ class Records extends BaseController
             $this->returnError(10000, '缺少机构ID');
         }
         try{
-            $rent_obj_id = '';
-            $goods_id = '';
+            $rent_obj_id = '';  # 租赁对象ID
+            $goods_id = ''; # 商品ID
 
+            # 租客名称或者商品民粹
             if ($key)
             {
                 $rent_obj_id = db('students')->
                 where('truename', 'like', '%' . $key . '%')->value('stu_id');
+
                 $goods_id = db('goods_detail')->
                 where('goods_name', 'like', '%' . $key . '%')->value('goods_id');
 
             }
-
+            # 租赁记录表
             $table = db('goods_rental_log');
 
             if ($goods_id) {$table->where('goods_id', '=', $goods_id);}
             if ($rent_obj_id) {$table->where('rent_obj_id', '=', $rent_obj_id);}
-            if ($status) {$table->where('status', '=', $status);}
+            # 前端参数１是全部，数据库存储状态１是在租
+            if ($status and $status!=1) {$table->where('status', '=', $status-1);}
             if (!empty($start_time) and !empty($end_time)) {$table = $table->whereBetweenTime('create_time',  $start_time,  $end_time);}
 
             $total_margin = $table->sum('rent_margin'); // 总押金
@@ -323,8 +326,8 @@ class Records extends BaseController
                 'rent_obj_name' => $rent_obj_name,
                 'prepaid_rent' => $log['prepaid_rent'], // 预付租金
                 'start_time'    => $log['start_time'],
-                'end_time'  => $log['end_time'],
-                'remarks'   => $log['remarks'],
+                'end_time'  => $log['end_time'],    // 结束时间
+                'remarks'   => $log['remarks'],     // 备注
                 'pay_id'    => $log['pay_id'],      // 支付方式id
                 'pay_amount' => $pay_amount,  // 实际付款
                 'refund_amount' => $refund_amount, // 实际退款
@@ -335,6 +338,7 @@ class Records extends BaseController
             $this->returnError(50000, '系统错误' . $e->getMessage());
         }
     }
+
 
     /*
      * 租赁归还
@@ -376,8 +380,12 @@ class Records extends BaseController
      */
     public function rerent_detail()
     {
+        /*
+         * 租客姓名、商品名称、租赁数量、计费方式、已交押金、已交租金、开始时间、结束时间、到期租金、租赁备注等，均只显示，不可修改，
+         */
         $this->auth_get_token();
         $rent_id = input('rent_id/d',  '缺少参数');
+
         if (is_empty($rent_id))
         {
             $this->returnError(10000, '缺少参数');
@@ -408,8 +416,8 @@ class Records extends BaseController
         $rent_margin = input('rent_margin/f', '');  // 租金押金
         $prepaid_rent = input('prepaid_rent/f', ''); // 预付租金
         $end_time = input('end_time/d', '');
-        $remarks = input('');
-        if (is_empty($rent_id, $rent_margin, $prepaid_rent, $end_time, $remarks))
+        $remarks = input('remark');
+        if (is_empty($rent_id, $rent_margin, $prepaid_rent))
         {
             $this->returnError(10000, '缺少参数');
         }
@@ -422,6 +430,7 @@ class Records extends BaseController
                 'remarks' => $remarks
             ];
             db('goods_rental_log')->where('rent_id')->update($data);
+            $this->returnData('', '修改成功');
         }catch (Exception $e)
         {
             $this->returnError(50000, '系统出错' . $e->getMessage());
@@ -511,7 +520,7 @@ class Records extends BaseController
             $response = [
                 'total' => count($data),
                 'per_page' => $limit,
-                'last_page' => count($data) / $limit + 1,
+                'last_page' => intval(count($data) / $limit) + 1,
                 'data' => array_slice($data, ($page-1)*$limit, $limit)
             ];
             $this->returnData($response, '请求成功');
