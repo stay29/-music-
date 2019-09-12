@@ -326,8 +326,8 @@ class Records extends BaseController
                 'rent_obj_name' => $rent_obj_name,
                 'prepaid_rent' => $log['prepaid_rent'], // 预付租金
                 'start_time'    => $log['start_time'],
-                'end_time'  => $log['end_time'],
-                'remarks'   => $log['remarks'],
+                'end_time'  => $log['end_time'],    // 结束时间
+                'remarks'   => $log['remarks'],     // 备注
                 'pay_id'    => $log['pay_id'],      // 支付方式id
                 'pay_amount' => $pay_amount,  // 实际付款
                 'refund_amount' => $refund_amount, // 实际退款
@@ -379,6 +379,9 @@ class Records extends BaseController
      */
     public function rerent_detail()
     {
+        /*
+         * 租客姓名、商品名称、租赁数量、计费方式、已交押金、已交租金、开始时间、结束时间、到期租金、租赁备注等，均只显示，不可修改，
+         */
         $this->auth_get_token();
         $rent_id = input('rent_id/d',  '缺少参数');
 
@@ -516,7 +519,7 @@ class Records extends BaseController
             $response = [
                 'total' => count($data),
                 'per_page' => $limit,
-                'last_page' => count($data) / $limit + 1,
+                'last_page' => intval(count($data) / $limit) + 1,
                 'data' => array_slice($data, ($page-1)*$limit, $limit)
             ];
             $this->returnData($response, '请求成功');
