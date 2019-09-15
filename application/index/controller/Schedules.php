@@ -2,7 +2,9 @@
 
 
 namespace app\index\controller;
+use app\index\model\Curriculums;
 use app\index\model\Purchase_Lessons as Plessons;
+use app\index\model\Purchase_Lessons;
 use app\index\model\Schedule;
 use app\index\model\TSchedulesHistory;
 use think\Db;
@@ -18,6 +20,16 @@ class Schedules extends BaseController
         $or_id= Request::instance()->header()['orgid'];  //从header里面拿orgid
         $data=input('post.');
         $data['or_id']=$or_id;
+        $t_id=input('post.t_id');
+        $cur_id=input('post.cur_id');
+        $cur_durtion=Curriculums::where('cur_id',$cur_id)->find()['ctime'];
+        $pitch_num=input('post.pitch_num');
+        //计算这个学生买的课的节数
+        $pl_array= Purchase_Lessons::field('id,class_hour')->where(['or_id'=>$or_id,'stu_id'=>input('post.stu_id'),'cur_id'=>$cur_id])->order('create_time')->select();
+        $total_class_hour= Purchase_Lessons::where(['or_id'=>$or_id,'stu_id'=>input('post.stu_id'),'cur_id'=>$cur_id])->sum('class_hour');
+        if($total_class_hour<$pitch_num){
+            $this->returnError(70000,'排课课时'.$pitch_num.'超过课程购买课时'.$total_class_hour );
+        }
         Db::startTrans();
         try{
         $history=  TSchedulesHistory::create($data);
@@ -30,7 +42,7 @@ class Schedules extends BaseController
 //            $this->return_data(0, $error[1], $error[0]);
 //        }
         $start_time=input('post.start_time');
-        $pitch_num=input('post.pitch_num');
+
         $type=input('post.type');
         //将开始时间移到周几开始的时间
         $sub=date('w',$start_time)-input('post.day');
@@ -42,11 +54,11 @@ class Schedules extends BaseController
         //for循环一节一节添加
         for ($n=0;$n<$pitch_num;$n++){
             $schedule=[
-//                'stu_id'=>input('post.stu_id'),
-//                't_id'=>input('post.t_id'),
-//                'room_id'=>input('post.room_id'),
-//                'cur_id'=>input('post.cur_id'),
-//                'type'=>input('post.c_type'),
+                'stu_id'=>input('post.stu_id'),
+                't_id'=>$t_id,
+                'room_id'=>input('post.room_id'),
+                'cur_id'=>$cur_id,
+                'type'=>input('post.c_type'),
                 'org_id'=>$or_id,
                 'th_id'=>$history['id']
                 ];
@@ -62,8 +74,29 @@ class Schedules extends BaseController
                     $schedule['cur_time']=$start_time+input('post.day_time')+$n*24*60*60*7*2;
                     break;
             }
-            Schedule::create($schedule);
+            $exist_schedule=Schedule::where('t_id',$t_id)
+                ->whereTime('cur_time','>=',$schedule['cur_time'])
+                ->whereTime('cur_time','>=',$schedule['cur_time']+$cur_durtion*60)
+                ->select();
+            if(count($exist_schedule)==0){
+                Schedule::create($schedule);
+            }else{
+                $this->returnError(20001,"老师当前时间段有课，冲突");
+            }
+
         }
+            //扣购课的课时,先扣最先购买的记录
+           foreach ($pl_array as $key=>$value){
+
+             if($pitch_num-$value['class_hour']){
+                 $pitch_num=$pitch_num-$value['class_hour'];
+                 Purchase_Lessons::where()->update('class_hour',0);
+             }else{
+                 Purchase_Lessons::where()->update('class_hour',$value['class_hour']-$pitch_num);
+                 break;
+             }
+
+           }
 
             Db::commit();
             return $this->returnData('',"排课成功");
@@ -102,7 +135,10 @@ class Schedules extends BaseController
        if($cur_name){
            $where[]=['c.cur_name','like','%'.$cur_name.'%'];
        }
-       $data= Plessons::where('or_id',$or_id)->alias('a')
+       //机构和排课数量不为0的，0是已经排完的
+        $where0['or_id']=['=',$or_id];
+       $where0['class_hour']=['<>',0];
+       $data= Plessons::where($where0)->alias('a')
 //           ->join('erp2_teachers d ','d.t_id=a.t_id')
            ->join('erp2_students b','a.stu_id=b.stu_id')
            ->join('erp2_curriculums c','c.cur_id=a.cur_id')
@@ -113,4 +149,33 @@ class Schedules extends BaseController
        $data=$data  ->paginate($limit);
        $this->returnData($data,"");
    }
+   /**
+    * 老师课表
+    */
+    public  function get_tea_schedules(){
+        $start_time=input('post.start_time');
+        $end_time=input('post.end_time');
+        $map['a.t_id']=input('post.t_id');
+        $data= Schedule::where($map)->alias('a')
+            ->join('erp2_teachers b','a.t_id=b.t_id')
+            ->join('erp2_students c','a.stu_id=c.stu_id')
+            ->join('erp2_curriculums d','a.cur_id=d.cur_id')
+            ->field('sc_id,b.t_name,c.truename,cur_time,d.cur_name')
+        ->whereTime('cur_time','<=',$end_time)
+        ->whereTime('cur_time','>=',$start_time)
+        ->select();
+    return $this->returnData($data,"");
+    }
+    /**
+     * 获得学生可以排的课的列表
+     */
+    public function get_can_arrange_cur(){
+        $or_id= Request::instance()->header()['orgid'];  //从header里面拿orgid
+     $data=Purchase_Lessons::field('b.cur_id,b.cur_name')->alias('a')
+         ->join('erp2_curriculums b','a.cur_id=b.cur_id')
+         ->where(['or_id'=>$or_id,'stu_id'=> input('post.stu_id')])
+         ->distinct(true)
+         ->select();
+     $this->returnData($data,"");
+    }
 }
