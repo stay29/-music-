@@ -435,21 +435,21 @@ class Teacher extends BaseController
                 $tmp = db('teach_schedules')->field('t_id')->where('t_id' ,'=', $t_id)->find();
                 if(!empty($tmp))
                 {
-                    $this->returnError(0,'20003', '已排课，离职失败');
+                    $this->returnError('20003', '已排课，离职失败');
                 }
             }
             $res = TeacherModel::where('t_id', '=', $t_id)->update(['status'=>$status]);
             if($res)
             {
-                $this->returnData(1, '', '操作成功');
+                $this->returnData('', '操作成功');
             }
             else
             {
-                $this->returnError(20003, '', '操作失败');
+                $this->returnError(20003, '操作失败');
             }
         }catch (Exception $e)
         {
-                $this->return_data(0, '50000', '服务器错误');
+                $this->return_data('50000', '服务器错误');
         }
 
     }
@@ -481,11 +481,11 @@ class Teacher extends BaseController
             }
             else
             {
-                $this->returnError(20003, '', '删除失败, 至少保留一门课程。');
+                $this->returnError('20003',  '删除失败, 至少保留一门课程。');
             }
         }catch (Exception $e)
         {
-            $this->returnError( '20003', '删除失败');
+            $this->returnError('20003', '删除失败');
         }
     }
 
@@ -977,7 +977,7 @@ class Teacher extends BaseController
         {
             $this->returnError( '10000', '缺少参数orgid');
         }
-        $data = db('subjects')->field('sid, sname')->order('create_time DESC')->select();
+        $data = db('subjects')->where('pid', 0)->field('sid, sname')->select();//->order('create_time DESC')
         foreach ($data as $k=>$v) {
             $temp = db('curriculums')->
                     field('cur_id, cur_name')->

@@ -15,7 +15,9 @@ use think\facade\Log;
 use app\index\model\Goods as GoodsModel;
 use app\index\validate\Goods as GoodsValidate;
 
-
+/*
+ * 商品管理，分类管理，销售员管理，以及商品相关操作。
+ */
 
 
 final class Categories
@@ -178,15 +180,8 @@ class Goods extends BaseController
         $categories = db('goods_cate')->field('cate_id as id,  cate_pid, cate_name')->
             order('order, create_time DESC')->where('org_id', '=', $org_id)->select();
         $data = getTree($categories);
-        $response = [
-            [
-                'id' => 0,
-                'cate_name' => '顶级分类',
-                'sub' => $data
-            ]
-        ];
 //        array_push($data, $top_cate);
-        $this->returnData($response, '请求成功');
+        $this->returnData($data, '请求成功');
     }
 
 
@@ -448,7 +443,7 @@ class Goods extends BaseController
         }
 
         $db = db('goods_detail')->field('goods_id, goods_name, remarks,
-        unit_name, cate_id, goods_amount, goods_img')->order('create_time DESC')->where('org_id', '=', $org_id);
+        unit_name, cate_id, margin_amount, goods_amount, goods_img')->order('create_time DESC')->where('org_id', '=', $org_id);
         if (!empty($cate_id))
         {
             $db->where('cate_id', '=', $cate_id);
@@ -551,6 +546,10 @@ class Goods extends BaseController
             {
                 $error = explode('|', $validate->getError());
                 $this->returnError($error[0], $error[1]);
+            }
+            if ($data['cate_id'] == 0)
+            {
+                $this->returnError(10000, '分类有误');
             }
             $goods = new GoodsModel($data);
             $goods->save();
@@ -869,7 +868,7 @@ class Goods extends BaseController
         $create_time = time();
         $update_time = time();
         if (is_empty($goods_id, $rent_type,
-            $rent_amount, $rent_num, $prepaid_rent, $rent_obj_type, $rent_obj_id,
+            $rent_amount, $rent_num, $prepaid_rent, $rent_obj_type,
             $start_time, $end_time, $end_time, $pay_id))
         {
             $this->returnError(10000, '缺少参数');

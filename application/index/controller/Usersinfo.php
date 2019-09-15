@@ -15,7 +15,10 @@ use app\index\controller\Organization;
 class Usersinfo extends BaseController
 {
     public  function  addusers(){
-        $orgid = input('organization');
+        $orgid = input('organization', '');
+        if(empty($orgid)){
+            $this->returnError(20003, '所属门店不能为空');
+        }
         $password =input('password');
         $rpassword =input('rpassword');
         if($password!=$rpassword){
@@ -388,7 +391,7 @@ class Usersinfo extends BaseController
     {
         $rid['role_id'] = input('rid');
 
-        $res = db('users')->where('rid', 'like', $rid)->count();
+        $res = db('users')->where(['rid' => $rid['role_id'], 'is_del' => 0])->count();
         if ($res)
         {
             $this->return_data(0, '20003', '角色被使用,无法删除');

@@ -8,6 +8,13 @@ use think\Db;
 use think\Exception;
 use PHPExcel;
 use think\Log;
+
+/*
+ * 教师，教室，进销存excel导入丶导出丶接口相关。
+ */
+
+
+
 /*
 * Basic Controller Provides Information Interface for Import, Export and Return
 */

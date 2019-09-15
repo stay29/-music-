@@ -9,7 +9,7 @@
 namespace app\index\controller;
 
 /*
- * 销售记录，入库记录， 租借记录， 租借记录相关接口
+ * 销售记录，入库记录， 租赁记录， 销售统计相关接口
  */
 
 
@@ -18,45 +18,6 @@ use Think\Exception;
 
 class Records extends BaseController
 {
-
-    /*
-     * 4、	销售记录：销售管理模块，所有商品销售产生的销售记录均记录在此模块
-            a)	搜索：输入商品名称进行搜索查看
-            b)	状态筛选：不需要做状态筛选，仅有“支付成功”这一状态
-            c)	导出Excel，默认保存名称为“销售记录表”，包含以下信息：
-                i.	商品名称
-                ii.	商品分类
-                iii.	销售数量：本次销售该商品数量
-                iv.	零售价（元）：商品零售价单价
-                v.	销售总额（元）：该次应付款金额总额
-                vi.	付款金额（元）：实付款金额
-                vii.	销售时间：该销售记录的生成时间，精确到年月日
-                viii.	操作员：操作生成销售记录的操作员名称
-                ix.	销售单号
-                x.	备注
-                xi.	销售对象
-                xii.	付款方式
-            d)	销售记录表，包含信息：
-                i.	商品名称
-                ii.	所属分类
-                iii.	数量：本次销售该商品数量
-                iv.	零售价（元）：商品零售价单价
-                v.	应付款（元）：应付款金额
-                vi.	实付款（元）：实付款金额
-                vii.	销售时间：该销售记录的生成时间，精确到年月日
-                viii.	销售员：本条销售记录的跟进销售员名称
-                ix.	销售单号
-                x.	操作员：操作生成销售记录的操作员名称
-                xi.	销售对象：即购物学生的名称
-                xii.	付款方式
-                xiii.	备注：销售商品时填写的备注
-                xiv.	操作，可对该销售记录进行修改、删除操作
-                1.	修改：点击则进入修改销售信息窗口，可修改销售员类型、销售员、销售数量、销售价格、销售对象、销售时间、付款方式及备注等等信息
-                2.	删除该条销售记录数据
-                5、	租赁记录
-     */
-
-
     /*
      * 销售记录列表
      */
@@ -210,14 +171,12 @@ class Records extends BaseController
 
     }
 
-
     /*
      * 租凭记录列表
      */
     public function rental_index()
     {
         /*
-         *  c)
             d)	总押金：当前筛选条件下的租赁记录信息中押金之和
             e)	总预收租金：当前筛选条件下的租赁记录信息中预收租金之和
             f)	已收租金：当前筛选条件下的租赁记录信息中已实收租金之和
@@ -231,22 +190,35 @@ class Records extends BaseController
         $end_time = input('end_time/d', '');
         $key = input('key/s', '');  // 租客姓名/商品名称
         $status = input('status/d', 1); // 1 全部， 2在租， 3超期， 4已归还。
+        $page = input('page/d', 1);
+        $limit = input('limit/d', 20);
         if (empty($org_id))
         {
             $this->returnError(10000, '缺少机构ID');
         }
         try{
-            // 租客
-            $rent_obj_id = db('students')->
-                where('truename', 'like', '%' . $key . '%')->value('stu_id');
-            $goods_id = db('goods_detail')->
-                where('goods_name', 'like', '%' . $key . '%')->value('goods_id');
-            $table = db('goods_rental_log')->
-            whereOr('rent_obj_id', '=', $rent_obj_id)->where('status', '=', $status)->whereOr('goods_id', '=', $goods_id);
-            if (!empty($start_time) and !empty($end_time))
+            $rent_obj_id = '';  # 租赁对象ID
+            $goods_id = ''; # 商品ID
+
+            # 租客名称或者商品民粹
+            if ($key)
             {
-                $table = $table->whereBetweenTime('create_time',  $start_time,  $end_time);
+                $rent_obj_id = db('students')->
+                where('truename', 'like', '%' . $key . '%')->value('stu_id');
+
+                $goods_id = db('goods_detail')->
+                where('goods_name', 'like', '%' . $key . '%')->value('goods_id');
+
             }
+            # 租赁记录表
+            $table = db('goods_rental_log');
+
+            if ($goods_id) {$table->where('goods_id', '=', $goods_id);}
+            if ($rent_obj_id) {$table->where('rent_obj_id', '=', $rent_obj_id);}
+            # 前端参数１是全部，数据库存储状态１是在租
+            if ($status and $status!=1) {$table->where('status', '=', $status-1);}
+            if (!empty($start_time) and !empty($end_time)) {$table = $table->whereBetweenTime('create_time',  $start_time,  $end_time);}
+
             $total_margin = $table->sum('rent_margin'); // 总押金
             $total_amount = $table->sum('rent_amount');  // 总租金
             $total_prepaid_rent = $table->sum('prepaid_rent');  // 总预收租金
@@ -260,7 +232,7 @@ class Records extends BaseController
             foreach ($logs as $log) {
                 $g_id = $log['goods_id'];
                 $rent_id = $log['rent_id'];
-                $rent_obj_type = $log['rent_onj_type'];
+                $rent_obj_type = $log['rent_obj_type'];
                 $rent_obj_id = $log['rent_obj_id'];
                 $goods_name = db('goods_detail')->where('goods_id', '=', $g_id)->value('goods_name');
                 $rent_obj_name = '其他';
@@ -274,8 +246,8 @@ class Records extends BaseController
                 $end_time = $log['end_time'];
                 $rent_type = $rent_type_arr[$log['rent_type']]; // 租借方式
                 $rent_type_money = db('goods_detail')->      // 租借方式
-                //对应的租金
-                where('goods_id', '=', $g_id)->value($rent_type_amount_arr[$log['rent_type']]);
+                                        where('goods_id', '=', $g_id)->
+                                        value($rent_type_amount_arr[$log['rent_type']]);
                 $rent_amount = $log['rent_amount'];  // 租金金额
                 $prepaid_rent = $log['prepaid_rent']; // 预付租金
                 $status = $log['status'];
@@ -285,9 +257,10 @@ class Records extends BaseController
                 }
                 $status_text = $status_arr[$status];    // 租凭状态对应文字
                 $remarks = $log['remarks'];
-                $data['records'] = [
+                $data['records'][] = [
                     'rent_id' => $rent_id,  // 租借记录id
                     'goods_name' => $goods_name,
+                    'rent_margin' => $log['rent_margin'],
                     'rent_code' => $log['rent_code'], // 租借单号
                     'rent_obj_name' => $rent_obj_name, // 租借对象姓名
                     'rent_obj_id'   => $rent_obj_id,    // 租借对象id
@@ -305,10 +278,17 @@ class Records extends BaseController
                     'pay_id' => $log['pay_id'], // 支付方式
                 ];
             }
-            $this->returnData($data, '请求成功');
+            $response = [
+                'last_page' => intval(count($data['records']) / $limit) + 1,
+                'per_page' => $limit,
+                'total' => count($data['records']),
+                'data' => $data
+            ];
+            $response['data']['records'] = array_slice($data['records'], ($page-1)*$limit, $limit);
+            $this->returnData($response, '请求成功');
         }catch (Exception $e)
         {
-            $this->returnError(50000, '如果你看到这个，证明有Bug');
+            $this->returnError(50000, '系统错误: ' . $e->getMessage());
         }
     }
 
@@ -346,8 +326,8 @@ class Records extends BaseController
                 'rent_obj_name' => $rent_obj_name,
                 'prepaid_rent' => $log['prepaid_rent'], // 预付租金
                 'start_time'    => $log['start_time'],
-                'end_time'  => $log['end_time'],
-                'remarks'   => $log['remarks'],
+                'end_time'  => $log['end_time'],    // 结束时间
+                'remarks'   => $log['remarks'],     // 备注
                 'pay_id'    => $log['pay_id'],      // 支付方式id
                 'pay_amount' => $pay_amount,  // 实际付款
                 'refund_amount' => $refund_amount, // 实际退款
@@ -358,6 +338,7 @@ class Records extends BaseController
             $this->returnError(50000, '系统错误' . $e->getMessage());
         }
     }
+
 
     /*
      * 租赁归还
@@ -399,8 +380,12 @@ class Records extends BaseController
      */
     public function rerent_detail()
     {
+        /*
+         * 租客姓名、商品名称、租赁数量、计费方式、已交押金、已交租金、开始时间、结束时间、到期租金、租赁备注等，均只显示，不可修改，
+         */
         $this->auth_get_token();
         $rent_id = input('rent_id/d',  '缺少参数');
+
         if (is_empty($rent_id))
         {
             $this->returnError(10000, '缺少参数');
@@ -431,8 +416,8 @@ class Records extends BaseController
         $rent_margin = input('rent_margin/f', '');  // 租金押金
         $prepaid_rent = input('prepaid_rent/f', ''); // 预付租金
         $end_time = input('end_time/d', '');
-        $remarks = input('');
-        if (is_empty($rent_id, $rent_margin, $prepaid_rent, $end_time, $remarks))
+        $remarks = input('remark');
+        if (is_empty($rent_id, $rent_margin, $prepaid_rent))
         {
             $this->returnError(10000, '缺少参数');
         }
@@ -445,6 +430,7 @@ class Records extends BaseController
                 'remarks' => $remarks
             ];
             db('goods_rental_log')->where('rent_id')->update($data);
+            $this->returnData('', '修改成功');
         }catch (Exception $e)
         {
             $this->returnError(50000, '系统出错' . $e->getMessage());
@@ -534,7 +520,7 @@ class Records extends BaseController
             $response = [
                 'total' => count($data),
                 'per_page' => $limit,
-                'last_page' => count($data) / $limit + 1,
+                'last_page' => intval(count($data) / $limit) + 1,
                 'data' => array_slice($data, ($page-1)*$limit, $limit)
             ];
             $this->returnData($response, '请求成功');
@@ -706,31 +692,6 @@ class Records extends BaseController
         }
     }
 
-
-    /*
-     * 8、	销售统计：商品销售统计信息管理模块
-            a)	分类筛选：选择商品所属分类以筛选查看
-            b)	选择销售员：（与艺点点不同）选择销售员类型，可选老师或销售员，默认为全部
-            c)	日期筛选：（与艺点点不同）可单选全部、本月、上月、本年，默认为全部，也可自定义选择日期区间，分别选择起始日期、截止日期
-            d)	搜索：通过输入商品名称进行搜索查看
-            e)	总金额&总利润：显示当前筛选条件下的总销售金额和总利润
-            f)	导出Excel：默认保存名称为“销售统计”，包含字段：
-            i.	商品名称
-            ii.	单位
-            iii.	入库量
-            iv.	销售量
-            v.	销售额
-            vi.	利润
-            g)	刷新：刷新当前销售统计表
-            h)	销售统计表，包含信息：
-            i.	商品名称
-            ii.	入库量：该商品总的入库数量，同时显示单位
-            iii.	销售量：该商品销售总量
-            iv.	销售额（元）：商品销售总额
-            v.	平均成本（元）：即该商品的平均成本，计算规则：平均成本=入库总额/入库量
-            vi.	利润（元）：该商品销售获得的总利润，计算规则：总利润=销售额-平均成本*销售量
-     */
-
     /*
      * 销售统计表
      */
@@ -812,7 +773,7 @@ class Records extends BaseController
             $response = [
                 'current_page' => $page,
                 'per_page' => $limit,
-                'last_page' => (count($data) / $limit) +1,
+                'last_page' => intval((count($data) / $limit)) +1,
                 'total' => count($data),
                 'data' => array_slice($data, ($page-1)*$limit, $limit)
             ];
@@ -824,6 +785,3 @@ class Records extends BaseController
     }
 
 }
-
-
-

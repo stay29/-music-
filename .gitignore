@@ -7,4 +7,5 @@
 .DS_Store
 /runtime
 composer.lock
+/nbproject/private/
 .htaccess
