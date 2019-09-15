@@ -259,7 +259,7 @@ class Classes extends BaseController
     public function get_student_list()
     {
 
-        $res = select_find('erp2_students', ['org_id' => input('orgid'), 'is_del' => 0], 'stu_id,truename');
+        $res = select_find('erp2_students', ['org_id' => input('orgid'), 'is_del' => 0, 'pid' => 0], 'stu_id,truename');
         foreach ($res as $k => &$v) {
             $v['f'] = false;
         }
