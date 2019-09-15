@@ -240,9 +240,9 @@ class Login extends Basess{
 
         if($phone){
             $res = db('users')->where('account', '=', $phone)->count();
-            if ($res)
+            if (!$res)
             {
-                $this->return_data(0, '10000', '手机号码已注册');
+                $this->return_data(0, '10000', '账号不存在');
             }
             $len = 4;
             $chars = array(
