@@ -259,7 +259,7 @@ class Classes extends BaseController
     public function get_student_list()
     {
 
-        $res = select_find('erp2_students', ['org_id' => input('orgid'), 'is_del' => 0, 'pid' => 0], 'stu_id,truename');
+        $res = select_find('erp2_students', ['org_id' => input('orgid'), 'is_del' => 0], 'stu_id,truename');
         foreach ($res as $k => &$v) {
             $v['f'] = false;
         }
@@ -268,7 +268,7 @@ class Classes extends BaseController
 
     public function get_fl_currlist()
     {
-        $res = select_find('erp2_subjects', ['is_del' => 0, 'status' => 1], 'sid,sname');
+        $res = select_find('erp2_subjects', ['is_del' => 0, 'status' => 1, 'pid' => 0], 'sid,sname');
         foreach ($res as $k => &$v) {
             $v['currlist'] = select_find('erp2_curriculums', ['subject' => $v['sid'], 'orgid' => input('orgid'), 'is_del' => 0], 'cur_id,cur_name');
         }
