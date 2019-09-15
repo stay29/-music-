@@ -977,7 +977,7 @@ class Teacher extends BaseController
         {
             $this->returnError( '10000', '缺少参数orgid');
         }
-        $data = db('subjects')->field('sid, sname')->order('create_time DESC')->select();
+        $data = db('subjects')->where('pid', 0)->field('sid, sname')->order('create_time DESC')->select();
         foreach ($data as $k=>$v) {
             $temp = db('curriculums')->
                     field('cur_id, cur_name')->
