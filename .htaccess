@@ -1,36 +1,25 @@
 #<IfModule mod_rewrite.c>
-  #Options +FollowSymlinks -Multiviews
-  #RewriteEngine On
-
-  #RewriteCond %{REQUEST_FILENAME} !-d
-  #RewriteCond %{REQUEST_FILENAME} !-f
- # RewriteRule ^(.*)$ index.php/$1 [QSA,PT,L]
+ #   <IfModule mod_negotiation.c>
+  #      Options -MultiViews
+   # </IfModule>
+    #RewriteEngine On
+    ## Redirect Trailing Slashes If Not A Folder...
+    #RewriteCond %{REQUEST_FILENAME} !-d
+    #RewriteRule ^(.*)$ /index.php?/$1 [L]
+    ## Handle Front Controller...
+    #RewriteCond %{REQUEST_FILENAME} !-d
+    #RewriteCond %{REQUEST_FILENAME} !-f
+    #RewriteRule ^ index.php [L]
+    ## Handle Authorization Header
+    #RewriteCond %{HTTP:Authorization} .
+    #RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    #Header set Access-Control-Allow-Origin *
+    #Header set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, token"
 #</IfModule>
-
-#<IfModule mod_rewrite.c>
-#RewriteEngine On
-#RewriteBase /crm/
-#RewriteRule ^index\.html$ - [L]
-#RewriteCond %{REQUEST_FILENAME} !-f
-#RewriteCond %{REQUEST_FILENAME} !-d
-#RewriteRule . /crm/index.html [L]
-#</IfModule>
-
-#<IfModule mod_rewrite.c>
-  #RewriteEngine On
-  #RewriteBase /
-  #RewriteRule ^index\.html$ - [L]
-  #RewriteCond %{REQUEST_FILENAME} !-f
-  #RewriteCond %{REQUEST_FILENAME} !-d
- # RewriteRule . /index.html [L]
-#</IfModule>
-
-
-<IfModule mod_rewrite.c>
-  Options +FollowSymlinks -Multiviews
-  RewriteEngine On
-
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteRule ^(.*)$ index.php/$1 [QSA,PT,L]
+<IfModule mod_rewrite.c> 
+Options +FollowSymlinks -Multiviews 
+RewriteEngine on 
+RewriteCond %{REQUEST_FILENAME} !-d 
+RewriteCond %{REQUEST_FILENAME} !-f 
+RewriteRule ^(.*)$ index.php [L,E=PATH_INFO:$1] 
 </IfModule>
