@@ -237,10 +237,11 @@ class Login extends Basess{
     public  function  get_vieryie()
     {
         $phone = input('user_aco');
+        $is_new = input('is_new');
 
         if($phone){
             $res = db('users')->where('account', '=', $phone)->count();
-            if (!$res)
+            if (!$res && !$is_new)
             {
                 $this->return_data(0, '10000', '账号不存在');
             }
