@@ -7,16 +7,18 @@
  */
 namespace app\admin\controller;
 use think\Exception;
+use think\facade\Request;
 
 class Classroom extends AdminBase
 {
     public function index()
     {
+        $or_id= Request::instance()->header()['orgid'];  //从header里面拿orgid
         $title = '教室列表';
         $this->assign('add', url('add'));
         $room_list = db('classrooms')->
         field('room_id, room_name, room_count, status, create_time, 
-                     update_time, manager, or_id')->paginate(20, false, ['query' => request()->param()])->each(function ($v, $k) {
+                     update_time, manager, or_id')->where('or_id',$or_id)->paginate(20, false, ['query' => request()->param()])->each(function ($v, $k) {
             if ($v['status'] == 1) {
                 $v['status'] = '正常';
             } elseif ($v['status'] == 2) {

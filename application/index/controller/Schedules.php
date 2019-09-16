@@ -60,7 +60,8 @@ class Schedules extends BaseController
                 'cur_id'=>$cur_id,
                 'type'=>input('post.c_type'),
                 'org_id'=>$or_id,
-                'th_id'=>$history['id']
+                'th_id'=>$history['id'],
+                'order'=>$n+1
                 ];
             //3种排课类型相隔天数不同
             switch ($type){
@@ -160,7 +161,8 @@ class Schedules extends BaseController
             ->join('erp2_teachers b','a.t_id=b.t_id')
             ->join('erp2_students c','a.stu_id=c.stu_id')
             ->join('erp2_curriculums d','a.cur_id=d.cur_id')
-            ->field('sc_id,b.t_name,c.truename,cur_time,d.cur_name')
+            ->join('erp2_classrooms e','a.room_id=e.room_id')
+            ->field('sc_id,a.order,b.t_name,c.truename,cur_time,d.cur_name,d.ctime,e.room_name')
         ->whereTime('cur_time','<=',$end_time)
         ->whereTime('cur_time','>=',$start_time)
         ->select();
