@@ -141,7 +141,7 @@ class Goods extends BaseController
         $order = input('order/d', 0);
         $cate_pid = input('cate_pid/d', '');
         $org_id = input('orgid/d', '');
-        if(is_empty($cate_pid, $org_id))
+        if(is_empty($cate_name, $org_id))
         {
             $this->returnError(10000, '缺少参数');
         }

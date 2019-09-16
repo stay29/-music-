@@ -9,6 +9,8 @@ use think\Exception;
 use PHPExcel;
 use think\Log;
 
+use app\index\model\Goods as GoodsModel;
+
 /*
  * 教师，教室，进销存excel导入丶导出丶接口相关。
  */
@@ -65,9 +67,9 @@ class ExcelBase extends Controller
      */
     public function exportExcel($expTitle,$expCellName,$expTableData){
 
-        $xlsTitle = iconv('utf-8', 'gb2312', $expTitle);
-
-        $fileName = $xlsTitle . date('_YmdHis') . '.xlsx';
+        //$xlsTitle = iconv('utf-8', 'gb2312', $expTitle);
+        $xlsTitle = $expTitle;
+        $fileName = $xlsTitle . date('_YmdHis');
 
         $cellNum = count($expCellName);
         $dataNum = count($expTableData);
@@ -75,15 +77,15 @@ class ExcelBase extends Controller
         $objPHPExcel = new \PHPExcel();
         $cellName = array('A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z','AA','AB','AC','AD','AE','AF','AG','AH','AI','AJ','AK','AL','AM','AN','AO','AP','AQ','AR','AS','AT','AU','AV','AW','AX','AY','AZ');
         $objPHPExcel->getActiveSheet()->setTitle($xlsTitle);
-        $objPHPExcel->getActiveSheet(0)->mergeCells('A1:'.$cellName[$cellNum-1].'1');
+        //$objPHPExcel->getActiveSheet(0)->mergeCells('A1:'.$cellName[$cellNum-1].'1');
 
         for($i=0;$i<$cellNum;$i++){
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue($cellName[$i].'2', $expCellName[$i][1]);
+            $objPHPExcel->setActiveSheetIndex(0)->setCellValue($cellName[$i].'1', $expCellName[$i][1]);
         }
 
         for($i=0;$i<$dataNum;$i++){
             for($j=0;$j<$cellNum;$j++){
-                $objPHPExcel->getActiveSheet(0)->setCellValue($cellName[$j].($i+3), $expTableData[$i][$expCellName[$j][0]]);
+                $objPHPExcel->getActiveSheet(0)->setCellValue($cellName[$j].($i+2), $expTableData[$i][$expCellName[$j][0]]);
             }
         }
         ob_end_clean();
@@ -108,7 +110,6 @@ class ExcelBase extends Controller
             $fileName = $info->getSaveName();
             $filePath = $dirPath . $fileName;
             $suffix = $info->getExtension();
-
             if($suffix=="xlsx"){
                 $reader = \PHPExcel_IOFactory::createReader('Excel2007');
             }else{
@@ -118,14 +119,14 @@ class ExcelBase extends Controller
             $this->returnError('30000', '上传失败');
         }
 
-        $excel = $reader->load("$filePath", $encode = 'utf-8');
-        $data = $excel->getSheet(0)->toArray();
+        $excel = $reader->load($filePath, $encode = 'utf-8');
+        $data = $excel->getActiveSheet()->toArray();
         array_shift($data);
         return $data;
     }
 
     //通用导出方法
-    public function export($filename,$expCellName,$expTableData){
+    public function export($filename, $expCellName, $expTableData, $title=''){
         //1.从数据库中取出数据
         //3.实例化PHPExcel类
         $objPHPExcel = new PHPExcel();
@@ -167,12 +168,14 @@ class ExcelBase extends Controller
         //7.设置保存的Excel表格名称
         $filename = $filename.date('ymd',time()).'.xls';
         //8.设置当前激活的sheet表格名称；
-        $objPHPExcel->getActiveSheet()->setTitle('学生信息');
+        $objPHPExcel->getActiveSheet(0)->setTitle($title);
+
         //9.设置浏览器窗口下载表格
         header("Content-Type: application/force-download");
         header("Content-Type: application/octet-stream");
         header("Content-Type: application/download");
         header('Content-Disposition:inline;filename="'.$filename.'"');
+       
         //生成excel文件
         $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
         //下载文件在浏览器窗口
@@ -204,13 +207,13 @@ class ExcelBase extends Controller
      */
     public function validate_date($date)
     {
-        $pattern = "/^\d{1,2}\/\d{1,2}\/\d{4}$/";
+        $pattern = "/^\d{4}\/\d{1,2}\/\d{1,2}$/";
         if (!preg_match($pattern, $date))
-        {
+        {;
             return false;
         }
         $t = explode('/', $date);
-        if (checkdate($t[1], $t[0], $t[2]))
+        if (checkdate($t[1], $t[2], $t[0]))
         {
             return true;
         }
@@ -271,7 +274,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             exit();
         }
         $excel_data = $this->getExcelData($file);
-
+        
         Db::startTrans();
         try {
             $response = [];
@@ -281,7 +284,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $data['room_count'] = trim($val[1]);
                 if(!is_numeric($data['room_count']))
                 {
-                    $this->returnError('10001', '数据有误');
+                    $this->returnError('10001', '教室人数请输入有效数字');
                     exit();
                 }
                 if(empty($data['room_name'] || empty($data['room_count'])))
@@ -299,7 +302,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                     $this->returnError('10000', '教室容量在[1-500]之间');
                     exit();
                 }
-                if ($val[2] == 2)
+                if (intval($val[2]) == 2)
                 {
                     $data['status'] = $val;
                 }
@@ -360,8 +363,8 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         $xlsData = db('classrooms')->
                     where($where)->
                     field(' room_name as name, room_count as count, status')->select();
-
-        $this->export($xlsName,$xlsCell,$xlsData);
+        
+        $this->exportExcel($xlsName,$xlsCell,$xlsData);
     }
 
 
@@ -432,7 +435,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             unset($v);
         }
 //        $this->returnData('请求成功', $xls_data);
-        $this->export($xls_name, $xls_cell, $xls_data);
+        $this->exportExcel($xls_name, $xls_cell, $xls_data);
     }
 
     /**
@@ -659,7 +662,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             $tables->where('cur_id', '=', $courseId);
         }
         $data = $tables->select();
-        $xls_name  = "教师信息" . date('Y-m-d', time());
+        $xls_name  = "课程信息" . date('Y-m-d', time());
         $xls_cell = array(
             array('cur_name', '课程名称(必填)'),
             array('cur_day','上课日期(必填2019/01/02)'),
@@ -779,7 +782,8 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
      */
     public function goods_tpl()
     {
-
+        $str = "./public/uploads/file/goods.xlsx";
+        $this->returnData('', $str);   
     }
 
     /*
@@ -788,7 +792,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
     public function goods_ipt()
     {
         $org_id = input('orgid', '');
-//        $uid = input('uid', '');
+        $uid = input('uid', '');
         try {
             $file = request()->file('excel');
         }catch (Exception $e)
@@ -809,12 +813,16 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             $ins_data = [];
             foreach ($data as $k=>$v)
             {
-                $goods_name = $v[0];
-                $cate_name = $v[1];
-                $goods_amount = $v[2];
-                $goods_sku = $v[2]?$v[2]:0;
-                $unit_name= $v[3];
-                $remarks = $v[4];
+                $goods_name = trim($v[0]);
+                $cate_name = trim($v[1]);
+                $goods_amount = trim($v[2]);
+                $goods_sku = trim($v[2])?:0;
+                $unit_name= trim($v[3]);
+                $ya_amount= trim($v[4]);
+                $day_ya= trim($v[5]);
+                $month_ya= trim($v[6]);
+                $year_ya= trim($v[7]);
+                $remarks = trim($v[8]);
                 if (is_empty($goods_name, $cate_name, $goods_sku, $unit_name))
                 {
                     $this->returnError(10000, '缺少参数');
@@ -824,19 +832,35 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                     $this->returnError(10001, '备注不能大于5000字');
                 }
                 $cate_id = db('goods_cate')->
-                    field('cate_name', 'like', '%' . $cate_name . '%')->value('cate_id');
+                    where('cate_name', $cate_name)->value('cate_id');
                 if (empty($cate_id))
                 {
                     $this->returnError(10000, '分类不存在');
                 }
-                $ins_data[] = [
+                $ins_data = [
+                    '$org_id' => $org_id,
                     'goods_name' => $goods_name,
+                    'cate_id' => $cate_id,
                     'goods_img' => '',
                     'unit_name' => $unit_name,
                     'remarks' => $remarks,
-
+                    'margin_amount' => $ya_amount,
+                    'rent_amount_day' => $day_ya,
+                    'rent_amount_mon' => $month_ya,
+                    'rent_amount_year' => $year_ya,
+                    'create_time' => time(),
+                    'manager' => $uid
                 ];
+                $goods = new GoodsModel($ins_data);
+                $goods->save();
+                $goods_id = $goods->goods_id;
+                Db('goods_sku')->insert(['goods_id' => $goods_id]);
+                unset($ins_data);
             }
+            
+            Db::commit();
+            $this->returnData('导入成功', true);
+            
         }catch (Exception $e)
         {
             Db::rollback();
@@ -857,7 +881,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             $this->returnError(10000, '缺少参数');
         }
         $db = db('goods_detail')->field('goods_id, goods_name, remarks,
-        unit_name, cate_id, goods_amount, goods_img');
+        unit_name, cate_id, goods_amount, rent_amount_day, rent_amount_mon, rent_amount_year');
         if (!empty($cate_id))
         {
             $db->where('cate_id', '=', $cate_id);
