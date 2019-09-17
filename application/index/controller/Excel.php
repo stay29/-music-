@@ -387,7 +387,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         {
             $this->returnError('10000', '缺少参数org_id');
         }
-        $xls_name  = "教师信息" . date('Y-m-d', time());
+        $xls_name  = "教师信息";
         $xls_cell  = array(
             array('t_name', '姓名(必填)'),
             array('t_sex','性别(只能填男或者女)'),
@@ -446,14 +446,10 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
     public function teacher_ipt(){
         $org_id = input('orgid', '');
         $uid = input('uid', '');
-        try {
-            $file = request()->file('excel');
-        }catch (Exception $e)
+        $file = request()->file('excel');
+        if (empty($file))
         {
-            if (empty($file))
-            {
-                $this->returnError(10000, '缺少文件');
-            }
+            $this->returnError(10000, '缺少文件');
         }
         if (empty($org_id))
         {

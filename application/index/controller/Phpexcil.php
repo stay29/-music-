@@ -58,6 +58,11 @@ class Phpexcil extends Basess
     public static function import_all($kname)
     {
         $file = request()->file('excel');
+        if (empty($file))
+        {
+            $this->returnError(10000, '缺少上传文件excel.');
+            exit();
+        }
         $info = $file->validate(['ext' => 'xlsx,xls'])->move('./upload/file/');
         if(empty($info)){
             self::return_data_sta(0,10000,'请上传正确格式的文件');
