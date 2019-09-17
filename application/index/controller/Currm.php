@@ -209,7 +209,7 @@ class Currm extends BaseController
         $cur_name = input('cur_name');
         $orgid  =  input('orgid');
         $where = null;
-        if($cur_name){
+        if($cur_name != null){
             $where[]=['cur_name','like','%'.$cur_name.'%'];
         }
         $where[]=['orgid','=', $orgid];
