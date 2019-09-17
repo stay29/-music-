@@ -75,11 +75,17 @@ class Schedules extends BaseController
                     $schedule['cur_time']=$start_time+input('post.day_time')+$n*24*60*60*7*2;
                     break;
             }
+            $schedule['end_time']=$schedule['cur_time']+$cur_durtion*60;
+//            var_dump($schedule['end_time']);
+//            var_dump($schedule['cur_time']+$cur_durtion*60);
             $exist_schedule=Schedule::where('t_id',$t_id)
-                ->whereTime('cur_time','>=',$schedule['cur_time'])
-                ->whereTime('cur_time','>=',$schedule['cur_time']+$cur_durtion*60)
-                ->select();
-            if(count($exist_schedule)==0){
+                                     -> where([
+                                          ['cur_time','>=',$schedule['cur_time']],
+                                          ['cur_time','<=',$schedule['end_time']]])
+                                     -> whereOr('end_time',['>=',$schedule['cur_time']],['<=',$schedule['end_time']],'and')
+                                      ->find();
+//            var_dump($schedule['end_time'].'  curtime '.$schedule['cur_time'].$exist_schedule);
+            if($exist_schedule==NULL){
                 Schedule::create($schedule);
             }else{
                 $this->returnError(20001,"老师当前时间段有课，冲突");
@@ -91,9 +97,9 @@ class Schedules extends BaseController
 
              if($pitch_num-$value['class_hour']){
                  $pitch_num=$pitch_num-$value['class_hour'];
-                 Purchase_Lessons::where()->update('class_hour',0);
+                 Purchase_Lessons::where('id',$history['id'])->update(['class_hour'=>0]);
              }else{
-                 Purchase_Lessons::where()->update('class_hour',$value['class_hour']-$pitch_num);
+                 Purchase_Lessons::where('id',$history['id'])->update(['class_hour'=>$value['class_hour']-$pitch_num]);
                  break;
              }
 
@@ -162,7 +168,7 @@ class Schedules extends BaseController
             ->join('erp2_students c','a.stu_id=c.stu_id')
             ->join('erp2_curriculums d','a.cur_id=d.cur_id')
             ->join('erp2_classrooms e','a.room_id=e.room_id')
-            ->field('sc_id,a.order,b.t_name,c.truename,cur_time,d.cur_name,d.ctime,e.room_name')
+            ->field('sc_id,a.order,b.t_name,c.truename,cur_time,d.cur_name,end_time,e.room_name')
         ->whereTime('cur_time','<=',$end_time)
         ->whereTime('cur_time','>=',$start_time)
         ->select();
