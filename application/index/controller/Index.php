@@ -297,13 +297,17 @@ class Index extends Basess
             array('describe','备注(必填)'),
             array('remarks','描述(必填)'),
         );
-        $cur_name = input('cur_name');
-        $subject = input('subject');
-        $tmethods = input('tmethods');
-        $status = input('status');
-        $orgid  = input('orgid');
+        $cur_name = trim(input('cur_name', ''));
+        $subject = input('subject', '');
+        $tmethods = input('tmethods', '');
+        $status = input('status', '');
+        $orgid  = input('orgid', '');
         //$moban = input('moban');
-        $where = null;
+        if (empty($orgid))
+        {
+            $this->returnError( '10000', '缺少orgid');
+        }
+        $where = [];
         if($cur_name){
             $where[]=['cur_name','like','%'.$cur_name.'%'];
         }
@@ -319,17 +323,17 @@ class Index extends Basess
         $where[] = ["is_del",'=',"0"];
         $where[] = ["orgid",'=',"$orgid"];
         $list =  db('curriculums')->where($where)->select();
-            foreach ($list as $k=>&$v)
-            {
-                 $where1['sid'] = $v['subject'];
-                 $subjectinfo = db('subjects')->where($where1)->find();
-                 $v['subject'] = $subjectinfo['sname'];
-                 if($v['tmethods']=='1'){
-                    $v['tmethods'] = '1对1';
-                 }else{
-                    $v['tmethods'] = '一对多';
-                 }
+        foreach ($list as $k=>&$v)
+        {
+            $where1['sid'] = $v['subject'];
+            $subjectinfo = db('subjects')->where($where1)->find();
+            $v['subject'] = $subjectinfo['sname'];
+            if($v['tmethods']=='1'){
+               $v['tmethods'] = '一对一';
+            }else{
+               $v['tmethods'] = '一对多';
             }
+        }
         Phpexcil::export_tow_aaa('课程列表',$kname,$list,$subjectinfo_list);
     }
 

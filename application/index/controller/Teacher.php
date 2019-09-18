@@ -586,7 +586,7 @@ class Teacher extends BaseController
         {
             $this->returnError( '10000', '缺少t_id或org_id');
         }
-        $data = db('subjects')->field('sid, sname')->select();
+        $data = db('subjects')->field('sid, sname')->where('pid', 0)->select();
         foreach ($data as $k=>$v) {
             $temp = db('curriculums')->
             field('cur_id, cur_name')->

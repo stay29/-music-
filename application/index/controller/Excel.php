@@ -387,7 +387,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         {
             $this->returnError('10000', '缺少参数org_id');
         }
-        $xls_name  = "教师信息" . date('Y-m-d', time());
+        $xls_name  = "教师信息";
         $xls_cell  = array(
             array('t_name', '姓名(必填)'),
             array('t_sex','性别(只能填男或者女)'),
@@ -446,14 +446,10 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
     public function teacher_ipt(){
         $org_id = input('orgid', '');
         $uid = input('uid', '');
-        try {
-            $file = request()->file('excel');
-        }catch (Exception $e)
+        $file = request()->file('excel');
+        if (empty($file))
         {
-            if (empty($file))
-            {
-                $this->returnError(10000, '缺少文件');
-            }
+            $this->returnError(10000, '缺少文件');
         }
         if (empty($org_id))
         {
@@ -464,12 +460,19 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
 
         Db::startTrans();
         try{
+            $sen_default = '';
+            $senarray=db('seniorities')->where(['org_id'=>$org_id, 'is_del'=>0])->order('seniority_id', 'asc')->find();
+            if(empty($senarray)){
+                $this->returnError(10009, '请先添加一个默认资历再导入'); 
+            }
+            $sen_default = $senarray['seniority_id'];
+
             foreach ($data as $k => $v)
             {
-                $t['t_name'] = $v[0];
+                $t['t_name'] = trim($v[0]);
                 $t['sex'] = $v[1];
-                $t['se_id'] = 1;
-                $t['cellphone'] = $v[3];
+                $t['se_id'] = $sen_default;
+                $t['cellphone'] = trim($v[3]);
                 $t['entry_time'] = $v[4];
                 $t['identity_card'] = $v[5];
                 $t['birthday'] = $v[6];
@@ -481,7 +484,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 {
                     $this->returnError(10000, '姓名不能为空');
                 }
-                if ($t['t_name'] > 20 )
+                if (strlen($t['t_name']) > 20 )
                 {
                     $this->returnError('10000', '教师名称大于10个字符');
                 }
@@ -489,7 +492,6 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 {
                     $this->returnError('10000', '性别只能是男, 女: ');
                 }
-
                 if (!preg_match("/^1[345789]\d{9}$/", $t['cellphone'], $matches))
                 {
                     Db::rollback();
