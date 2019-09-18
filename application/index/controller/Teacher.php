@@ -631,13 +631,11 @@ class Teacher extends BaseController
         $endTime = input('endTime/d', '');
         $type = input('type/d', 1);  // 默认是全部
         $courseId = input('courseId/d', ''); // 通过课程ID筛选
-        $page = input('page/d', 1);
         $limit = input('limit/d', 10);
         if (empty($tid) || empty($org_id))
         {
             $this->returnError('10000', '缺少参数');
         }
-        $data = array();
         $tables = Db::name('teach_schedules')->field('sc_id, stu_id, room_id, cur_time, cur_id, status')
                     ->where(['org_id'=>$org_id, 't_id'=>$tid]);
         if(!empty($courseId))
