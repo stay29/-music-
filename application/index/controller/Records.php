@@ -501,7 +501,7 @@ class Records extends BaseController
                 $goods_id = $goods['goods_id'];
                 $g_name = $goods['goods_name'];
                 $sto_logs =  db('goods_storage')->field('sto_id, sto_num, sto_single_price, sto_code, 
-                    entry_time, manager')->where('goods_id', '=', $goods_id)->select();
+                    entry_time, manager, remark')->where('goods_id', '=', $goods_id)->select();
                 foreach ($sto_logs as $log)
                 {
                     $manager = db('users')->where('uid', '=', $log['manager'])->value('nickname');
@@ -511,6 +511,7 @@ class Records extends BaseController
                         'sto_single_price'   => $log['sto_single_price'],
                         'sto_num'   => $log['sto_num'],
                         'sto_code'  => $log['sto_code'],
+                        'remark'  => $log['remark'],
                         'entry_time' => $log['entry_time'],
                         'sto_total_money' => $log['sto_num'] * $log['sto_single_price'],
                         'manager' => $manager

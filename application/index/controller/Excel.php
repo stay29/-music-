@@ -825,7 +825,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $month_ya= trim($v[6]);
                 $year_ya= trim($v[7]);
                 $remarks = trim($v[8]);
-                if (is_empty($goods_name, $cate_name, $goods_sku, $unit_name))
+                if (is_empty($goods_name, $cate_name, $goods_amount, $unit_name))
                 {
                     $this->returnError(10000, '缺少参数');
                 }
@@ -884,6 +884,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         }
         $db = db('goods_detail')->field('goods_id, goods_name, remarks,
         unit_name, cate_id, goods_amount, rent_amount_day, rent_amount_mon, rent_amount_year');
+        $db->where('org_id', '==', '$org_id');
         if (!empty($cate_id))
         {
             $db->where('cate_id', '=', $cate_id);
