@@ -840,7 +840,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                     $this->returnError(10000, '分类不存在');
                 }
                 $ins_data = [
-                    '$org_id' => $org_id,
+                    'org_id' => $org_id,
                     'goods_name' => $goods_name,
                     'cate_id' => $cate_id,
                     'goods_img' => '',
