@@ -373,7 +373,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
      */
     public function teacher_tpl()
     {
-        $str = "./public/uploads/file/teacher.xlsx";
+        $str = "./public/upload/file/teacher.xlsx";
         $this->returnData('', $str);
     }
 
@@ -548,7 +548,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
      */
     public function schedule_tpl()
     {
-        $str = "./public/uploads/file/schedule.xlsx";
+        $str = "./public/upload/file/schedule.xlsx";
         $this->returnData('', $str);
     }
 
@@ -784,7 +784,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
      */
     public function goods_tpl()
     {
-        $str = "./public/uploads/file/goods.xlsx";
+        $str = "./public/upload/file/goods.xlsx";
         $this->returnData('', $str);   
     }
 

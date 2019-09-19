@@ -486,7 +486,7 @@ class Records extends BaseController
         $org_id = input('orgid/d', '');
         $page = input('page/d', 1);
         $limit = input('limit/d', 20);
-        if (is_empty($goods_name, $org_id))
+        if (is_empty($org_id))
         {
             $this->returnError(10000, '缺少参数');
         }
