@@ -1030,5 +1030,13 @@ class Teacher extends BaseController
         $data = db('pay_info')->field('pay_id_info as p_id, pay_name as p_name')->select();
         $this->returnData( $data, '请求成功');
     }
+    /**
+     * 根据课程获取老师列表
+     */
+    public function get_teacher_by_course(){
+        $cur_id=input('post.cur_id');
+        $data=Db::name('cur_teacher_relations')->alias('a')->field('a.t_id,b.t_name, b.cellphone')->where('cur_id', '=', $cur_id)->join('erp2_teachers b','a.t_id=b.t_id')->select();
+        return $this->returnData($data,'');
+    }
 }
 
