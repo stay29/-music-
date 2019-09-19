@@ -12,7 +12,9 @@
 namespace think;
 // 加载基础文件
 require __DIR__ . '/thinkphp/base.php';
+$_SERVER['PATH_INFO'] = $_SERVER['REQUEST_URI' ];
 define('UPLOAD_DIR', __DIR__ . '/public/upload'.DIRECTORY_SEPARATOR);
 define('MA','erp2');
 define('MB','Piano_');
 Container::get('app',[__DIR__ . '/application/'])->run()->send();
+
