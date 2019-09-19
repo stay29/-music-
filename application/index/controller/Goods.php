@@ -472,7 +472,7 @@ class Goods extends BaseController
         if (!empty($cate_id))
         {
             $inda = $this->find_sons($cate_id);
-            $db->where('cate_id', ['in', $inda]);
+            $db->where('cate_id', 'in', $inda);
         }
         if(!empty($goods_name) || $goods_name==0)
         {
