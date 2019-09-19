@@ -825,9 +825,9 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $month_ya= trim($v[6]);
                 $year_ya= trim($v[7]);
                 $remarks = trim($v[8]);
-                if (is_empty($goods_name, $cate_name, $goods_amount, $unit_name))
+                if (is_empty($goods_name, $cate_name, $unit_name))
                 {
-                    $this->returnError(10000, '缺少参数');
+                    $this->returnError(10000, '必填项不能为空');
                 }
                 if (strlen($remarks) > 500)
                 {
