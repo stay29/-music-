@@ -844,6 +844,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                     'goods_name' => $goods_name,
                     'cate_id' => $cate_id,
                     'goods_img' => '',
+                    'goods_amount' => $goods_amount,
                     'unit_name' => $unit_name,
                     'remarks' => $remarks,
                     'margin_amount' => $ya_amount,
