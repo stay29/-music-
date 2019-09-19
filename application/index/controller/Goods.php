@@ -433,6 +433,24 @@ class Goods extends BaseController
             $this->returnError(50000, '离职失败');
         }
     }
+    
+    /**
+     * 找子孙分类
+     * 
+     */
+    private function find_sons($cate_id)
+    {
+        static $inda = [];
+        array_push($inda, $cate_id);
+        $sons = db('goods_cate')->where('cate_pid', $cate_id)->column('cate_id');
+        if($sons){
+            foreach ($sons as $k => $son) {
+                $this->find_sons($son, $inda);
+            }
+        }
+        return $inda;
+    }
+    
     /*
      * 商品列表
      */
@@ -453,7 +471,8 @@ class Goods extends BaseController
         unit_name, cate_id, margin_amount, goods_amount, goods_img')->order('create_time DESC')->where('org_id', '=', $org_id);
         if (!empty($cate_id))
         {
-            $db->where('cate_id', '=', $cate_id);
+            $inda = $this->find_sons($cate_id);
+            $db->where('cate_id', ['in', $inda]);
         }
         if(!empty($goods_name) || $goods_name==0)
         {
