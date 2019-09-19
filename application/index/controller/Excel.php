@@ -373,7 +373,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
      */
     public function teacher_tpl()
     {
-        $str = "./public/uploads/file/teacher.xlsx";
+        $str = "./public/upload/file/teacher.xlsx";
         $this->returnData('', $str);
     }
 
@@ -548,7 +548,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
      */
     public function schedule_tpl()
     {
-        $str = "./public/uploads/file/schedule.xlsx";
+        $str = "./public/upload/file/schedule.xlsx";
         $this->returnData('', $str);
     }
 
@@ -784,7 +784,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
      */
     public function goods_tpl()
     {
-        $str = "./public/uploads/file/goods.xlsx";
+        $str = "./public/upload/file/goods.xlsx";
         $this->returnData('', $str);   
     }
 
@@ -825,9 +825,9 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $month_ya= trim($v[6]);
                 $year_ya= trim($v[7]);
                 $remarks = trim($v[8]);
-                if (is_empty($goods_name, $cate_name, $goods_sku, $unit_name))
+                if (is_empty($goods_name, $cate_name, $unit_name))
                 {
-                    $this->returnError(10000, '缺少参数');
+                    $this->returnError(10000, '必填项不能为空');
                 }
                 if (strlen($remarks) > 500)
                 {
@@ -840,10 +840,11 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                     $this->returnError(10000, '分类不存在');
                 }
                 $ins_data = [
-                    '$org_id' => $org_id,
+                    'org_id' => $org_id,
                     'goods_name' => $goods_name,
                     'cate_id' => $cate_id,
                     'goods_img' => '',
+                    'goods_amount' => $goods_amount,
                     'unit_name' => $unit_name,
                     'remarks' => $remarks,
                     'margin_amount' => $ya_amount,
@@ -884,6 +885,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         }
         $db = db('goods_detail')->field('goods_id, goods_name, remarks,
         unit_name, cate_id, goods_amount, rent_amount_day, rent_amount_mon, rent_amount_year');
+        $db->where('org_id', '==', '$org_id');
         if (!empty($cate_id))
         {
             $db->where('cate_id', '=', $cate_id);

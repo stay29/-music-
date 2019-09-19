@@ -60,7 +60,7 @@ class Phpexcil extends Basess
         $file = request()->file('excel');
         if (empty($file))
         {
-            $this->returnError(10000, '缺少上传文件excel.');
+            self::return_data(0,10001, '缺少上传文件excel.');
             exit();
         }
         $info = $file->validate(['ext' => 'xlsx,xls'])->move('./upload/file/');
