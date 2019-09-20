@@ -655,6 +655,7 @@ class Records extends BaseController
                 'remarks'   => $remarks
             ];
             db('goods_deposit')->update($data);
+            $this->returnData('', '修改成功');
         }catch (Exception $e)
         {
             $this->returnError(50000, '修改失败');
