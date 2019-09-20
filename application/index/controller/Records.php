@@ -534,8 +534,8 @@ class Records extends BaseController
         $sto_num = input('sto_num/d', '');
         $sto_price = input('sto_price/f', '');
         $remarks = input('remarks/s', '');
-        $header = Request::instance()->header();
-        $uid = $header['X-uid'];
+        $uid = Request::instance()->header('X-uid');
+        echo $uid;
         if (is_empty($sto_id, $sto_num, $sto_price, $uid))
         {
             $this->returnError(10000, '缺少参数');
