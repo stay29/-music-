@@ -589,9 +589,12 @@ class Records extends BaseController
     {
         $this->auth_get_token();
         $goods_name = input('goods_name/s', '');
-        $org_id = input('orgid/d', '');
+        $org_id = input('orgid');echo $org_id;
         $limit = input('limit/d', 20);
         $page = input('page/d', 1);
+        if(!$org_id){
+            $this->returnError(5001, '缺少参数');
+        }
         $goods_db = db('goods_detail')->where('org_id', '=', $org_id);
         if (!empty($goods_name))
         {
