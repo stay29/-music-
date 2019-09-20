@@ -548,8 +548,8 @@ class Records extends BaseController
             $data = [
                 'sto_id' => $sto_id,
                 'sto_num' => $sto_num,
-                'sto_price' => $sto_price,
-                'remarks' => $remarks,
+                'sto_single_price' => $sto_price,
+                'remark' => $remarks,
                 'manager' => $uid,
                 'update_time' => time()
             ];
