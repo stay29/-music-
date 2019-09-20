@@ -554,6 +554,7 @@ class Records extends BaseController
                 'update_time' => time()
             ];
             db('goods_storage')->update($data);
+            $this->returnData('', '修改成功');
         }catch (Exception $e)
         {
             $this->returnError(50000,'系统错误' . $e->getMessage());
