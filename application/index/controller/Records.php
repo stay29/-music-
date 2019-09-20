@@ -597,9 +597,10 @@ class Records extends BaseController
         {
             $goods_db->where('goods_name', 'like', '%' . $goods_name . '%');
         }
+        $goods_list = $goods_db->order('create_time DESC')->column('goods_id');
+        
         try
         {
-            $goods_list = $goods_db->order('create_time DESC')->column('goods_id');
             $data = [];
             $sto_logs = db('goods_deposit')->alias('gd')->field('gd.*, u.nickname, ed.goods_name')->where('gd.goods_id', 'in', $goods_list)
                 ->order('gd.create_time DESC')
