@@ -497,7 +497,7 @@ class Records extends BaseController
             $where[] = ['goods_name', 'like', '%' . $goods_name . '%'];
         }
         $goods_list = db('goods_detail')->where($where)
-            ->order('create_time DESC')->fetchSql()->column('goods_id');dump($goods_list);die;
+            ->order('create_time DESC')->column('goods_id');
         //$gids = array_column($goods_list, 'goods_id');
         try
         {
