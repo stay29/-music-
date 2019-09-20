@@ -375,14 +375,14 @@ class Organization extends Basess
      * 下架banner图
      */
     public function sold_out_b(){
-        $data['sold_out']=1;
+        $data['sold_out']=input('post.sold_out');
         $b_id=input('post.b_id');
         $data['update_time']=time();
         Db::startTrans();
         try{
             Banner::where('b_id',$b_id)->update($data);
             Db::commit();
-            $this->return_data(1,0,"下架成功！");
+            $this->return_data(1,0,"操作成功！");
         }catch(Exception $e){
             Db::rollback();
             $this->return_data(0,20002,$e->getMessage());
