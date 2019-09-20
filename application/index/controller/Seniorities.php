@@ -33,14 +33,14 @@ class Seniorities extends BaseController
             ->field('seniority_id as s_id, seniority_name as s_name, is_official')
             ->select();
         // 平台设定资历
-        $system_data = SenModel::where(['is_official'=>1, 'status'=>1, 'is_del'=>0])
-            ->field('seniority_id as s_id, seniority_name as s_name, is_official')
-            ->select();
+//        $system_data = SenModel::where(['is_official'=>1, 'status'=>1, 'is_del'=>0])
+//            ->field('seniority_id as s_id, seniority_name as s_name, is_official')
+//            ->select();
         $response = [];
-        foreach ($system_data as $k=>$v)
-        {
-            $response[] = $v;
-        }
+//        foreach ($system_data as $k=>$v)
+//        {
+//            $response[] = $v;
+//        }
         foreach ($data as $k=>$v)
         {
             $response[] = $v;
