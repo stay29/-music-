@@ -1130,39 +1130,41 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
     public function dep_record_ept()
     {
         $goods_name = input('goods_name/s', '');
-        $org_id = input('orgid/d', '');
-//        $limit = input('limit/d', 20);
-//        $page = input('limit/d', 1);
+        $org_id = request()->header('orgid');
+        
+        if(!$org_id){
+            $this->returnError(5001, '缺少参数');
+        }
         $goods_db = db('goods_detail')->where('org_id', '=', $org_id);
-        if (!empty($goods_name))
+        if ($goods_name != null)
         {
             $goods_db->where('goods_name', 'like', '%' . $goods_name . '%');
         }
+        
+        $data = [];
+        $goods_list = $goods_db->order('create_time DESC')->column('goods_id');
         try
-        {
-            $goods_list = $goods_db->field('goods_id, goods_name')->select();
-            $data = [];
-            foreach ($goods_list as $goods)
-            {
-                $g_name = $goods['goods_name'];
-                $g_id = $goods['goods_id'];
+        {  
+            $sto_logs = db('goods_deposit')->alias('gd')->field('gd.*, u.nickname, ed.goods_name')->where('gd.goods_id', 'in', $goods_list)
+                ->order('gd.create_time DESC')
+                ->leftJoin('erp2_users u', 'u.uid=gd.manager')
+                ->leftJoin('erp2_goods_detail ed', 'ed.goods_id=gd.goods_id')
+                ->select();
 
-                $sto_logs = db('goods_deposit')->where('goods_id', '=', $g_id)->select();
-                foreach ($sto_logs as $log)
-                {
-                    $manager = db('users')->where('uid', '=', $log['manager'])->value('nickname');
-                    $data[] = [
-                        'dep_id' => $log['dep_id'],
-                        'goods_name' => $g_name,
-                        'dep_num'   => $log['dep_num'],
-                        'dep_price'  => $log['dep_price'],
-                        'dep_total'  => $log['dep_num'] * $log['dep_price'],
-                        'dep_time'  => date('Y/m/d', $log['dep_time']),
-                        'dep_code'  => $log['dep_code'],
-                        'manager'   => $manager,
-                        'remark'    => $log['remark'],
-                    ];
-                }
+            foreach ($sto_logs as $log)
+            {
+                $manager = db('users')->where('uid', '=', $log['manager'])->value('nickname');
+                $data[] = [
+                    'dep_id' => $log['dep_id'],
+                    'goods_name' => $log['goods_name'],
+                    'dep_num'   => $log['dep_num'],
+                    'dep_price'  => $log['dep_price'],
+                    'dep_total'  => $log['dep_num'] * $log['dep_price'],
+                    'dep_time'  => date('Y/m/d', $log['dep_time']),
+                    'dep_code'  => $log['dep_code'],
+                    'manager'   => $log['nickname'],
+                    'remark'    => $log['remark'],
+                ];
             }
             $xls_name = '出库记录列表';
             $xls_cell = [
