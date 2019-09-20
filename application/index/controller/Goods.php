@@ -730,7 +730,8 @@ class Goods extends BaseController
                 'entry_time' => $entry_time,
                 'create_time' => time(),
                 'update_time' => time(),
-                'sto_code'  => random_code()
+                'sto_code'  => random_code(),
+                'manager' => $uid
             ];
             Db::name('goods_storage')->insert($sto_data);
             Db::commit();

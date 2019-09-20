@@ -491,32 +491,25 @@ class Records extends BaseController
             $this->returnError(10000, '缺少参数');
         }
         $data = [];
-        $goods_list = db('goods_detail')->field('goods_id, goods_name')
-            ->where('goods_name', 'like', '%' . $goods_name . '%')
-            ->order('create_time DESC')->select();
+        $where = ['org_id' => $org_id];
+        if($goods_name != null){
+            $where['goods_name'] = ['like', '%' . $goods_name . '%'];
+        }
+        $goods_list = db('goods_detail')->where($where)
+            ->order('create_time DESC')->column('goods_id');
+        //$gids = array_column($goods_list, 'goods_id');
         try
         {
-            foreach ($goods_list as $goods)
+            $sto_logs =  db('goods_storage')->alias('gs')->field('gs.sto_id, gs.sto_num, gs.sto_single_price, gs.sto_code, 
+                           gs.entry_time, gs.manager, gs.remark, u.nickname, ed.goods_name')->where('gs.goods_id', 'in', $goods_list)
+                ->leftJoin('erp2_users u', 'gs.manager=u.uid')
+                ->leftJoin('erp2_goods_detail ed', 'ed.goods_id=gs.goods_id')
+                ->select();
+                
+            foreach ($sto_logs as $log)
             {
-                $goods_id = $goods['goods_id'];
-                $g_name = $goods['goods_name'];
-                $sto_logs =  db('goods_storage')->field('sto_id, sto_num, sto_single_price, sto_code, 
-                    entry_time, manager, remark')->where('goods_id', '=', $goods_id)->select();
-                foreach ($sto_logs as $log)
-                {
-                    $manager = db('users')->where('uid', '=', $log['manager'])->value('nickname');
-                    $data[] = [
-                        'sto_id' => $log['sto_id'],
-                        'goods_name'  => $g_name,
-                        'sto_single_price'   => $log['sto_single_price'],
-                        'sto_num'   => $log['sto_num'],
-                        'sto_code'  => $log['sto_code'],
-                        'remark'  => $log['remark'],
-                        'entry_time' => $log['entry_time'],
-                        'sto_total_money' => $log['sto_num'] * $log['sto_single_price'],
-                        'manager' => $manager
-                     ];
-                }
+                $log['sto_total_money'] = $log['sto_num'] * $log['sto_single_price'];
+                $data[] = $log;
             }
             $response = [
                 'total' => count($data),
@@ -597,7 +590,7 @@ class Records extends BaseController
         $goods_name = input('goods_name/s', '');
         $org_id = input('orgid/d', '');
         $limit = input('limit/d', 20);
-        $page = input('limit/d', 1);
+        $page = input('page/d', 1);
         $goods_db = db('goods_detail')->where('org_id', '=', $org_id);
         if (!empty($goods_name))
         {
@@ -605,31 +598,23 @@ class Records extends BaseController
         }
         try
         {
-            $goods_list = $goods_db->field('goods_id, goods_name')->select();
+            $goods_list = $goods_db->order('create_time DESC')->column('goods_id');
             $data = [];
-            foreach ($goods_list as $goods)
+            $sto_logs = db('goods_deposit')->alias('gd')->field('gd.*, u.nickname, ed.goods_name')->where('gd.goods_id', 'in', $goods_list)
+                ->order('gd.create_time DESC')
+                ->leftJoin('erp2_users u', 'u.uid=gd.manager')
+                ->leftJoin('erp2_goods_detail ed', 'ed.goods_id=gd.goods_id')  
+                ->select();
+            foreach ($sto_logs as $log)
             {
-                $g_name = $goods['goods_name'];
-                $g_id = $goods['goods_id'];
-
-                $sto_logs = db('goods_deposit')->where('goods_id', '=', $g_id)
-                    ->order('create_time DESC')->select();
-                foreach ($sto_logs as $log)
-                {
-                    $manager = db('users')->where('uid', '=', $log['manager'])->value('nickname');
-                    $data[] = [
-                        'dep_id' => $log['dep_id'],
-                        'goods_name' => $g_name,
-                        'dep_num'   => $log['dep_num'],
-                        'dep_price'  => $log['dep_price'],
-                        'dep_total'  => $log['dep_num'] * $log['dep_price'],
-                        'dep_time'  => $log['dep_time'],
-                        'dep_code'  => $log['dep_code'],
-                        'manager'   => $manager,
-                        'remark'    => $log['remark'],
-                    ];
-                }
+                    $log['dep_total'] = $log['dep_num'] * $log['dep_price'];
+                    $log['manager']   = $log['nickname'];
+                    $log['remark']    = $log['remarks'];
+                    unset($log['remarks']);
+                    unset($log['nickname']);
+                    $data[] = $log;
             }
+
             $response = [
                 'per_page' => $limit,
                 'current_page' => $page,
