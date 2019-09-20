@@ -491,13 +491,13 @@ class Records extends BaseController
         {
             $this->returnError(10000, '缺少参数');
         }
-        $data = [];
-        $where = ['org_id' => $org_id];
+
+        $where = [['org_id','=', $org_id]];
         if($goods_name != null){
-            $where['goods_name'] = ['like', '%' . $goods_name . '%'];
+            $where[] = ['goods_name', 'like', '%' . $goods_name . '%'];
         }
         $goods_list = db('goods_detail')->where($where)
-            ->order('create_time DESC')->column('goods_id');
+            ->order('create_time DESC')->fetchSql()->column('goods_id');dump($goods_list);die;
         //$gids = array_column($goods_list, 'goods_id');
         try
         {
