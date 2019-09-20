@@ -504,19 +504,18 @@ class Records extends BaseController
                            gs.entry_time, gs.manager, gs.remark, u.nickname, ed.goods_name')->where('gs.goods_id', 'in', $goods_list)
                 ->leftJoin('erp2_users u', 'gs.manager=u.uid')
                 ->leftJoin('erp2_goods_detail ed', 'ed.goods_id=gs.goods_id')
-                ->select();
-                
-            foreach ($sto_logs as $log)
-            {
-                $log['sto_total_money'] = $log['sto_num'] * $log['sto_single_price'];
-                $data[] = $log;
-            }
+                ->paginate($limit, false, ['page' => $page])
+                ->each(function($log, $lk){
+                    $log['sto_total_money'] = $log['sto_num'] * $log['sto_single_price'];
+                    return $log;
+                });
             $response = [
-                'total' => count($data),
-                'per_page' => $limit,
-                'last_page' => intval(count($data) / $limit) + 1,
-                'data' => array_slice($data, ($page-1)*$limit, $limit)
+                'total' => $sto_logs->total(),
+                'per_page' => $sto_logs->listRows(),
+                'last_page' => $sto_logs->lastPage(),
+                'data' => $sto_logs->items()
             ];
+
             $this->returnData($response, '请求成功');
         }catch (Exception $e)
         {
@@ -603,24 +602,23 @@ class Records extends BaseController
             $sto_logs = db('goods_deposit')->alias('gd')->field('gd.*, u.nickname, ed.goods_name')->where('gd.goods_id', 'in', $goods_list)
                 ->order('gd.create_time DESC')
                 ->leftJoin('erp2_users u', 'u.uid=gd.manager')
-                ->leftJoin('erp2_goods_detail ed', 'ed.goods_id=gd.goods_id')  
-                ->select();
-            foreach ($sto_logs as $log)
-            {
+                ->leftJoin('erp2_goods_detail ed', 'ed.goods_id=gd.goods_id')
+                ->paginate($limit, false, ['page' => $page])
+                ->each(function($log, $lk){
                     $log['dep_total'] = $log['dep_num'] * $log['dep_price'];
                     $log['manager']   = $log['nickname'];
                     $log['remark']    = $log['remarks'];
                     unset($log['remarks']);
                     unset($log['nickname']);
-                    $data[] = $log;
-            }
-
+                    return $log;
+                });
             $response = [
-                'per_page' => $limit,
-                'current_page' => $page,
-                'last_page' => count($data) / $limit + 1,
-                'data' => array_slice($data, ($page-1)*$limit, $limit)
+                'total' => $sto_logs->total(),
+                'per_page' => $sto_logs->listRows(),
+                'last_page' => $sto_logs->lastPage(),
+                'data' => $sto_logs->items()
             ];
+            
             $this->returnData($response, '请求成功');
         }catch (Exception $e)
         {
