@@ -15,6 +15,7 @@ namespace app\index\controller;
 
 use think\Db;
 use Think\Exception;
+use think\facade\Request;
 
 class Records extends BaseController
 {
