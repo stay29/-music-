@@ -713,6 +713,7 @@ class Records extends BaseController
             $where[] = ['cate_id', '=', $cate_id];
         }
         $goods_list = db('goods_detail')->where($where)->order('create_time DESC')->column('goods_id');
+
         try{
                 $sale_db = db('goods_sale_log')->alias('gs');
                 $sale_db->where('gs.goods_id', 'in', $goods_list);
@@ -730,7 +731,7 @@ class Records extends BaseController
                     elseif ($time_type == 2) {$sale_db->whereTime('sale_time', 'm');}
                     elseif ($time_type == 3) {$sale_db->whereTime('sale_time', 'y');}
                 }
-
+                
                 static $total_amount = 0.00;
                 static $total_profit = 0.00;
                 $sale_logs =  $sale_db->field('gs.goods_id, ed.unit_name, gc.cate_name, ed.goods_name, COALESCE(sum(gs.sale_num),0) as stol, COALESCE(sum(gs.pay_amount),0) as sale_total, 
@@ -738,6 +739,7 @@ class Records extends BaseController
                 ->leftJoin('erp2_goods_storage goodsto', 'goodsto.goods_id=gs.goods_id')
                 ->leftJoin('erp2_goods_detail ed', 'ed.goods_id=gs.goods_id')
                 ->leftJoin('erp2_goods_cate gc', 'gc.cate_id=ed.cate_id')
+                ->group('gs.goods_id')
                 ->paginate($limit, false, ['page' => $page])
                 ->each(function($log, $lk) use ($total_amount, $total_profit){
                     //销售数量
@@ -745,9 +747,9 @@ class Records extends BaseController
                     //入库数量
                     $log['sto_num'] >= 0 ? $log['sto_num'] : 0;
                     //入库平均单价
-                    $log['avg_storage_pice'] = $log['sto_num'] == 0 ? 0:$log['gmtol']/$log['sto_num'];
+                    $log['avg_storage_pice'] = $log['sto_num'] == 0 ? 0 : number_format($log['gmtol']/$log['sto_num'], 2);
                     // 销售利润
-                    $log['sale_profit'] = $log['sale_total'] - $log['avg_storage_pice'] * $log['stol'];
+                    $log['sale_profit'] = number_format($log['sale_total'] - $log['avg_storage_pice'] * $log['stol'], 2);
                     $total_amount += $log['sale_total'];
                     $total_profit += $log['sale_profit'];
                     unset($log['stol']);
@@ -809,8 +811,8 @@ class Records extends BaseController
                 'per_page' => $sale_logs->listRows(),
                 'last_page' => $sale_logs->lastPage(),
                 'total' => $sale_logs->total(),
-                'total_amount' => $total_amount,
-                'total_profit' => $total_profit,
+                'total_amount' => number_format($total_amount, 2),
+                'total_profit' => number_format($total_profit, 2),
                 'data' => ($sale_logs->total() > 0)? $sale_logs->items(): ''
             ];
             $this->returnData($response, '请求成功');
