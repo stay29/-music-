@@ -717,7 +717,6 @@ class Records extends BaseController
         try{
                 $sale_db = db('goods_sale_log')->alias('gs');
                 $sale_db->where('gs.goods_id', 'in', $goods_list);
-                $where = [['goods_id', 'in', $goods_list]];
                 if (!empty($sman_type))
                 {
                     $sale_db->where('sman_type', '=', $sman_type);

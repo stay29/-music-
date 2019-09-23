@@ -1328,57 +1328,100 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             {
                 $goods_db->where('cate_id', '=', $cate_id);
             }
-            $goods_list = $goods_db->field('goods_id, cate_id, unit_name')->select();
+            $goods_list = $goods_db->field('goods_id, cate_id, unit_name')->column('goods_id');
             $data = [];
-            foreach ($goods_list as $goods)
+            //销售数据统计
+            $sale_db = db('goods_sale_log')->alias('gs');
+            $sale_db->where('gs.goods_id', 'in', $goods_list);
+            if (!empty($sman_type))
             {
-                $goods_id =  $goods['goods_id'];
-                $goods_name = $goods['goods_name'];
-                $unit_name = $goods['unit_name'];
-//                $cate_name = db('goods_cate')->where('cate_id', '=', $cate_id)->value('cate_name');
-                $sale_db = db('goods_sale_log')->where('goods_id', '=', $goods_id);
-                if (!$sman_type)
-                {
-                    $sale_db->where('sman_type', '=', $sman_type);
-                }
-                if (!empty($start_time) and !empty($end_time))
-                {
-                    $sale_db->whereBetweenTime('sale_time', $start_time, $end_time);
-                }elseif ($time_type)
-                {
-                    if ($time_type == 1) {$sale_db->whereTime('sale_time', 'd');}
-                    elseif ($time_type == 2) {$sale_db->whereTime('sale_time', 'm');}
-                    elseif ($time_type == 3) {$sale_db->whereTime('sale_time', 'y');}
-                }
-                // 销售总额
-                $sale_total_money = $sale_db->sum('pay_amount');
-                // 销售数量
-                $sale_num = $sale_db->sum('sale_num');
-                // 入库总额
-                $sto_total_money = db('goods_storage')->where('goods_id', '=', $goods_id)
-                    ->sum('sto_num*sto_single_price');
-                // 入库数量
-                $sto_num = db('goods_storage')->where('goods_id', '=', $goods_id)
-                    ->sum('sto_num');
-                // 入库平均单价
-                $sto_single_price = $sto_total_money / $sto_num;
-                // 销售利润
-                $sale_profit = $sale_total_money - $sto_single_price * $sale_num;
-
-                $data[] = [
-                    'goods_name' => $goods_name,
-//                    'cate_name' => $cate_name,
-                    'unit_name' => $unit_name,
-//                    '$sale_total' => $sale_total_money,
-                    'sto_num'  => $sto_num,
-                    'sto_total'  => $sto_total_money,
-
-                    'sale_num' => $sale_num,
-                    'sale_total' => $sale_total_money,
-
-                    'sale_profit' => $sale_profit
-                ];
+                $sale_db->where('sman_type', '=', $sman_type);
             }
+            if (!empty($start_time) and !empty($end_time))
+            {
+                $sale_db->whereBetweenTime('sale_time', $start_time, $end_time);
+            }elseif ($time_type)
+            {
+                if ($time_type == 1) {$sale_db->whereTime('sale_time', 'd');}
+                elseif ($time_type == 2) {$sale_db->whereTime('sale_time', 'm');}
+                elseif ($time_type == 3) {$sale_db->whereTime('sale_time', 'y');}
+            }
+
+            static $total_amount = 0.00;
+            static $total_profit = 0.00;
+            $sale_logs =  $sale_db->field('gs.goods_id, ed.unit_name, gc.cate_name, ed.goods_name, COALESCE(sum(gs.sale_num),0) as stol, COALESCE(sum(gs.pay_amount),0) as sale_total, 
+                       COALESCE(sum(goodsto.sto_num*goodsto.sto_single_price),0) as gmtol, COALESCE(sum(goodsto.sto_num),0) as sto_num')
+            ->leftJoin('erp2_goods_storage goodsto', 'goodsto.goods_id=gs.goods_id')
+            ->leftJoin('erp2_goods_detail ed', 'ed.goods_id=gs.goods_id')
+            ->leftJoin('erp2_goods_cate gc', 'gc.cate_id=ed.cate_id')
+            ->group('gs.goods_id')
+            ->select();
+            
+            foreach ($sale_logs as $lk => $log) {
+                //入库平均单价
+                $log['avg_storage_pice'] = $log['sto_num'] == 0 ? 0 : number_format($log['gmtol']/$log['sto_num'], 2);
+                // 销售利润
+                $sale_profit = number_format($log['sale_total'] - $log['avg_storage_pice'] * $log['stol'], 2);
+                $data[] = [
+                   'goods_name' => $log['goods_name'],
+                   //'cate_name' => $log['cate_name'],
+                   'unit_name' => $log['unit_name'],
+                   'sto_num'  => $log['sto_num'],
+                   'sto_total'  => $log['gmtol'],
+                   'sale_num' => $log['stol'],
+                   'sale_total' => $log['sale_total'],
+                   'sale_profit' => $sale_profit
+               ];
+            }
+//            foreach ($goods_list as $goods)
+//            {
+//                $goods_id =  $goods['goods_id'];
+//                $goods_name = $goods['goods_name'];
+//                $unit_name = $goods['unit_name'];
+////                $cate_name = db('goods_cate')->where('cate_id', '=', $cate_id)->value('cate_name');
+//                $sale_db = db('goods_sale_log')->where('goods_id', '=', $goods_id);
+//                if (!$sman_type)
+//                {
+//                    $sale_db->where('sman_type', '=', $sman_type);
+//                }
+//                if (!empty($start_time) and !empty($end_time))
+//                {
+//                    $sale_db->whereBetweenTime('sale_time', $start_time, $end_time);
+//                }elseif ($time_type)
+//                {
+//                    if ($time_type == 1) {$sale_db->whereTime('sale_time', 'd');}
+//                    elseif ($time_type == 2) {$sale_db->whereTime('sale_time', 'm');}
+//                    elseif ($time_type == 3) {$sale_db->whereTime('sale_time', 'y');}
+//                }
+//                // 销售总额
+//                $sale_total_money = $sale_db->sum('pay_amount');
+//                // 销售数量
+//                $sale_num = $sale_db->sum('sale_num');
+//                // 入库总额
+//                $sto_total_money = db('goods_storage')->where('goods_id', '=', $goods_id)
+//                    ->sum('sto_num*sto_single_price');
+//                // 入库数量
+//                $sto_num = db('goods_storage')->where('goods_id', '=', $goods_id)
+//                    ->sum('sto_num');
+//                // 入库平均单价
+//                $sto_single_price = $sto_total_money / $sto_num;
+//                // 销售利润
+//                $sale_profit = $sale_total_money - $sto_single_price * $sale_num;
+//
+//                $data[] = [
+//                    'goods_name' => $goods_name,
+////                    'cate_name' => $cate_name,
+//                    'unit_name' => $unit_name,
+////                    '$sale_total' => $sale_total_money,
+//                    'sto_num'  => $sto_num,
+//                    'sto_total'  => $sto_total_money,
+//
+//                    'sale_num' => $sale_num,
+//                    'sale_total' => $sale_total_money,
+//
+//                    'sale_profit' => $sale_profit
+//                ];
+//            }
             $xls_name  = "销售统计表";
             $xls_cell = array(
                 array('goods_name', '商品名称'),
@@ -1390,14 +1433,6 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 array('sale_profit', '销售利润'),
             );
             $this->exportExcel($xls_name, $xls_cell, $data);
-//            $response = [
-//                'current_page' => $page,
-//                'per_page' => $limit,
-//                'last_page' => (count($data) / $limit) +1,
-//                'total' => count($data),
-//                'data' => array_slice($data, ($page-1)*$limit, $limit)
-//            ];
-//            $this->returnData($response, '请求成功');
         }catch (Exception $e)
         {
             $this->returnError(50000, '系统异常' . $e->getMessage());
