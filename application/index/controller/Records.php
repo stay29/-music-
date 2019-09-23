@@ -713,12 +713,11 @@ class Records extends BaseController
             $where[] = ['cate_id', '=', $cate_id];
         }
         $goods_list = db('goods_detail')->where($where)->order('create_time DESC')->column('goods_id');
-        
         try{
                 $sale_db = db('goods_sale_log')->alias('gs');
                 $sale_db->where('gs.goods_id', 'in', $goods_list);
                 $where = [['goods_id', 'in', $goods_list]];
-                if (!$sman_type)
+                if (!empty($sman_type))
                 {
                     $sale_db->where('sman_type', '=', $sman_type);
                 }
@@ -731,6 +730,7 @@ class Records extends BaseController
                     elseif ($time_type == 2) {$sale_db->whereTime('sale_time', 'm');}
                     elseif ($time_type == 3) {$sale_db->whereTime('sale_time', 'y');}
                 }
+
                 static $total_amount = 0.00;
                 static $total_profit = 0.00;
                 $sale_logs =  $sale_db->field('gs.goods_id, ed.unit_name, gc.cate_name, ed.goods_name, COALESCE(sum(gs.sale_num),0) as stol, COALESCE(sum(gs.pay_amount),0) as sale_total, 
@@ -811,7 +811,7 @@ class Records extends BaseController
                 'total' => $sale_logs->total(),
                 'total_amount' => $total_amount,
                 'total_profit' => $total_profit,
-                'data' => ($sale_logs->total() > 0 )? $sale_logs->items(): ''
+                'data' => ($sale_logs->total() > 0)? $sale_logs->items(): ''
             ];
             $this->returnData($response, '请求成功');
         }catch (Exception $e)
