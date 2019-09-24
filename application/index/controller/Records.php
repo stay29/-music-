@@ -487,9 +487,9 @@ class Records extends BaseController
                 'rent_margin' => $rent_margin,
                 'prepaid_rent' => $prepaid_rent,
                 'end_time' => $end_time,
-                'remarks' => $remarks
+                'remark' => $remarks
             ];
-            db('goods_rental_log')->where('rent_id')->update($data);
+            db('goods_rental_log')->where('rent_id', '=', $rent_id)->update($data);
             $this->returnData('', '修改成功');
         }catch (Exception $e)
         {
