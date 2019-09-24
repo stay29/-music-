@@ -221,7 +221,7 @@ class Records extends BaseController
             # 前端参数１是全部，数据库存储状态１是在租
             if ($status and $status!=1) {$table->where('grent.status', '=', $status-1);}
             if (!empty($start_time) and !empty($end_time)) {$table = $table->whereBetweenTime('grent.create_time',  $start_time,  $end_time);}
-            $table->group('grent.goods_id');
+            $table->group('grent.goods_id, grent.rent_obj_id');
             $table->order('grent.create_time DESC');
             $total_margin = $table->sum('rent_margin'); // 总押金
             $total_amount = $table->sum('rent_amount');  // 总租金
@@ -230,8 +230,8 @@ class Records extends BaseController
             $rent_logs = $table->leftJoin('erp2_goods_detail gd', 'gd.goods_id=grent.goods_id')
                                 ->leftJoin('erp2_students stu', 'stu.stu_id = grent.rent_obj_id')
                                 ->paginate($limit, false, ['page' => $page])
-                                ->each(function($log, $lk) use ($rent_type_amount_arr){
-                                    unset($log['remark']);
+                                ->each(function($log, $lk) use ($rent_type_amount_arr, $status_arr){
+                                    unset($log['remarks']);
                                     $rent_obj_name = '其他';
                                     if ($log['rent_obj_type'] == 1){
                                         $rent_obj_name = $log['truename'];
@@ -244,6 +244,7 @@ class Records extends BaseController
                                     {
                                         $log['status'] = 2;
                                     }
+                                    $log['status_text'] = $status_arr[$log['status']];
                                     return $log;
                                 });
             $data = [
