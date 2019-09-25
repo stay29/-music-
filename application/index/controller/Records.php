@@ -291,12 +291,12 @@ class Records extends BaseController
             $ren_db = db('goods_rent_log')->alias('grent')->field('grent.*, gd.goods_name');
             $ren_db->where('grent.record_id', '=', $record_id);
             $rw = [];
-            if(!empty($start_time)){$rw[] = ['record.start_time', '>=', $start_time];}
-            if(!empty($end_time)){$rw[] = ['record.end_time', '<=',  $end_time];}
-            $rent_logs = $ren_db->leftJoin('erp2_goods_detail gd', 'record.goods_id=gd.goods_id')
-                    ->leftJoin('erp2_goods_rent_record record', 'grent.record_id=record.record_id')
+            if(!empty($start_time)){$rw[] = ['rec.start_time', '>=', $start_time];}
+            if(!empty($end_time)){$rw[] = ['rec.end_time', '<=',  $end_time];}
+            $rent_logs = $ren_db->leftJoin('erp2_goods_detail gd', 'rec.goods_id=gd.goods_id')
+                    ->leftJoin('erp2_goods_rent_record rec', 'grent.record_id=rec.record_id')
                     ->where($rw)
-                    ->order('update_time asc')
+                    ->order('grent.update_time asc')
                     ->paginate($limit, false, ['page' => $page])
                     ->each(function($log, $lk) {
                         // 每天费用
