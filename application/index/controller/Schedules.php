@@ -163,6 +163,8 @@ class Schedules extends BaseController
         $start_time=input('post.start_time');
         $end_time=input('post.end_time');
         $map['a.t_id']=input('post.t_id');
+        $map['d.subject']=input('post.subject');
+        $map['d.cur_id']=input('post.cur_id');
         $data= Schedule::where($map)->alias('a')
             ->join('erp2_teachers b','a.t_id=b.t_id')
             ->join('erp2_students c','a.stu_id=c.stu_id')
