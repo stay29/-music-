@@ -241,6 +241,7 @@ class Records extends BaseController
                                     if ($log['obj_type'] == 1){
                                         $rent_obj_name = $log['truename'];
                                     }
+                                    $log['rent_obj_name'] = $rent_obj_name;
                                     //每日/月/年租金
                                     $rent_type_money = $log[$rent_type_amount_arr[$log['count_type']]];
                                     $log['rent_type_money'] = $rent_type_money;
