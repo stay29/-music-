@@ -3,6 +3,7 @@ namespace app\index\controller;
 use think\Controller;
 use think\Exception;
 use app\index\model\Curriculums;
+use think\facade\Request;
 
 /*               真米如初
                  _oo0oo_
@@ -45,7 +46,7 @@ class Currm extends BaseController
         $subject = input('subject');
         $tmethods = input('tmethods');
         $status = input('status');
-        $orgid  = input('orgid');
+        $orgid  = Request::instance()->header()['orgid'];  //从header里面拿orgid
         if(!$orgid){
             $orgid = ret_session_name('orgid');
         }
@@ -66,6 +67,7 @@ class Currm extends BaseController
         $where[] = ["orgid",'=',"$orgid"];
         try{
         $res = Curriculums::getall($limit,$where);
+
 //        $this->return_data(1,0,$res);
         $this->returnData($res, '请求成功');
         }catch (\Exception $e){
