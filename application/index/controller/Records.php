@@ -436,7 +436,7 @@ class Records extends BaseController
             $rent_num = $record['rent_num'];
             $goods_id = $record['goods_id'];
             db('goods_sku')->where('goods_id', '=', $goods_id)->setInc('sku_num', $rent_num);
-            $record->delete();
+            db('goods_rent_record')->where('record_id', '=', $record_id)->delete();
             db('goods_rent_log')->where('record_id', '=', $record_id)->delete();
             $this->returnData('', '删除成功');
         }catch (Exception $e)
