@@ -293,8 +293,9 @@ class Records extends BaseController
             $rw = [];
             if(!empty($start_time)){$rw[] = ['rec.start_time', '>=', $start_time];}
             if(!empty($end_time)){$rw[] = ['rec.end_time', '<=',  $end_time];}
-            $rent_logs = $ren_db->leftJoin('erp2_goods_detail gd', 'rec.goods_id=gd.goods_id')
+            $rent_logs = $ren_db
                     ->leftJoin('erp2_goods_rent_record rec', 'grent.record_id=rec.record_id')
+                    ->leftJoin('erp2_goods_detail gd', 'gd.goods_id=rec.goods_id')
                     ->where($rw)
                     ->order('grent.update_time asc')
                     ->paginate($limit, false, ['page' => $page])
