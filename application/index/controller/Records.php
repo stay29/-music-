@@ -183,14 +183,14 @@ class Records extends BaseController
             f)	已收租金：当前筛选条件下的租赁记录信息中已实收租金之和
          */
         $this->auth_get_token();
-        $status_arr = [1=>'在租', 2=>'超期', 3=>'已归还']; // 租凭状态对应状态
+        $status_arr = [1=>'在租', 2=>'超期', 0=>'已归还']; // 租凭状态对应状态
         $rent_type_arr = [0=>'', 1=>'日', 2=>'月', 3=>'年'];       // 租凭方式对应含义
         $rent_type_amount_arr = [0=>'', 1=>'rent_amount_day', 2=>'rent_amount_mon', 3=>'rent_amount_year'];
         $org_id = input('orgid/d', '');
         $start_time = input('start_time/d', '');
         $end_time = input('end_time/d', '');
         $key = input('key/s', '');  // 租客姓名/商品名称
-        $status = input('status/d', 1); // 1 全部， 2在租， 3超期， 4已归还。
+        $status = input('status/d', ''); // 0 全部， 1未归还， 2已归还。
         $page = input('page/d', 1);
         $limit = input('limit/d', 20);
         if (empty($org_id))
@@ -214,37 +214,42 @@ class Records extends BaseController
             $rent_obj_id = $studb->column('stu_id');
             $goods_id = $gsdb->column('goods_id');
             # 租赁记录表
-            $table = db('goods_rental_log')->alias('grent')->field("grent.*, gd.goods_name, stu.truename, gd.rent_amount_day, gd.rent_amount_mon, gd.rent_amount_year");
+            $table = db('goods_rent_record')->alias('record')->field("record.*, gd.goods_name, stu.stu_id, stu.truename, gd.rent_amount_day, gd.rent_amount_mon, gd.rent_amount_year");
 
-            if ($goods_id) {$table->where('grent.goods_id', 'in', $goods_id);}
-            if ($rent_obj_id) {$table->where('grent.rent_obj_id', 'in', $rent_obj_id);}
+            if ($goods_id) {$table->whereOr('record.goods_id', 'in', $goods_id);}
+            if ($rent_obj_id) {$table->whereOr('record.stu_id', 'in', $rent_obj_id);}
             # 前端参数１是全部，数据库存储状态１是在租
-            if ($status and $status!=1) {$table->where('grent.status', '=', $status-1);}
-            if (!empty($start_time) and !empty($end_time)) {$table = $table->whereBetweenTime('grent.create_time',  $start_time,  $end_time);}
-            $table->group('grent.goods_id, grent.rent_obj_id');
-            $table->order('grent.create_time DESC');
+            if (!empty($status)) 
+            { 
+                if($status === 2){
+                   $table->where('record.status', '=', 0); 
+                }else{
+                   $table->where('record.status', '=', 1);
+                }
+            }
+            if (!empty($start_time) and !empty($end_time)) {$table->whereBetweenTime('record.create_time',  $start_time,  $end_time);}
+            $table->order('record.update_time DESC');
             $total_margin = $table->sum('rent_margin'); // 总押金
             $total_amount = $table->sum('rent_amount');  // 总租金
             $total_prepaid_rent = $table->sum('prepaid_rent');  // 总预收租金
                
-            $rent_logs = $table->leftJoin('erp2_goods_detail gd', 'gd.goods_id=grent.goods_id')
-                                ->leftJoin('erp2_students stu', 'stu.stu_id = grent.rent_obj_id')
+            $rent_logs = $table->leftJoin('erp2_goods_detail gd', 'gd.goods_id=record.goods_id')
+                                ->leftJoin('erp2_students stu', 'stu.stu_id = record.stu_id')
                                 ->paginate($limit, false, ['page' => $page])
                                 ->each(function($log, $lk) use ($rent_type_amount_arr, $status_arr){
-                                    unset($log['remarks']);
                                     $rent_obj_name = '其他';
-                                    if ($log['rent_obj_type'] == 1){
+                                    if ($log['obj_type'] == 1){
                                         $rent_obj_name = $log['truename'];
                                     }
                                     //每日/月/年租金
-                                    $rent_type_money = $log[$rent_type_amount_arr[$log['rent_type']]];
+                                    $rent_type_money = $log[$rent_type_amount_arr[$log['count_type']]];
                                     $log['rent_type_money'] = $rent_type_money;
                                     
-                                    if (time() > $log['end_time'] and $log['status'] != 3) // 超时未归还
+                                    if (time() > $log['end_time'] and intval($log['status']) !== 0) // 超时未归还
                                     {
                                         $log['status'] = 2;
                                     }
-                                    $log['status_text'] = $status_arr[$log['status']];
+                                    $log['status_text'] = $status_arr[intval($log['status'])];
                                     return $log;
                                 });
             $data = [
@@ -260,63 +265,6 @@ class Records extends BaseController
                 'data' => $data
             ];
 //            dump($data);die;
-//            $logs = $table->order('create_time DESC')->select();   //
-//            foreach ($logs as $log) {
-//                $g_id = $log['goods_id'];
-//                $rent_id = $log['rent_id'];
-//                $rent_obj_type = $log['rent_obj_type'];
-//                $rent_obj_id = $log['rent_obj_id'];
-//                $goods_name = db('goods_detail')->where('goods_id', '=', $g_id)->value('goods_name');
-//                $rent_obj_name = '其他';
-//                if ($rent_obj_type == 1)  // 1是学生， 2是其他对象
-//                {
-//                    $rent_obj_name = db('students')->where('stu_id', '=', $rent_obj_id)
-//                        ->value('truename');
-//                }
-//                $rent_num = $log['rent_num'];
-//                $start_time = $log['start_time'];
-//                $end_time = $log['end_time'];
-//                $rent_type = $rent_type_arr[$log['rent_type']]; // 租借方式
-//                $rent_type_money = db('goods_detail')->      // 租借方式
-//                                        where('goods_id', '=', $g_id)->
-//                                        value($rent_type_amount_arr[$log['rent_type']]);
-//                $rent_amount = $log['rent_amount'];  // 租金金额
-//                $prepaid_rent = $log['prepaid_rent']; // 预付租金
-//                $status = $log['status'];
-//                if (time() > $log['end_time'] and $status != 3) // 超时未归还
-//                {
-//                    $status = 2;
-//                }
-//                $status_text = $status_arr[$status];    // 租凭状态对应文字
-//                $remarks = $log['remarks'];
-//                $data['records'][] = [
-//                    'rent_id' => $rent_id,  // 租借记录id
-//                    'goods_name' => $goods_name,
-//                    'rent_margin' => $log['rent_margin'],
-//                    'rent_code' => $log['rent_code'], // 租借单号
-//                    'rent_obj_name' => $rent_obj_name, // 租借对象姓名
-//                    'rent_obj_id'   => $rent_obj_id,    // 租借对象id
-//                    'rent_obj_type' => $rent_obj_type,  // 租借对象类型1学生, 其他
-//                    'rent_num'  => $rent_num,   // 租借数量
-//                    'start_time' => $start_time,    // 租借开始时间
-//                    'end_time'  => $end_time,   // 租借结束时间
-//                    'rent_type' => $rent_type,  // 租借类型
-//                    'rent_type_money' => $rent_type_money,  // 租借类型对应租金
-//                    'rent_amount' => $rent_amount,  // 租金
-//                    'prepaid_rent' => $prepaid_rent,    // 预付租金
-//                    'status' => $status,    // 租借状态
-//                    'status_text' => $status_text,
-//                    'remarks' => $remarks,
-//                    'pay_id' => $log['pay_id'], // 支付方式
-//                ];
-//            }
-//            $response = [
-//                'last_page' => intval(count($data['records']) / $limit) + 1,
-//                'per_page' => $limit,
-//                'total' => count($data['records']),
-//                'data' => $data
-//            ];
-//            $response['data']['records'] = array_slice($data['records'], ($page-1)*$limit, $limit);
             $this->returnData($response, '请求成功');
         }catch (Exception $e)
         {
@@ -330,33 +278,31 @@ class Records extends BaseController
     public function rental_detail()
     {
         $this->auth_get_token();
-        $goods_id = input('goods_id/d', '');
+        $record_id = input('rent_id/d', '');
         $start_time = input('start_time/d', '');
         $end_time = input('end_time/d', '');
         $page = input('page/d', 1);
         $limit = input('limit/d', 20);
-        if (is_empty($goods_id)) {
+        if (is_empty($record_id)) {
             $this->returnData(10000, '缺少参数');
         }
         try
         {
-            $ren_db = db('goods_rental_log')->alias('grent')->field('grent.*, gd.goods_name, stu.truename');
-            $ren_db->where('grent.goods_id', '=', $goods_id);
-            $rent_logs = $ren_db->leftJoin('erp2_goods_detail gd', 'grent.goods_id=gd.goods_id')
-                    ->leftJoin('erp2_students stu', 'grent.rent_obj_id=stu.stu_id')
+            $ren_db = db('goods_rent_log')->alias('grent')->field('grent.*, gd.goods_name');
+            $ren_db->where('grent.record_id', '=', $record_id);
+            if(!empty($start_time)){$ren_db->whereTime('start_time', '>=', $start_time);}
+            if(!empty($end_time)){$ren_db->whereTime('end_time', '<=',  $end_time);}
+            $rent_logs = $ren_db->leftJoin('erp2_goods_detail gd', 'record.goods_id=gd.goods_id')
+                    ->leftJoin('erp2_rent_record record', 'grent.record_id=record.record_id')
+                    ->order('update_time asc')
                     ->paginate($limit, false, ['page' => $page])
                     ->each(function($log, $lk) {
-                        unset($log['remark']);
-                        $log['rent_obj_name'] = '其他';
-                        if ($log['rent_obj_type'] == 1){
-                            $log['rent_obj_name'] = $log['truename'];
-                        }
                         // 每天费用
-                        $rent_amount_day = $this->get_amount_of_day($log['rent_type'], $log['goods_id']);
-                        $interval_time = timediff($log['start_time'], time());
-                        $pay_amount = $rent_amount_day * $interval_time['day']; // 实际租金
-                        $refund_amount = $log['prepaid_rent'] + $log['rent_margin'] - $pay_amount; 
-                        $log['refund_amount'] = $refund_amount;
+//                        $rent_amount_day = $this->get_amount_of_day($log['rent_type'], $log['goods_id']);
+//                        $interval_time = timediff($log['start_time'], time());
+//                        $pay_amount = $rent_amount_day * $interval_time['day']; // 实际租金
+//                        $refund_amount = $log['prepaid_rent'] + $log['rent_margin'] - $pay_amount; 
+//                        $log['refund_amount'] = $refund_amount;
                         return $log;
                     });
             $response = [
@@ -365,33 +311,6 @@ class Records extends BaseController
                 'total' => $rent_logs->total(),
                 'data' => $rent_logs->items()
             ];
-//            $goods_name = db('goods_detail')->
-//                where('goods_id', '=', $log['goods_id'])->value('goods_name');
-//            $rent_obj_name = '其他';
-//            if ($log['rent_obj_type'] == 1)
-//            {
-//                $rent_obj_name = db('students', '=', $log['rent_obj_id'])->value('truename');
-//            }
-//            // 每天费用
-//            $rent_amount_day = $this->get_amount_of_day($log['rent_type'], $log['goods_id']);
-//            $interval_time = timediff($log['start_time'], time());
-//            $pay_amount = $rent_amount_day * $interval_time['day']; // 实际租金
-//            $refund_amount = $log['prepaid_rent'] + $log['rent_margin'] - $pay_amount;
-//            $data = [
-//                'rent_id' => $log['rent_id'],
-//                'goods_name' => $goods_name, // 商品名称
-//                'rent_num' => $log['rent_num'], // 租借数量
-//                'rent_type' => $log['rent_type'], // 租借类型
-//                'rent_margin' => $log['rent_margin'], // 租凭押金
-//                'rent_obj_name' => $rent_obj_name,
-//                'prepaid_rent' => $log['prepaid_rent'], // 预付租金
-//                'start_time'    => $log['start_time'],
-//                'end_time'  => $log['end_time'],    // 结束时间
-//                'remarks'   => $log['remarks'],     // 备注
-//                'pay_id'    => $log['pay_id'],      // 支付方式id
-//                'pay_amount' => $pay_amount,  // 实际付款
-//                'refund_amount' => $refund_amount, // 实际退款
-//            ];
             $this->returnData($response, '请求成功');
         }catch (Exception $e)
         {
@@ -401,7 +320,7 @@ class Records extends BaseController
 
 
     /*
-     * 租赁归还
+     * 租赁归还 TODO
      */
     public function rental_recover()
     {
@@ -436,7 +355,7 @@ class Records extends BaseController
     }
 
     /*
-     * 续租页面数据
+     * 续租页面数据  todo
      */
     public function rerent_detail()
     {
@@ -453,7 +372,7 @@ class Records extends BaseController
     }
 
     /*
-     * 续租提交
+     * 续租提交 TODO
      */
     public function rerent_edit()
     {
@@ -472,12 +391,12 @@ class Records extends BaseController
     public function rental_edit()
     {
         $this->auth_get_token();
-        $rent_id = input('rent_id/d', ''); // 租借记录id
+        $record_id = input('record_id/d', ''); // 租借记录id
         $rent_margin = input('rent_margin/f', '');  // 租金押金
         $prepaid_rent = input('prepaid_rent/f', ''); // 预付租金
         $end_time = input('end_time/d', '');
-        $remarks = input('remark');
-        if (is_empty($rent_id, $rent_margin, $prepaid_rent))
+        $remark = input('remark');
+        if (is_empty($record_id, $rent_margin, $prepaid_rent))
         {
             $this->returnError(10000, '缺少参数');
         }
@@ -485,11 +404,14 @@ class Records extends BaseController
         {
             $data = [
                 'rent_margin' => $rent_margin,
-                'prepaid_rent' => $prepaid_rent,
+                'prepay' => $prepaid_rent,
                 'end_time' => $end_time,
-                'remark' => $remarks
+                'remark' => $remark
             ];
-            db('goods_rental_log')->where('rent_id', '=', $rent_id)->update($data);
+            $ures = db('goods_rent_record')->where([['record_id', '=', $record_id], ['status', '=', '1']])->update($data);
+            if($ures !== false){
+                db('goods_rent_log')->where([['record_id', '=', $record_id], ['status', '=', '1']])->update($data);
+            }
             $this->returnData('', '修改成功');
         }catch (Exception $e)
         {
@@ -503,14 +425,19 @@ class Records extends BaseController
     public function rental_del()
     {
         $this->auth_get_token();
-        $rent_id = input('rent_id/d', '');
-        if (is_empty($rent_id))
+        $record_id = input('rent_id/d', '');
+        if (is_empty($record_id))
         {
             $this->returnError(10000, '缺少参数');
         }
         try
         {
-            db('goods_rental_log')->where('rent_id', '=', $rent_id)->delete();
+            $record = db('goods_rent_record')->where('record_id', '=', $record_id)->find();
+            $rent_num = $record['rent_num'];
+            $goods_id = $record['goods_id'];
+            db('goods_sku')->where('goods_id', '=', $goods_id)->setInc('sku_num', $rent_num);
+            $record->delete();
+            db('goods_rent_log')->where('record_id', '=', $record_id)->delete();
             $this->returnData('', '删除成功');
         }catch (Exception $e)
         {

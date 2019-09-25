@@ -915,25 +915,40 @@ class Goods extends BaseController
             $sku_num -= $rent_num;
             Db::name('goods_sku')->where('goods_id', '=', $goods_id)->
                 update(['sku_num'=>$sku_num]);
-            $data = [
+            $record_data = [
                 'goods_id' => $goods_id,
                 'rent_code' => $rent_code,
                 'rent_margin' => $rent_margin,
                 'rent_type' => $rent_type,
                 'rent_amount' => $rent_amount,
                 'rent_num' => $rent_num,
-                'prepaid_rent' => $prepaid_rent,
-                'rent_obj_type' => $rent_obj_type,
-                'rent_obj_id' => $rent_obj_id,
+                'prepay' => $prepaid_rent,
+                'obj_type' => $rent_obj_type,
+                'stu_id' => $rent_obj_id,
                 'start_time' => $start_time,
                 'end_time' => $end_time,
-                'pay_id' => $pay_id,
                 'remark' => $remark,
                 'create_time' => $create_time,
                 'update_time' => $update_time,
                 'status' => 1
             ];
-            Db::name('goods_rental_log')->insert($data);
+            $record_id = Db::name('goods_rent_record')->insertGetId($record_data);
+            if($record_id){
+                $log_data = [
+                    'rent_margin' => $rent_margin,
+                    'rent_amount' => $rent_amount,
+                    'prepay' => $prepaid_rent,
+                    'start_time' => $start_time,
+                    'end_time' => $end_time,
+                    'record_id' => $record_id,
+                    'pay_id' => $pay_id,
+                    'manager' => ret_session_name('uid'),
+                    'update_time' => $update_time,
+                    'remark' => $remark,
+                    'status' => 1
+                ];
+                db('goods_rent_log')->insert($log_data);
+            }
             $this->returnData(1, '租凭成功');
         }catch (Exception $e)
         {
