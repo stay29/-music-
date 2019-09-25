@@ -44,9 +44,9 @@ class Curriculums extends Model
             ->each(function ($item, $key){
             $where1['sid'] = $item['subject'];
             $item['subject'] = db('subjects')->field('sid,sname,pid')->where($where1)->find();
-            $tqualific = explode('/',$item['tqualific']);
-            $item['ordinary_tqualific'] = $tqualific[0];
-            $item['senior_tqualific'] = $tqualific[1];
+//            $tqualific = explode('/',$item['tqualific']);
+//            $item['ordinary_tqualific'] = $tqualific[0];
+//            $item['senior_tqualific'] = $tqualific[1];
         });
         return $list;
     }
