@@ -288,7 +288,7 @@ class Records extends BaseController
         }
         try
         {
-            $ren_db = db('goods_rent_log')->alias('grent')->field('grent.*, gd.goods_name');
+            $ren_db = db('goods_rent_log')->alias('grent')->field('grent.*, gd.goods_name, us.nickname');
             $ren_db->where('grent.record_id', '=', $record_id);
             $rw = [];
             if(!empty($start_time)){$rw[] = ['rec.start_time', '>=', $start_time];}
@@ -296,10 +296,12 @@ class Records extends BaseController
             $rent_logs = $ren_db
                     ->leftJoin('erp2_goods_rent_record rec', 'grent.record_id=rec.record_id')
                     ->leftJoin('erp2_goods_detail gd', 'gd.goods_id=rec.goods_id')
+                    ->leftJoin('erp2_users us', 'grent.manager=us.uid')
                     ->where($rw)
                     ->order('grent.update_time asc')
                     ->paginate($limit, false, ['page' => $page])
                     ->each(function($log, $lk) {
+                        $log['manager'] = $log['nickname'];
                         // 每天费用
 //                        $rent_amount_day = $this->get_amount_of_day($log['rent_type'], $log['goods_id']);
 //                        $interval_time = timediff($log['start_time'], time());
@@ -329,25 +331,31 @@ class Records extends BaseController
     {
         $this->auth_get_token();
         $pay_amount = input('pay_amount/f', ''); // 实际租金
-        $refund_amount = input('refund_amount/f', ''); // 实退金额
+        //$refund_amount = input('refund_amount/f', ''); // 实退金额
         $pay_id = input('pay_id/d', '');    // 支付方式
-        $return_time = input('return_time/d', '');
+        //$return_time = input('return_time/d', '');
         $record_id = input('record_id/d', '');
 
-        if (is_empty($pay_amount, $refund_amount, $pay_id, $return_time, $rent_id))
+        if (is_empty($pay_amount, $pay_id, $record_id))
         {
             $this->returnError(10000, '缺少参数');
         }
         Db::startTrans();
         try
         {
-            Db::name('goods_rental_log')->where('rent_id', '=', $rent_id)->update(['status' => 1]);
+            $record = Db::name('goods_rent_record')->where('record_id', '=', $record_id)->find();
+            $rent_num = $record['rent_num'];
+            $margin = $record['rent_margin'];
+            $prepay = $record['prepay'];
+            Db::name('goods_rent_record')->where('record_id', '=', $record_id)->update(['status'=>0, 'rent_margin'=>0, 'prepay'=>0]);
+            db('goods_rent_log')->where('record_id', '=', $record_id)->update(['status'=>0, 'rent_margin'=>0, 'prepay'=>0]);
+            db('goods_sku')->where('goods_id', '=', $goods_id)->setInc('sku_num', $rent_num);
             $data = [
                 'pay_amount' => $pay_amount,
-                'refund_amount' => $refund_amount,
+                'refund_amount' => intval($margin+$prepay-$pay_amount)>0 ?: 0,
                 'pay_id'    => $pay_id,
-                'return_time'   => $return_time,
-                'rent_id'   => $rent_id
+                'return_time'   => time(),
+                'rent_id'   => $record_id
             ];
             Db::name('goods_refund_log')->insert($data);
             $this->returnData(true, '请求成功');
@@ -377,14 +385,57 @@ class Records extends BaseController
     /*
      * 续租提交 TODO
      */
-    public function rerent_edit()
+    public function rerent_submit()
     {
         $this->auth_get_token();
         $record_id = input('record_id/d', '');
-        if (is_empty($rent_id))
+        $rent_margin = input('rent_margin/f', '');  // 租金押金
+        $prepay = input('prepay/f', ''); // 预付租金
+        $end_time = input('end_time/d', '');
+        $pay_id = input('pay_id/d', '');
+        $remark = input('remark', '');
+        if (is_empty($record_id, $rent_margin, $prepay, $end_time))
         {
             $this->returnError(10000, '缺少参数');
         }
+        $record = db('goods_rent_record')->where('record_id', '=', $record_id)->find();
+        if(!$record){
+            $this->returnError(10000, '数据有误');
+        }
+        $re_end = $record['end_time'];
+        $re_margin = $record['rent_margin'];
+        $re_prepay = $record['prepay'];
+        if($end_time <= $re_end){
+            $this->returnError(10001, '续租时间不能比结束时间早');
+        }
+        if($rent_margin < 0 || $prepay < 0){
+            $this->returnError(10002, '请输入正确的数字');
+        }
+        $data = [
+            'end_time' => $end_time,
+            'rent_margin' => $re_margin + $rent_margin,
+            'prepay' => $re_prepay + $prepay,
+            'remark' => $remark,
+            'update_time' => time()
+        ];
+        try{
+            db('goods_rent_record')->where([['status', '=', 1], ['record_id', '=', $record_id]])->update($data);
+            $old = db('goods_rent_log')->where([['status', '=', 1], ['record_id', '=', $record_id]])->find();
+            db('goods_rent_log')->where([['status', '=', 1], ['record_id', '=', $record_id]])->update(['status' => 0]);
+            $new_data = $data;
+            $new_data['record_id'] = $record_id;
+            $new_data['start_time'] = $old['end_time'];
+            $new_data['pay_id'] = $pay_id;
+            $new_data['manager'] = ret_session_name('uid');
+            $new_data['status'] = 1;
+            db('goods_rent_log')->insert($new_data);
+            
+            $this->returnData(true, '续租成功');
+            
+        } catch (Exception $e){
+            $this->returnError(50000, '系统出错' . $e->getMessage());
+        }
+        
     }
 
 
@@ -398,7 +449,7 @@ class Records extends BaseController
         $rent_margin = input('rent_margin/f', '');  // 租金押金
         $prepaid_rent = input('prepay/f', ''); // 预付租金
         $end_time = input('end_time/d', '');
-        $remark = input('remark');
+        $remark = input('remark', '');
         if (is_empty($record_id, $rent_margin, $prepaid_rent))
         {
             $this->returnError(10000, '缺少参数');
