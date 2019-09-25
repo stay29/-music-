@@ -1036,8 +1036,8 @@ class Teacher extends BaseController
      */
     public function get_teacher_by_course(){
         $or_id= Request::instance()->header()['orgid'];  //从header里面拿orgid
-        $cur_id=input('post.cur_id');
-        $subject=input('post.subject');
+        $cur_id=input('cur_id');
+        $subject=input('subject');
         $map['b.org_id']=$or_id;
         if($cur_id!=null)
         $map['c.cur_id']=$cur_id;
