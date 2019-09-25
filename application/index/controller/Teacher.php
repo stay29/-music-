@@ -13,6 +13,7 @@ use think\Controller;
 use think\Db;
 use think\db\Where;
 use think\Exception;
+use think\facade\Request;
 use think\helper\Str;
 use think\facade\Log;
 
@@ -1031,11 +1032,22 @@ class Teacher extends BaseController
         $this->returnData( $data, '请求成功');
     }
     /**
-     * 根据课程获取老师列表
+     * 根据科目课程获取老师列表
      */
     public function get_teacher_by_course(){
+        $or_id= Request::instance()->header()['orgid'];  //从header里面拿orgid
         $cur_id=input('post.cur_id');
-        $data=Db::name('cur_teacher_relations')->alias('a')->field('a.t_id,b.t_name, b.cellphone')->where('cur_id', '=', $cur_id)->join('erp2_teachers b','a.t_id=b.t_id')->select();
+        $subject=input('post.subject');
+        $map['b.org_id']=$or_id;
+        if($cur_id!=null)
+        $map['c.cur_id']=$cur_id;
+        if($subject!=null)
+        $map['subject']=$subject;
+        $data=Db::name('teachers')->alias('b')->field('a.t_id,b.t_name, b.cellphone')
+            ->where($map)
+            ->join('cur_teacher_relations a','a.t_id=b.t_id')
+            ->join('curriculums c','a.cur_id=c.cur_id')
+            ->select();
         return $this->returnData($data,'');
     }
 }
