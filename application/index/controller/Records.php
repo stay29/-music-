@@ -278,7 +278,7 @@ class Records extends BaseController
     public function rental_detail()
     {
         $this->auth_get_token();
-        $record_id = input('rent_id/d', '');
+        $record_id = input('record_id/d', '');
         $start_time = input('start_time/d', '');
         $end_time = input('end_time/d', '');
         $page = input('page/d', 1);
@@ -329,7 +329,7 @@ class Records extends BaseController
         $refund_amount = input('refund_amount/f', ''); // 实退金额
         $pay_id = input('pay_id/d', '');    // 支付方式
         $return_time = input('return_time/d', '');
-        $rent_id = input('rent_id/d', '');
+        $record_id = input('record_id/d', '');
 
         if (is_empty($pay_amount, $refund_amount, $pay_id, $return_time, $rent_id))
         {
@@ -363,7 +363,7 @@ class Records extends BaseController
          * 租客姓名、商品名称、租赁数量、计费方式、已交押金、已交租金、开始时间、结束时间、到期租金、租赁备注等，均只显示，不可修改，
          */
         $this->auth_get_token();
-        $rent_id = input('rent_id/d',  '缺少参数');
+        $record_id = input('record_id/d',  '缺少参数');
 
         if (is_empty($rent_id))
         {
@@ -377,7 +377,7 @@ class Records extends BaseController
     public function rerent_edit()
     {
         $this->auth_get_token();
-        $rent_id = input('rent_id/d', '');
+        $record_id = input('record_id/d', '');
         if (is_empty($rent_id))
         {
             $this->returnError(10000, '缺少参数');
@@ -393,7 +393,7 @@ class Records extends BaseController
         $this->auth_get_token();
         $record_id = input('record_id/d', ''); // 租借记录id
         $rent_margin = input('rent_margin/f', '');  // 租金押金
-        $prepaid_rent = input('prepaid_rent/f', ''); // 预付租金
+        $prepaid_rent = input('prepay/f', ''); // 预付租金
         $end_time = input('end_time/d', '');
         $remark = input('remark');
         if (is_empty($record_id, $rent_margin, $prepaid_rent))
@@ -425,7 +425,7 @@ class Records extends BaseController
     public function rental_del()
     {
         $this->auth_get_token();
-        $record_id = input('rent_id/d', '');
+        $record_id = input('record_id/d', '');
         if (is_empty($record_id))
         {
             $this->returnError(10000, '缺少参数');
