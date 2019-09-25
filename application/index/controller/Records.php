@@ -231,7 +231,7 @@ class Records extends BaseController
             $table->order('record.update_time DESC');
             $total_margin = $table->sum('rent_margin'); // 总押金
             $total_amount = $table->sum('rent_amount');  // 总租金
-            $total_prepaid_rent = $table->sum('prepaid_rent');  // 总预收租金
+            $total_prepaid_rent = $table->sum('prepay');  // 总预收租金
                
             $rent_logs = $table->leftJoin('erp2_goods_detail gd', 'gd.goods_id=record.goods_id')
                                 ->leftJoin('erp2_students stu', 'stu.stu_id = record.stu_id')
