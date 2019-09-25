@@ -290,8 +290,8 @@ class Records extends BaseController
         {
             $ren_db = db('goods_rent_log')->alias('grent')->field('grent.*, gd.goods_name');
             $ren_db->where('grent.record_id', '=', $record_id);
-            if(!empty($start_time)){$ren_db->whereTime('start_time', '>=', $start_time);}
-            if(!empty($end_time)){$ren_db->whereTime('end_time', '<=',  $end_time);}
+            if(!empty($start_time)){$ren_db->whereTime('record.start_time', '>=', $start_time);}
+            if(!empty($end_time)){$ren_db->whereTime('record.end_time', '<=',  $end_time);}
             $rent_logs = $ren_db->leftJoin('erp2_goods_detail gd', 'record.goods_id=gd.goods_id')
                     ->leftJoin('erp2_goods_rent_record record', 'grent.record_id=record.record_id')
                     ->order('update_time asc')
