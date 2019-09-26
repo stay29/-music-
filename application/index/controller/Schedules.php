@@ -160,11 +160,11 @@ class Schedules extends BaseController
     * 老师课表
     */
     public  function get_tea_schedules(){
-        $start_time=input('post.start_time');
-        $end_time=input('post.end_time');
-        $map['a.t_id']=input('post.t_id');
-        $map['d.subject']=input('post.subject');
-        $map['d.cur_id']=input('post.cur_id');
+        $start_time=input('start_time');
+        $end_time=input('end_time');
+        $map['a.t_id']=input('t_id');
+        $map['d.subject']=input('subject');
+        $map['d.cur_id']=input('cur_id');
         $data= Schedule::where($map)->alias('a')
             ->join('erp2_teachers b','a.t_id=b.t_id')
             ->join('erp2_students c','a.stu_id=c.stu_id')
@@ -183,9 +183,15 @@ class Schedules extends BaseController
         $or_id= Request::instance()->header()['orgid'];  //从header里面拿orgid
      $data=Purchase_Lessons::field('b.cur_id,b.cur_name')->alias('a')
          ->join('erp2_curriculums b','a.cur_id=b.cur_id')
-         ->where(['or_id'=>$or_id,'stu_id'=> input('post.stu_id')])
+         ->where(['or_id'=>$or_id,'stu_id'=> input('stu_id')])
          ->distinct(true)
          ->select();
      $this->returnData($data,"");
+    }
+    /**
+     * 获得今日课表
+     */
+    public function today_schedule(){
+
     }
 }

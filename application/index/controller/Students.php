@@ -2,6 +2,7 @@
 
 namespace app\index\controller;
 
+use app\index\model\Purchase_Lessons;
 use MongoDB\BSON\Decimal128;
 use function PHPSTORM_META\type;
 use think\Controller;
@@ -315,6 +316,8 @@ class Students extends BaseController
     {
         $this->auth_get_token();
         $orgid= \think\facade\Request::instance()->header()['orgid'];
+        $give_class=input('post.give_class/d', 0);
+        $class_hour=input('post.class_hour/d', '');
         $data = [
             'stu_id' => input('post.stu_id/d', ''),
             'uid'   => input('post.uid/d', ''),
@@ -324,8 +327,8 @@ class Students extends BaseController
             'single_price' => input('post.single_price/f', ''),
             'type'      => input('post.type/d', ''),
             'type_num'  => input('post.type_num/d', ''),
-            'give_class' => input('post.give_class/d', 0),
-            'class_hour' => input('post.class_hour/d', ''),
+            'give_class' => $give_class,
+            'class_hour' => $class_hour+$give_class,
             'original_price' => input('post.original/f', ''),
             'disc_price'   => input('post.disc_price/f', ''),
             'real_price'    => input('post.real_price/f', ''),
@@ -424,6 +427,14 @@ class Students extends BaseController
             Db::rollback();
             $this->return_data('0', '50000', '服务器错误');
         }
+    }
+
+    /**
+     * 学生购买课程列表
+     */
+    public function bug_schedule_list(){
+       $data=Purchase_Lessons::select();
+       $this->returnData($data,"");
     }
 
 }
