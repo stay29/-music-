@@ -167,16 +167,9 @@ class Teacher extends BaseController
                     'cur_id' => $v['cur_id'],
                     's_id' => $s_id
                 ];
-                $salary_id = db('teacher_salary_cur')->where(['s_id'=>$s_id, 'cur_id'=>$v['cur_id']])
-                    ->value('id');
-                if (empty($salary_id))
-                {
-                    Db::name('teacher_salary_cur')->insert($d);
-                }
-                else
-                {
-                    Db::name('teacher_salary_cur')->where('id', '=', $salary_id)->update($d);
-                }
+
+                Db::name('teacher_salary_cur')->insert($d, true);
+
                 unset($d);
             }
             Db::commit();
