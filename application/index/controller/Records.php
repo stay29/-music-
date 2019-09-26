@@ -353,6 +353,7 @@ class Records extends BaseController
             $rent_num = $record['rent_num'];
             $margin = $record['rent_margin'];
             $prepay = $record['prepay'];
+            $goods_id = $record['goods_id'];
             Db::name('goods_rent_record')->where('record_id', '=', $record_id)->update(['status'=>0, 'rent_margin'=>0, 'prepay'=>0, 'rent_amount' => $pay_amount, 'return_time' => $return_time, 'remark' => $remark]);
             db('goods_rent_log')->where([['record_id', '=', $record_id], ['status', '=', 1]])->update(['status'=>0, 'rent_margin'=>0, 'prepay'=>0, 'remark'=>$remark]);
             db('goods_sku')->where('goods_id', '=', $goods_id)->setInc('sku_num', $rent_num);
