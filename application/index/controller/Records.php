@@ -455,7 +455,7 @@ class Records extends BaseController
         $prepaid_rent = input('prepay/f', ''); // 预付租金
         $end_time = input('end_time/d', '');
         $remark = input('remark', '');
-        if (is_empty($record_id, $rent_margin, $prepaid_rent))
+        if (is_empty($record_id, $rent_margin, $prepaid_rent, $end_time))
         {
             $this->returnError(10000, '缺少参数');
         }
