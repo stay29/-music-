@@ -1043,10 +1043,12 @@ class Teacher extends BaseController
         $map['c.cur_id']=$cur_id;
         if($subject!=null)
         $map['subject']=$subject;
-        $data=Db::name('teachers')->alias('b')->field('a.t_id,b.t_name, b.cellphone')
-            ->where($map)
-            ->join('cur_teacher_relations a','a.t_id=b.t_id')
+        $data=Db::name('teachers')->alias('b')
+            ->field('b.t_id,b.t_name,b.cellphone')
+            ->join('cur_teacher_relations a','b.t_id=a.t_id')
             ->join('curriculums c','a.cur_id=c.cur_id')
+            ->distinct(true)
+            ->where($map)
             ->select();
         return $this->returnData($data,'');
     }
