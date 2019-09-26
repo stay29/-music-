@@ -2,6 +2,7 @@
 
 namespace app\index\controller;
 
+use app\index\model\Purchase_Lessons;
 use MongoDB\BSON\Decimal128;
 use function PHPSTORM_META\type;
 use think\Controller;
@@ -426,6 +427,14 @@ class Students extends BaseController
             Db::rollback();
             $this->return_data('0', '50000', '服务器错误');
         }
+    }
+
+    /**
+     * 学生购买课程列表
+     */
+    public function bug_schedule_list(){
+       $data=Purchase_Lessons::select();
+       $this->returnData($data,"");
     }
 
 }

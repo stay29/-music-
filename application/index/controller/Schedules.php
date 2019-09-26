@@ -160,11 +160,11 @@ class Schedules extends BaseController
     * 老师课表
     */
     public  function get_tea_schedules(){
-        $start_time=input('post.start_time');
-        $end_time=input('post.end_time');
-        $map['a.t_id']=input('post.t_id');
-        $map['d.subject']=input('post.subject');
-        $map['d.cur_id']=input('post.cur_id');
+        $start_time=input('start_time');
+        $end_time=input('end_time');
+        $map['a.t_id']=input('t_id');
+        $map['d.subject']=input('subject');
+        $map['d.cur_id']=input('cur_id');
         $data= Schedule::where($map)->alias('a')
             ->join('erp2_teachers b','a.t_id=b.t_id')
             ->join('erp2_students c','a.stu_id=c.stu_id')
