@@ -183,9 +183,15 @@ class Schedules extends BaseController
         $or_id= Request::instance()->header()['orgid'];  //从header里面拿orgid
      $data=Purchase_Lessons::field('b.cur_id,b.cur_name')->alias('a')
          ->join('erp2_curriculums b','a.cur_id=b.cur_id')
-         ->where(['or_id'=>$or_id,'stu_id'=> input('post.stu_id')])
+         ->where(['or_id'=>$or_id,'stu_id'=> input('stu_id')])
          ->distinct(true)
          ->select();
      $this->returnData($data,"");
+    }
+    /**
+     * 获得今日课表
+     */
+    public function today_schedule(){
+
     }
 }
