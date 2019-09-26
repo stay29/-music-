@@ -335,6 +335,7 @@ class Records extends BaseController
         //$refund_amount = input('refund_amount/f', ''); // 实退金额
         $pay_id = input('pay_id/d', '');    // 支付方式
         $return_time = input('return_time/d', '');
+        $remark = input('remark/s', '');
         $record_id = input('record_id/d', '');
 
         if (is_empty($pay_amount, $pay_id, $record_id, $return_time))
@@ -352,8 +353,8 @@ class Records extends BaseController
             $rent_num = $record['rent_num'];
             $margin = $record['rent_margin'];
             $prepay = $record['prepay'];
-            Db::name('goods_rent_record')->where('record_id', '=', $record_id)->update(['status'=>0, 'rent_margin'=>0, 'prepay'=>0, 'rent_amount' => $pay_amount, 'return_time' => $return_time]);
-            db('goods_rent_log')->where('record_id', '=', $record_id)->update(['status'=>0, 'rent_margin'=>0, 'prepay'=>0]);
+            Db::name('goods_rent_record')->where('record_id', '=', $record_id)->update(['status'=>0, 'rent_margin'=>0, 'prepay'=>0, 'rent_amount' => $pay_amount, 'return_time' => $return_time, 'remark' => $remark]);
+            db('goods_rent_log')->where([['record_id', '=', $record_id], ['status', '=', 1]])->update(['status'=>0, 'rent_margin'=>0, 'prepay'=>0, 'remark'=>$remark]);
             db('goods_sku')->where('goods_id', '=', $goods_id)->setInc('sku_num', $rent_num);
             $data = [
                 'pay_amount' => $pay_amount,
