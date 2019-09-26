@@ -241,6 +241,7 @@ class Records extends BaseController
                                     if ($log['obj_type'] == 1){
                                         $rent_obj_name = $log['truename'];
                                     }
+                                    $log['rent_obj_name'] = $rent_obj_name;
                                     //每日/月/年租金
                                     $rent_type_money = $log[$rent_type_amount_arr[$log['count_type']]];
                                     $log['rent_type_money'] = $rent_type_money;
@@ -333,12 +334,17 @@ class Records extends BaseController
         $pay_amount = input('pay_amount/f', ''); // 实际租金
         //$refund_amount = input('refund_amount/f', ''); // 实退金额
         $pay_id = input('pay_id/d', '');    // 支付方式
-        //$return_time = input('return_time/d', '');
+        $return_time = input('return_time/d', '');
+        $remark = input('remark/s', '');
         $record_id = input('record_id/d', '');
 
-        if (is_empty($pay_amount, $pay_id, $record_id))
+        if (is_empty($pay_amount, $pay_id, $record_id, $return_time))
         {
             $this->returnError(10000, '缺少参数');
+        }
+        if ($pay_amount < 0)
+        {
+            $this->returnError(10001, '请输入正确的金额');
         }
         Db::startTrans();
         try
@@ -347,8 +353,9 @@ class Records extends BaseController
             $rent_num = $record['rent_num'];
             $margin = $record['rent_margin'];
             $prepay = $record['prepay'];
-            Db::name('goods_rent_record')->where('record_id', '=', $record_id)->update(['status'=>0, 'rent_margin'=>0, 'prepay'=>0]);
-            db('goods_rent_log')->where('record_id', '=', $record_id)->update(['status'=>0, 'rent_margin'=>0, 'prepay'=>0]);
+            $goods_id = $record['goods_id'];
+            Db::name('goods_rent_record')->where('record_id', '=', $record_id)->update(['status'=>0, 'rent_margin'=>0, 'prepay'=>0, 'rent_amount' => $pay_amount, 'return_time' => $return_time, 'remark' => $remark]);
+            db('goods_rent_log')->where([['record_id', '=', $record_id], ['status', '=', 1]])->update(['status'=>0, 'rent_margin'=>0, 'prepay'=>0, 'remark'=>$remark]);
             db('goods_sku')->where('goods_id', '=', $goods_id)->setInc('sku_num', $rent_num);
             $data = [
                 'pay_amount' => $pay_amount,
@@ -394,7 +401,7 @@ class Records extends BaseController
         $end_time = input('end_time/d', '');
         $pay_id = input('pay_id/d', '');
         $remark = input('remark', '');
-        if (is_empty($record_id, $rent_margin, $prepay, $end_time))
+        if (is_empty($record_id, $end_time))
         {
             $this->returnError(10000, '缺少参数');
         }
@@ -450,7 +457,7 @@ class Records extends BaseController
         $prepaid_rent = input('prepay/f', ''); // 预付租金
         $end_time = input('end_time/d', '');
         $remark = input('remark', '');
-        if (is_empty($record_id, $rent_margin, $prepaid_rent))
+        if (is_empty($record_id, $rent_margin, $prepaid_rent, $end_time))
         {
             $this->returnError(10000, '缺少参数');
         }
