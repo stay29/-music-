@@ -1246,7 +1246,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             $rent_logs = $table->leftJoin('erp2_goods_detail gd', 'gd.goods_id=record.goods_id')
                                 ->leftJoin('erp2_students stu', 'stu.stu_id = record.stu_id')
                                 ->select();
-            array_walk($rent_logs, function(&$log, $lk) use ($rent_type_amount_arr, $status_arr){
+            array_walk($rent_logs, function(&$log, $lk) use ($rent_type_amount_arr, $status_arr, $rent_type_arr){
                 $rent_obj_name = '其他';
                 if ($log['obj_type'] == 1){
                     $rent_obj_name = $log['truename'];
