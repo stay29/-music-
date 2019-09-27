@@ -1248,7 +1248,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                                 ->select();
             array_walk($rent_logs, function(&$log, $lk) use ($rent_type_amount_arr, $status_arr, $rent_type_arr){
                 $rent_obj_name = '其他';
-                if ($log['obj_type'] == 1){
+                if (intval($log['obj_type']) === 1){
                     $rent_obj_name = $log['truename'];
                 }
                 $log['rent_obj_name'] = $rent_obj_name;
@@ -1266,25 +1266,6 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $log['status_text'] = $status_arr[intval($log['status'])];
             });
             
-//                $data[] = [
-//                    'rent_id' => $rent_id,  // 租借记录id
-//                    'goods_name' => $goods_name,
-//                    'rent_code' => $log['rent_code'], // 租借单号
-//                    'rent_obj_name' => $rent_obj_name, // 租借对象姓名
-//                    'rent_obj_id'   => $rent_obj_id,    // 租借对象id
-//                    'rent_obj_type' => $rent_obj_type,  // 租借对象类型1学生, 其他
-//                    'rent_num'  => $rent_num,   // 租借数量
-//                    'start_time' => date('Y/m/d', $start_time),    // 租借开始时间
-//                    'end_time'  => date('Y/d/d', $end_time),   // 租借结束时间
-//                    'rent_type' => $rent_type,  // 租借类型
-//                    'rent_type_money' => $rent_type_money,  // 租借类型对应租金
-//                    'rent_amount' => $rent_amount,  // 租金
-//                    'prepaid_rent' => $prepaid_rent,    // 预付租金
-//                    'status' => $status,    // 租借状态
-//                    'status_text' => $status_text,
-//                    'remarks' => $remarks,
-//                    'pay_id' => $log['pay_id'], // 支付方式
-//                ];
             $xls_name = "租赁记录列表";
             $xls_cell = [
                 array('goods_name', '商品名称'),
