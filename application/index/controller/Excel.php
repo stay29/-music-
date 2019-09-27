@@ -1251,7 +1251,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 if (intval($log['obj_type']) === 1){
                     $rent_obj_name = $log['truename'];
                 }
-                $log['rent_obj_name'] = $rent_obj_name;
+                $log['rent_obj_name'] = $log['truename'];
                 //每日/月/年租金
                 $rent_type_money = $log[$rent_type_amount_arr[$log['count_type']]];
                 $log['rent_type_money'] = $rent_type_money;
