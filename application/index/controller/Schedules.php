@@ -45,7 +45,8 @@ class Schedules extends BaseController
 
         $type=input('post.type');
         //将开始时间移到周几开始的时间
-        $sub=date('w',$start_time)-input('post.day');
+            $day=input('post.day');
+        $sub=date('w',$start_time)-$day;
         if($sub>0){
             $start_time+=(7-$sub)*24*60*60;
         }else{
@@ -61,7 +62,8 @@ class Schedules extends BaseController
                 'type'=>input('post.c_type'),
                 'org_id'=>$or_id,
                 'th_id'=>$history['id'],
-                'order'=>$n+1
+                'order'=>$n+1,
+                'day'=>$day
                 ];
             //3种排课类型相隔天数不同
             switch ($type){
@@ -163,18 +165,37 @@ class Schedules extends BaseController
         $start_time=input('start_time');
         $end_time=input('end_time');
         $map['a.t_id']=input('t_id');
-        $map['d.subject']=input('subject');
-        $map['d.cur_id']=input('cur_id');
+        $subject=input('subject');
+        if($subject!=null)
+        $map['d.subject']=$subject;
+        $curid=input('cur_id');
+        if($curid!=null)
+        $map['d.cur_id']=$curid;
         $data= Schedule::where($map)->alias('a')
             ->join('erp2_teachers b','a.t_id=b.t_id')
             ->join('erp2_students c','a.stu_id=c.stu_id')
             ->join('erp2_curriculums d','a.cur_id=d.cur_id')
             ->join('erp2_classrooms e','a.room_id=e.room_id')
-            ->field('sc_id,a.order,b.t_name,c.truename,cur_time,d.cur_name,end_time,e.room_name')
+            ->field('sc_id,a.order,b.t_name,c.truename,cur_time,d.cur_name,end_time,e.room_name,a.day')
         ->whereTime('cur_time','<=',$end_time)
         ->whereTime('cur_time','>=',$start_time)
+//            ->group('a.day')
         ->select();
-    return $this->returnData($data,"");
+        $data1=array();
+        for($n=1;$n<8;$n++){
+            $day_object=null;
+            $day_a=array();
+            foreach ($data as $datum) {
+                if($datum['day']==$n){
+                    array_push($day_a,$datum);
+
+            }
+                $day_object['tb']=$day_a;
+            }
+            array_push($data1,$day_object);
+        }
+
+    return $this->returnData($data1,"");
     }
     /**
      * 获得学生可以排的课的列表
