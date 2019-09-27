@@ -25,7 +25,7 @@ class Schedules extends BaseController
         $cur_durtion=Curriculums::where('cur_id',$cur_id)->find()['ctime'];
         $pitch_num=input('post.pitch_num');
         //计算这个学生买的课的节数
-        $pl_array= Purchase_Lessons::field('id,class_hour')->where(['or_id'=>$or_id,'stu_id'=>input('post.stu_id'),'cur_id'=>$cur_id])->order('create_time')->select();
+        $pl_array= Purchase_Lessons::field('id,class_hour,single_price')->where(['or_id'=>$or_id,'stu_id'=>input('post.stu_id'),'cur_id'=>$cur_id])->order('create_time')->select();
         $total_class_hour= Purchase_Lessons::where(['or_id'=>$or_id,'stu_id'=>input('post.stu_id'),'cur_id'=>$cur_id])->sum('class_hour');
         if($total_class_hour<$pitch_num){
             $this->returnError(70000,'排课课时'.$pitch_num.'超过课程购买课时'.$total_class_hour );
@@ -58,6 +58,7 @@ class Schedules extends BaseController
 
                 if($pitch_num-$value['class_hour']>=0){    //一次购课不够，排不完，需要第二个购课记录
                     //for循环一节一节添加
+//                    var_dump($value);
                     for ($n=0;$n<$value['class_hour'];$n++){
                         $schedule=[
                             'stu_id'=>input('post.stu_id'),
@@ -243,7 +244,7 @@ class Schedules extends BaseController
                 if($datum['day']==$n){
 
                    $gt= Schedule::where('cur_time','>',$datum['cur_time'])->find();  //处理是不是最后一节课
-                    if($gt!=null){
+                    if($gt!=NULL){
                         $datum['is_last']=false;
                     }else{
                         $datum['is_last']=true;
