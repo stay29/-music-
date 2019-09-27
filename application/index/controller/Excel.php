@@ -1300,7 +1300,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 array('status', '租赁状态'),
                 array('remark', '租赁备注')
             ];
-            $this->exportExcel($xls_name, $xls_cell, $data);
+            $this->exportExcel($xls_name, $xls_cell, $rent_logs);
         }catch (Exception $e)
         {
             $this->returnError(50000, '系统错误');
