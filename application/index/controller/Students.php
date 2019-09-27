@@ -433,13 +433,31 @@ class Students extends BaseController
     }
 
     /**
-     * 学生购买课程列表
+     * 学生所上课程列表
      */
     public function bug_schedule_list(){
-       $data=Purchase_Lessons::select();
+        $stu_id=input('stu_id');
+       $data=Purchase_Lessons::field('b.t_name,c.cur_name,a.single_price,a.give_class,a.surplus_hour,a.class_hour')
+           ->alias('a')
+       ->where('a.stu_id',$stu_id)
+           ->join('erp2_teachers b','a.t_id=b.t_id')
+           ->join('erp2_curriculums c','c.cur_id=a.cur_id')
+           ->select();
        $this->returnData($data,"");
     }
-
+   /**
+    * 学生购课课程记录
+    */
+    public function bug_schedule_list_record(){
+        $stu_id=input('stu_id');
+        $data=Purchase_Lessons::field('c.cur_name,a.single_price,a.class_hour,a.type,a.type_num,a.classify,b.payment_method,a.real_price,a.remarks')
+            ->alias('a')
+            ->where('a.stu_id',$stu_id)
+            ->join('erp2_curriculums c','c.cur_id=a.cur_id')
+            ->join('erp2_payments b','b.pay_id=a.pay_id')
+            ->select();
+        $this->returnData($data,"");
+    }
 }
 
 
