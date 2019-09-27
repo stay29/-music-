@@ -1245,26 +1245,26 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             //详细记录
             $rent_logs = $table->leftJoin('erp2_goods_detail gd', 'gd.goods_id=record.goods_id')
                                 ->leftJoin('erp2_students stu', 'stu.stu_id = record.stu_id')
-                                ->each(function($log, $lk) use ($rent_type_amount_arr, $status_arr){
-                                    $rent_obj_name = '其他';
-                                    if ($log['obj_type'] == 1){
-                                        $rent_obj_name = $log['truename'];
-                                    }
-                                    $log['rent_obj_name'] = $rent_obj_name;
-                                    //每日/月/年租金
-                                    $rent_type_money = $log[$rent_type_amount_arr[$log['count_type']]];
-                                    $log['rent_type_money'] = $rent_type_money;
-                                    
-                                    //计费方式
-                                    $log['shop_type'] = $log['rent_type_money'] . '/' . $rent_type_arr[$log['count_type']];
-                                    
-                                    if (time() > $log['end_time'] and intval($log['status']) !== 0) // 超时未归还
-                                    {
-                                        $log['status'] = 2;
-                                    }
-                                    $log['status_text'] = $status_arr[intval($log['status'])];
-                                    return $log;
-                                });
+                                ->select();
+            array_walk(function(&$log, $lk) use ($rent_type_amount_arr, $status_arr){
+                $rent_obj_name = '其他';
+                if ($log['obj_type'] == 1){
+                    $rent_obj_name = $log['truename'];
+                }
+                $log['rent_obj_name'] = $rent_obj_name;
+                //每日/月/年租金
+                $rent_type_money = $log[$rent_type_amount_arr[$log['count_type']]];
+                $log['rent_type_money'] = $rent_type_money;
+
+                //计费方式
+                $log['shop_type'] = $log['rent_type_money'] . '/' . $rent_type_arr[$log['count_type']];
+
+                if (time() > $log['end_time'] and intval($log['status']) !== 0) // 超时未归还
+                {
+                    $log['status'] = 2;
+                }
+                $log['status_text'] = $status_arr[intval($log['status'])];
+            });
             
 //                $data[] = [
 //                    'rent_id' => $rent_id,  // 租借记录id
