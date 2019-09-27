@@ -382,7 +382,7 @@ class Students extends BaseController
         }catch (Exception $e)
         {
             Db::rollback();
-            $this->return_data('0', '', '购课失败', false);
+            $this->return_data('0', '', $e->getMessage(), false);
         }
     }
 
