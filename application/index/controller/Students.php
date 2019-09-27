@@ -331,7 +331,7 @@ class Students extends BaseController
             'type_num'  => input('post.type_num/d', ''),
             'give_class' => $give_class,
             'class_hour' => $totol_ch,
-            'surplus'=>$totol_ch,
+            'surplus_hour'=>$totol_ch,
             'original_price' => input('post.original/f', ''),
             'disc_price'   => input('post.disc_price/f', ''),
             'real_price'    => $real_price,
