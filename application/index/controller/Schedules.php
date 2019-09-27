@@ -52,18 +52,74 @@ class Schedules extends BaseController
         }else{
             $start_time+=$sub*24*60*60;
         }
-        //for循环一节一节添加
-        for ($n=0;$n<$pitch_num;$n++){
-            $schedule=[
-                'stu_id'=>input('post.stu_id'),
-                't_id'=>$t_id,
-                'room_id'=>input('post.room_id'),
-                'cur_id'=>$cur_id,
-                'type'=>input('post.c_type'),
-                'org_id'=>$or_id,
-                'th_id'=>$history['id'],
-                'order'=>$n+1,
-                'day'=>$day
+
+            //扣购课的课时,先扣最先购买的记录
+            foreach ($pl_array as $key=>$value){
+
+                if($pitch_num-$value['class_hour']>=0){    //一次购课不够，排不完，需要第二个购课记录
+                    //for循环一节一节添加
+                    for ($n=0;$n<$value['class_hour'];$n++){
+                        $schedule=[
+                            'stu_id'=>input('post.stu_id'),
+                            't_id'=>$t_id,
+                            'room_id'=>input('post.room_id'),
+                            'cur_id'=>$cur_id,
+                            'type'=>input('post.c_type'),
+                            'org_id'=>$or_id,
+                            'th_id'=>$history['id'],
+                            'bug_id'=>$value['id'],
+                            'order'=>$n+1,
+                            'day'=>$day,
+                            'cost'=>$value['single_price']
+                        ];
+                        //3种排课类型相隔天数不同
+                        switch ($type){
+                            case 0:   //每天
+                                $schedule['cur_time']=$start_time+input('post.day_time')+$n*24*60*60;
+                                break;
+                            case 1:  //每周
+                                $schedule['cur_time']=$start_time+input('post.day_time')+$n*24*60*60*7;
+                                break;
+                            case 2:  //隔周
+                                $schedule['cur_time']=$start_time+input('post.day_time')+$n*24*60*60*7*2;
+                                break;
+                        }
+                        $schedule['end_time']=$schedule['cur_time']+$cur_durtion*60;
+//            var_dump($schedule['end_time']);
+//            var_dump($schedule['cur_time']+$cur_durtion*60);
+                        $exist_schedule=Schedule::where('t_id',$t_id)
+                            -> where([
+                                ['cur_time','>=',$schedule['cur_time']],
+                                ['cur_time','<=',$schedule['end_time']]])
+                            -> whereOr('end_time',['>=',$schedule['cur_time']],['<=',$schedule['end_time']],'and')
+                            ->find();
+//            var_dump($schedule['end_time'].'  curtime '.$schedule['cur_time'].$exist_schedule);
+                        if($exist_schedule==NULL){
+                            Schedule::create($schedule);
+
+                        }else{
+                            $this->returnError(20001,"老师当前时间段有课，冲突");
+                        }
+
+                    }
+                    $pitch_num=$pitch_num-$value['class_hour'];
+
+                    Purchase_Lessons::where('id',$schedule['bug_id'])->update(['surplus_hour'=>0]);
+                }else{ //这次要排完了
+                    //for循环一节一节添加
+                    for ($n=0;$n<$pitch_num;$n++){
+                        $schedule=[
+                            'stu_id'=>input('post.stu_id'),
+                            't_id'=>$t_id,
+                            'room_id'=>input('post.room_id'),
+                            'cur_id'=>$cur_id,
+                            'type'=>input('post.c_type'),
+                            'org_id'=>$or_id,
+                            'th_id'=>$history['id'],
+                            'bug_id'=>$value['id'],
+                                'order'=>$n+1,
+                'day'=>$day,
+                'cost'=>$value['single_price']
                 ];
             //3种排课类型相隔天数不同
             switch ($type){
@@ -81,31 +137,29 @@ class Schedules extends BaseController
 //            var_dump($schedule['end_time']);
 //            var_dump($schedule['cur_time']+$cur_durtion*60);
             $exist_schedule=Schedule::where('t_id',$t_id)
-                                     -> where([
-                                          ['cur_time','>=',$schedule['cur_time']],
-                                          ['cur_time','<=',$schedule['end_time']]])
-                                     -> whereOr('end_time',['>=',$schedule['cur_time']],['<=',$schedule['end_time']],'and')
-                                      ->find();
+                -> where([
+                    ['cur_time','>=',$schedule['cur_time']],
+                    ['cur_time','<=',$schedule['end_time']]])
+                -> whereOr('end_time',['>=',$schedule['cur_time']],['<=',$schedule['end_time']],'and')
+                ->find();
 //            var_dump($schedule['end_time'].'  curtime '.$schedule['cur_time'].$exist_schedule);
             if($exist_schedule==NULL){
                 Schedule::create($schedule);
+
             }else{
                 $this->returnError(20001,"老师当前时间段有课，冲突");
             }
 
         }
-            //扣购课的课时,先扣最先购买的记录
-           foreach ($pl_array as $key=>$value){
 
-             if($pitch_num-$value['class_hour']){
-                 $pitch_num=$pitch_num-$value['class_hour'];
-                 Purchase_Lessons::where('id',$history['id'])->update(['class_hour'=>0]);
-             }else{
-                 Purchase_Lessons::where('id',$history['id'])->update(['class_hour'=>$value['class_hour']-$pitch_num]);
-                 break;
-             }
+                    Purchase_Lessons::where('id',$schedule['bug_id'])->update(['surplus_hour'=>$value['class_hour']-$pitch_num]);
+                    break;
+                }
 
-           }
+            }
+
+
+
 
             Db::commit();
             return $this->returnData('',"排课成功");
@@ -176,7 +230,7 @@ class Schedules extends BaseController
             ->join('erp2_students c','a.stu_id=c.stu_id')
             ->join('erp2_curriculums d','a.cur_id=d.cur_id')
             ->join('erp2_classrooms e','a.room_id=e.room_id')
-            ->field('sc_id,a.order,b.t_name,c.truename,cur_time,d.cur_name,end_time,e.room_name,a.day')
+            ->field('sc_id,a.order,a.cost,b.t_name,c.truename,cur_time,d.cur_name,d.tmethods,end_time,e.room_name,a.day')
         ->whereTime('cur_time','<=',$end_time)
         ->whereTime('cur_time','>=',$start_time)
 //            ->group('a.day')
@@ -187,6 +241,13 @@ class Schedules extends BaseController
             $day_a=array();
             foreach ($data as $datum) {
                 if($datum['day']==$n){
+
+                   $gt= Schedule::where('cur_time','>',$datum['cur_time'])->find();  //处理是不是最后一节课
+                    if($gt!=null){
+                        $datum['is_last']=false;
+                    }else{
+                        $datum['is_last']=true;
+                    }
                     array_push($day_a,$datum);
 
             }
