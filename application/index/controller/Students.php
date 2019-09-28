@@ -101,7 +101,7 @@ class Students extends BaseController
             $t_sql = "SELECT t_name FROM erp2_teachers WHERE t_id IN 
 (SELECT t_id FROM erp2_purchase_lessons WHERE stu_id={$stu_id})";
             $res = Db::query($t_sql);
-            $t_name = empty($res) ? '' : $res[0]['t_name'];
+            $t_name = empty($res) ? '' : $res;
             // 已购课程
             $already_buy = db('teach_schedules')->where(['status'=>1, 'stu_id'=>$stu_id])->count('*');
             // 已上课程
