@@ -99,9 +99,7 @@ class Students extends BaseController
             $cur_sql = "SELECT cur_name FROM erp2_curriculums WHERE cur_id IN (SELECT cur_id FROM erp2_purchase_lessons WHERE stu_id={$stu_id});";
             $cur_list = Db::query($cur_sql);
             $t_sql = "SELECT t_name FROM erp2_teachers WHERE t_id IN 
-(SELECT t_id FROM erp2_classes_teachers_realations
- AS A INNER JOIN erp2_class_student_relations AS 
- B ON A.cls_id=B.class_id WHERE B.stu_id={$stu_id})";
+(SELECT t_id FROM erp2_purchase_lessons WHERE stu_id={$stu_id})";
             $res = Db::query($t_sql);
             $t_name = empty($res) ? '' : $res[0]['t_name'];
             // 已购课程
