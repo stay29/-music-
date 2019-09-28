@@ -96,7 +96,7 @@ class Students extends BaseController
         foreach ($data as $k=>$v)
         {
             $stu_id = $v['stu_id'];
-            $cur_sql = "SELECT cur_name FROM erp2_curriculums WHERE cur_id IN (SELECT cur_id FROM erp2_stu_cur WHERE stu_id={$stu_id});";
+            $cur_sql = "SELECT cur_name FROM erp2_curriculums WHERE cur_id IN (SELECT cur_id FROM erp2_purchase_lessons WHERE stu_id={$stu_id});";
             $cur_list = Db::query($cur_sql);
             $t_sql = "SELECT t_name FROM erp2_teachers WHERE t_id IN 
 (SELECT t_id FROM erp2_classes_teachers_realations
