@@ -215,16 +215,20 @@ class Records extends BaseController
             $goods_id = $gsdb->column('goods_id');
             # 租赁记录表
             $table = db('goods_rent_record')->alias('record')->field("record.*, gd.goods_name, stu.stu_id, stu.truename, gd.rent_amount_day, gd.rent_amount_mon, gd.rent_amount_year");
-
+            $table->where('org_id', '=', $org_id);
             if ($goods_id) {$table->whereOr('record.goods_id', 'in', $goods_id);}
             if ($rent_obj_id) {$table->whereOr('record.stu_id', 'in', $rent_obj_id);}
             # 前端参数１是全部，数据库存储状态１是在租
             if (!empty($status)) 
             { 
-                if($status === 2){
+                if($status === 3){
                    $table->where('record.status', '=', 0); 
-                }else{
+                }elseif($status === 2){
                    $table->where('record.status', '=', 1);
+                   $table->whereTime('end_time', '<', time());
+                }else{
+                    $table->where('record.status', '=', 1);
+                    $table->whereTime('end_time', '>=', time()); 
                 }
             }
             if (!empty($start_time) and !empty($end_time)) {$table->whereBetweenTime('record.create_time',  $start_time,  $end_time);}
