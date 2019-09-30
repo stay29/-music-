@@ -739,7 +739,7 @@ class Records extends BaseController
         $cate_id = input('cate_id/d', ''); // 分类id
         $org_id = input('orgid/d', ''); // 机构id
         $sman_type = input('sman_type/d', ''); // 销售员类型, 1销售员, 2 老师
-        $time_type = input('time_type/d', ''); // 1日/2月/3年
+        $time_type = input('time_type/d', ''); // 1本月/2上月/3年
         $goods_name = input('goods_name/s', '');  // 商品名称
         $start_time = input('start_time/d', ''); // 开始时间
         $end_time = input('end_time/d', ''); // 结束时间
@@ -773,8 +773,8 @@ class Records extends BaseController
                     $sale_db->whereBetweenTime('sale_time', $start_time, $end_time);
                 }elseif ($time_type)
                 {
-                    if ($time_type == 1) {$sale_db->whereTime('sale_time', 'd');}
-                    elseif ($time_type == 2) {$sale_db->whereTime('sale_time', 'm');}
+                    if ($time_type == 1) {$sale_db->whereTime('sale_time', 'm');}
+                    elseif ($time_type == 2) {$sale_db->whereTime('sale_time', 'last month');}
                     elseif ($time_type == 3) {$sale_db->whereTime('sale_time', 'y');}
                 }
                 
