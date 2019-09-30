@@ -8,6 +8,7 @@ use app\index\model\Purchase_Lessons;
 use app\index\model\Schedule;
 use app\index\model\TSchedulesHistory;
 use think\Db;
+use think\db\Where;
 use think\Exception;
 use think\facade\Request;
 use think\Model;
@@ -54,7 +55,11 @@ class Schedules extends BaseController
 //            $this->return_data(0, $error[1], $error[0]);
 //        }
         $start_time=input('post.start_time');
-
+            //获取今日开始时间戳
+            $today_start=mktime(0,0,0,date('m'),date('d'),date('Y'));
+         if($start_time<$today_start){
+             $start_time=$today_start;
+         }
         $type=input('post.type');
         //将开始时间移到周几开始的时间
             $day=input('post.day');
@@ -116,7 +121,7 @@ class Schedules extends BaseController
                     }
                     //检查学生课程是不是冲突
                     foreach ($stu_id_array as $item){
-                        $exist_schedule=Schedule::where('FIND_IN_SET(:stu_id,stu_id)',['stu_id'=>$item])->find
+                        $exist_schedule=Schedule::where('FIND_IN_SET(:stu_id,stu_id)',['stu_id'=>$item])
                             -> where([
                                 ['cur_time','>=',$schedule['cur_time']],
                                 ['cur_time','<=',$schedule['end_time']]])
@@ -177,8 +182,9 @@ class Schedules extends BaseController
                 $this->returnError(20001,"老师当前时间段有课，冲突");
             }
                         //检查学生课程是不是冲突
+
             foreach ($stu_id_array as $item){
-                        $exist_schedule=Schedule::where('FIND_IN_SET(:stu_id,stu_id)',['stu_id'=>$item])->find
+                        $exist_schedule=Schedule::where('FIND_IN_SET(:stu_id,stu_id)',['stu_id'=>$item])
                             -> where([
                                 ['cur_time','>=',$schedule['cur_time']],
                                 ['cur_time','<=',$schedule['end_time']]])
@@ -190,6 +196,7 @@ class Schedules extends BaseController
                             $this->returnError(20001,"学生当前时间段有课，冲突");
                         }
             }
+
 
                         Schedule::create($schedule);
         }
@@ -321,5 +328,17 @@ class Schedules extends BaseController
      */
     public function today_schedule(){
 
+    }
+    /**
+     * 课程的历史信息
+     */
+    public function tchedule_history(){
+//        $or_id= Request::instance()->header()['orgid'];  //从header里面拿orgid
+//        $map['org_id']=$or_id;
+        $map['cur_id']=input('cur_id');
+         $data=   db('tschedules_history')->where($map)
+            ->where('FIND_IN_SET(:stu_id,stu_id)',['stu_id'=>input('stu_id')])
+            ->select();
+         return $this->returnData($data,'');
     }
 }
