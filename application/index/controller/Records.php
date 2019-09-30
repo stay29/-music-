@@ -241,7 +241,6 @@ class Records extends BaseController
             $rent_logs = $table->leftJoin('erp2_goods_detail gd', 'gd.goods_id=record.goods_id')
                                 ->leftJoin('erp2_students stu', 'stu.stu_id = record.stu_id')
                                 ->where('gd.org_id', '=', $org_id)
-                                ->where('stu.org_id', '=', $org_id)
                                 ->paginate($limit, false, ['page' => $page])
                                 ->each(function($log, $lk) use ($rent_type_amount_arr, $status_arr){
                                     $rent_obj_name = '其他';
