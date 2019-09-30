@@ -204,7 +204,7 @@ class Records extends BaseController
             # 租客名称或者商品民粹
             $gsdb =  db('goods_detail')->where('org_id', '=', $org_id);
             $studb = db('students')->where('org_id', '=', $org_id);
-            if ($key)
+            if (!empty($key))
             {
                 $studb->where('truename', 'like', '%' . $key . '%');
 
@@ -216,8 +216,8 @@ class Records extends BaseController
             # 租赁记录表
             $table = db('goods_rent_record')->alias('record')->field("record.*, gd.goods_name, stu.stu_id, stu.truename, gd.rent_amount_day, gd.rent_amount_mon, gd.rent_amount_year");
             //$table->where('org_id', '=', $org_id);
-            if ($goods_id) {$table->whereOr('record.goods_id', 'in', $goods_id);}
-            if ($rent_obj_id) {$table->whereOr('record.stu_id', 'in', $rent_obj_id);}
+            if ($goods_id) {$table->where('record.goods_id', 'in', $goods_id);}
+            if ($rent_obj_id) {$table->where('record.stu_id', 'in', $rent_obj_id);}
             # 前端参数１是全部，数据库存储状态１是在租
             if (!empty($status)) 
             { 
