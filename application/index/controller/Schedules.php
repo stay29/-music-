@@ -378,4 +378,24 @@ class Schedules extends BaseController
       ->select();
       $this->returnData($data,'');
   }
+  /**
+   * 获得一对多的学生购买的课程列表
+   */
+  public function student_bc_list(){
+      $cur_id=input('cur_id');
+      $truename=input('truename');
+      $map[]=['a.surplus_hour','<>',0];
+      $map[]=[ 'a.cur_id','=',$cur_id];
+      $map[]=['c.tmethods','=',2];
+      if($truename!=null){
+          $map[]=['b.truename','like','%'.$truename.'%'];
+      }
+      $data=Purchase_Lessons::field('b.truename,a.single_price,a.give_class,a.surplus_hour,a.class_hour')
+          ->alias('a')
+          ->where($map)
+          ->join('erp2_students b','a.stu_id=b.stu_id')
+          ->join('erp2_curriculums c','c.cur_id=a.cur_id')
+          ->select();
+      $this->returnData($data,"");
+  }
 }
