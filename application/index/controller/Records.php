@@ -186,7 +186,7 @@ class Records extends BaseController
         $status_arr = [1=>'在租', 2=>'超期', 0=>'已归还']; // 租凭状态对应状态
         $rent_type_arr = [0=>'', 1=>'日', 2=>'月', 3=>'年'];       // 租凭方式对应含义
         $rent_type_amount_arr = [0=>'', 1=>'rent_amount_day', 2=>'rent_amount_mon', 3=>'rent_amount_year'];
-        $org_id = input('orgid/d', '');
+        $org_id = 76;//input('orgid/d', '');
         $start_time = input('start_time/d', '');
         $end_time = input('end_time/d', '');
         $key = input('key/s', '');  // 租客姓名/商品名称
@@ -208,10 +208,10 @@ class Records extends BaseController
             {
                 $studb->where('truename', 'like', '%' . $key . '%');
 
-                $gsdb->where('goods_name', 'like', '%' . $key . '%');
+                $gsdb->where('goods_name', 'like', '%' . $key . '%'); 
 
             }
-            $rent_obj_id = $studb->column('stu_id');
+            $rent_obj_id = $studb->column('stu_id');array_push($rent_obj_id, 0);
             $goods_id = $gsdb->column('goods_id');
             # 租赁记录表
             $table = db('goods_rent_record')->alias('record')->field("record.*, gd.goods_name, stu.stu_id, stu.truename, gd.rent_amount_day, gd.rent_amount_mon, gd.rent_amount_year");
@@ -231,6 +231,7 @@ class Records extends BaseController
                     $table->whereTime('end_time', '>=', time()); 
                 }
             }
+
             if (!empty($start_time) and !empty($end_time)) {$table->whereBetweenTime('record.create_time',  $start_time,  $end_time);}
             $table->order('record.update_time DESC');
             $total_margin = $table->sum('rent_margin'); // 总押金
@@ -239,6 +240,8 @@ class Records extends BaseController
                
             $rent_logs = $table->leftJoin('erp2_goods_detail gd', 'gd.goods_id=record.goods_id')
                                 ->leftJoin('erp2_students stu', 'stu.stu_id = record.stu_id')
+                                ->where('gd.org_id', '=', $org_id)
+                                ->where('stu.org_id', '=', $org_id)
                                 ->paginate($limit, false, ['page' => $page])
                                 ->each(function($log, $lk) use ($rent_type_amount_arr, $status_arr){
                                     $rent_obj_name = '其他';
