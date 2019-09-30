@@ -353,12 +353,13 @@ class Schedules extends BaseController
   public function pl_course_info(){
       $stu_id=input('stu_id');
       $cur_id=input('cur_id');
-      $data=Purchase_Lessons::field('b.t_name,c.cur_name,a.single_price,a.give_class,a.surplus_hour,a.class_hour')
+      $data=Purchase_Lessons::field('c.ctime,sum(a.surplus_hour) as surplus_hour,sum(a.class_hour) as class_hour')
           ->alias('a')
           ->where(['a.stu_id'=>$stu_id,'a.cur_id'=>$cur_id])
-          ->join('erp2_teachers b','a.t_id=b.t_id')
+//          ->join('erp2_teachers b','a.t_id=b.t_id')
           ->join('erp2_curriculums c','c.cur_id=a.cur_id')
-          ->select();
+          ->group('a.stu_id,a.cur_id')
+           ->select();
 
       $this->returnData($data,"");
   }
