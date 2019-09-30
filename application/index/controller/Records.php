@@ -204,29 +204,34 @@ class Records extends BaseController
             # 租客名称或者商品民粹
             $gsdb =  db('goods_detail')->where('org_id', '=', $org_id);
             $studb = db('students')->where('org_id', '=', $org_id);
-            if ($key)
+            if (!empty($key))
             {
                 $studb->where('truename', 'like', '%' . $key . '%');
 
-                $gsdb->where('goods_name', 'like', '%' . $key . '%');
+                $gsdb->where('goods_name', 'like', '%' . $key . '%'); 
 
             }
-            $rent_obj_id = $studb->column('stu_id');
+            $rent_obj_id = $studb->column('stu_id');array_push($rent_obj_id, 0);
             $goods_id = $gsdb->column('goods_id');
             # 租赁记录表
             $table = db('goods_rent_record')->alias('record')->field("record.*, gd.goods_name, stu.stu_id, stu.truename, gd.rent_amount_day, gd.rent_amount_mon, gd.rent_amount_year");
-
+            //$table->where('org_id', '=', $org_id);
             if ($goods_id) {$table->whereOr('record.goods_id', 'in', $goods_id);}
             if ($rent_obj_id) {$table->whereOr('record.stu_id', 'in', $rent_obj_id);}
             # 前端参数１是全部，数据库存储状态１是在租
             if (!empty($status)) 
             { 
-                if($status === 2){
+                if($status === 3){
                    $table->where('record.status', '=', 0); 
-                }else{
+                }elseif($status === 2){
                    $table->where('record.status', '=', 1);
+                   $table->whereTime('end_time', '<', time());
+                }else{
+                    $table->where('record.status', '=', 1);
+                    $table->whereTime('end_time', '>=', time()); 
                 }
             }
+
             if (!empty($start_time) and !empty($end_time)) {$table->whereBetweenTime('record.create_time',  $start_time,  $end_time);}
             $table->order('record.update_time DESC');
             $total_margin = $table->sum('rent_margin'); // 总押金
@@ -235,6 +240,7 @@ class Records extends BaseController
                
             $rent_logs = $table->leftJoin('erp2_goods_detail gd', 'gd.goods_id=record.goods_id')
                                 ->leftJoin('erp2_students stu', 'stu.stu_id = record.stu_id')
+                                ->where('gd.org_id', '=', $org_id)
                                 ->paginate($limit, false, ['page' => $page])
                                 ->each(function($log, $lk) use ($rent_type_amount_arr, $status_arr){
                                     $rent_obj_name = '其他';
