@@ -362,4 +362,19 @@ class Schedules extends BaseController
 
       $this->returnData($data,"");
   }
+  /**
+   * 获得老师一对多课程
+   */
+  public function  teacher_cur_n(){
+      $data=db('cur_teacher_relations')
+          ->alias('a')
+          ->where(['a.t_id'=>input('t_id'),'b.tmethods'=>2])
+          ->join('erp2_teachers c','c.t_id=a.t_id')
+          ->join('erp2_curriculums b','b.cur_id=a.cur_id')
+
+          ->field('b.cur_id,b.cur_name')
+
+      ->select();
+      $this->returnData($data,'');
+  }
 }
