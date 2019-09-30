@@ -71,6 +71,7 @@ class Teacher extends BaseController
             $teacher->where('status', '=', $status);
         }
         $teacher->where('a.is_del', '=', 0);
+        $teacher->where('a.is_teacher', '=', 1); //主管要求 1默认为教师， 0为其他员工
         if(!empty($cur_id)){
             $teacher->join('erp2_cur_teacher_relations b','a.t_id=b.t_id and b.is_del=0 and b.cur_id='.$cur_id);
         }
