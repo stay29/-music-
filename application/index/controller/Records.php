@@ -186,7 +186,7 @@ class Records extends BaseController
         $status_arr = [1=>'在租', 2=>'超期', 0=>'已归还']; // 租凭状态对应状态
         $rent_type_arr = [0=>'', 1=>'日', 2=>'月', 3=>'年'];       // 租凭方式对应含义
         $rent_type_amount_arr = [0=>'', 1=>'rent_amount_day', 2=>'rent_amount_mon', 3=>'rent_amount_year'];
-        $org_id = 76;//input('orgid/d', '');
+        $org_id = input('orgid/d', '');
         $start_time = input('start_time/d', '');
         $end_time = input('end_time/d', '');
         $key = input('key/s', '');  // 租客姓名/商品名称
@@ -216,8 +216,8 @@ class Records extends BaseController
             # 租赁记录表
             $table = db('goods_rent_record')->alias('record')->field("record.*, gd.goods_name, stu.stu_id, stu.truename, gd.rent_amount_day, gd.rent_amount_mon, gd.rent_amount_year");
             //$table->where('org_id', '=', $org_id);
-            if ($goods_id) {$table->where('record.goods_id', 'in', $goods_id);}
-            if ($rent_obj_id) {$table->where('record.stu_id', 'in', $rent_obj_id);}
+            if ($goods_id) {$table->whereOr('record.goods_id', 'in', $goods_id);}
+            if ($rent_obj_id) {$table->whereOr('record.stu_id', 'in', $rent_obj_id);}
             # 前端参数１是全部，数据库存储状态１是在租
             if (!empty($status)) 
             { 
