@@ -96,14 +96,12 @@ class Students extends BaseController
         foreach ($data as $k=>$v)
         {
             $stu_id = $v['stu_id'];
-            $cur_sql = "SELECT cur_name FROM erp2_curriculums WHERE cur_id IN (SELECT cur_id FROM erp2_stu_cur WHERE stu_id={$stu_id});";
+            $cur_sql = "SELECT cur_name FROM erp2_curriculums WHERE cur_id IN (SELECT cur_id FROM erp2_purchase_lessons WHERE stu_id={$stu_id});";
             $cur_list = Db::query($cur_sql);
             $t_sql = "SELECT t_name FROM erp2_teachers WHERE t_id IN 
-(SELECT t_id FROM erp2_classes_teachers_realations
- AS A INNER JOIN erp2_class_student_relations AS 
- B ON A.cls_id=B.class_id WHERE B.stu_id={$stu_id})";
+(SELECT t_id FROM erp2_purchase_lessons WHERE stu_id={$stu_id})";
             $res = Db::query($t_sql);
-            $t_name = empty($res) ? '' : $res[0]['t_name'];
+            $t_name = empty($res) ? '' : $res;
             // 已购课程
             $already_buy = db('teach_schedules')->where(['status'=>1, 'stu_id'=>$stu_id])->count('*');
             // 已上课程
@@ -318,20 +316,23 @@ class Students extends BaseController
         $orgid= \think\facade\Request::instance()->header()['orgid'];
         $give_class=input('post.give_class/d', 0);
         $class_hour=input('post.class_hour/d', '');
+        $real_price=input('post.real_price/f', '');
+        $totol_ch=$class_hour+$give_class;
         $data = [
             'stu_id' => input('post.stu_id/d', ''),
             'uid'   => input('post.uid/d', ''),
             't_id'    => input('post.t_id/d', ''),
             'sen_id'  => input('post.sen_id/d', ''),
             'pay_id'  => input('post.pay_id/d', ''),
-            'single_price' => input('post.single_price/f', ''),
+            'single_price' => $real_price/$totol_ch,
             'type'      => input('post.type/d', ''),
             'type_num'  => input('post.type_num/d', ''),
             'give_class' => $give_class,
-            'class_hour' => $class_hour+$give_class,
+            'class_hour' => $totol_ch,
+            'surplus_hour'=>$totol_ch,
             'original_price' => input('post.original/f', ''),
             'disc_price'   => input('post.disc_price/f', ''),
-            'real_price'    => input('post.real_price/f', ''),
+            'real_price'    => $real_price,
             'valid_day'   => input('post.real_price/f', ''),
             'buy_time'      => input('post.buy_time/d', ''),
             'or_id'     =>$orgid
@@ -379,7 +380,7 @@ class Students extends BaseController
         }catch (Exception $e)
         {
             Db::rollback();
-            $this->return_data('0', '', '购课失败', false);
+            $this->return_data('0', '', $e->getMessage(), false);
         }
     }
 
@@ -430,13 +431,31 @@ class Students extends BaseController
     }
 
     /**
-     * 学生购买课程列表
+     * 学生所上课程列表
      */
     public function bug_schedule_list(){
-       $data=Purchase_Lessons::select();
+        $stu_id=input('stu_id');
+       $data=Purchase_Lessons::field('b.t_name,c.cur_name,a.single_price,a.give_class,a.surplus_hour,a.class_hour')
+           ->alias('a')
+       ->where('a.stu_id',$stu_id)
+           ->join('erp2_teachers b','a.t_id=b.t_id')
+           ->join('erp2_curriculums c','c.cur_id=a.cur_id')
+           ->select();
        $this->returnData($data,"");
     }
-
+   /**
+    * 学生购课课程记录
+    */
+    public function bug_schedule_list_record(){
+        $stu_id=input('stu_id');
+        $data=Purchase_Lessons::field('c.cur_name,a.single_price,a.class_hour,a.type,a.type_num,a.classify,b.payment_method,a.real_price,a.remarks')
+            ->alias('a')
+            ->where('a.stu_id',$stu_id)
+            ->join('erp2_curriculums c','c.cur_id=a.cur_id')
+            ->join('erp2_payments b','b.pay_id=a.pay_id')
+            ->select();
+        $this->returnData($data,"");
+    }
 }
 
 
