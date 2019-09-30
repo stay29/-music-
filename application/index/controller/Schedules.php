@@ -77,6 +77,22 @@ class Schedules extends BaseController
                     //for循环一节一节添加
 //                    var_dump($value);
                     for ($n=0;$n<$value['class_hour'];$n++){
+                        //3种排课类型相隔天数不同
+                        switch ($type){
+                            case 0:   //每天
+                                $schedule['cur_time']=$start_time+input('post.day_time')+$n*24*60*60;
+                                break;
+                            case 1:  //每周
+                                $schedule['cur_time']=$start_time+input('post.day_time')+$n*24*60*60*7;
+                                break;
+                            case 2:  //隔周
+                                $schedule['cur_time']=$start_time+input('post.day_time')+$n*24*60*60*7*2;
+                                break;
+                        }
+                        if($n=$value['class_hour']){
+                        TSchedulesHistory::where('id',$history['id'])->update(['next_time',$schedule['cur_time']]);
+                        break;
+                        }
                         $schedule=[
                             'stu_id'=>input('post.stu_id'),
                             't_id'=>$t_id,
@@ -91,18 +107,7 @@ class Schedules extends BaseController
                             'cost'=>$value['single_price'],
 //                            'stu_name'=>$stu_name
                         ];
-                        //3种排课类型相隔天数不同
-                        switch ($type){
-                            case 0:   //每天
-                                $schedule['cur_time']=$start_time+input('post.day_time')+$n*24*60*60;
-                                break;
-                            case 1:  //每周
-                                $schedule['cur_time']=$start_time+input('post.day_time')+$n*24*60*60*7;
-                                break;
-                            case 2:  //隔周
-                                $schedule['cur_time']=$start_time+input('post.day_time')+$n*24*60*60*7*2;
-                                break;
-                        }
+
                         $schedule['end_time']=$schedule['cur_time']+$cur_durtion*60;
 //            var_dump($schedule['end_time']);
 //            var_dump($schedule['cur_time']+$cur_durtion*60);
@@ -330,7 +335,7 @@ class Schedules extends BaseController
 
     }
     /**
-     * 课程的历史信息
+     * 课程的排课历史信息
      */
     public function tchedule_history(){
 //        $or_id= Request::instance()->header()['orgid'];  //从header里面拿orgid
@@ -338,7 +343,23 @@ class Schedules extends BaseController
         $map['cur_id']=input('cur_id');
          $data=   db('tschedules_history')->where($map)
             ->where('FIND_IN_SET(:stu_id,stu_id)',['stu_id'=>input('stu_id')])
-            ->select();
+            ->field('type,day,day_time,next_time,pitch_num')
+             ->select();
          return $this->returnData($data,'');
     }
+  /**
+   * 根据课程id获得学生购这门课的信息
+   */
+  public function pl_course_info(){
+      $stu_id=input('stu_id');
+      $cur_id=input('cur_id');
+      $data=Purchase_Lessons::field('b.t_name,c.cur_name,a.single_price,a.give_class,a.surplus_hour,a.class_hour')
+          ->alias('a')
+          ->where(['a.stu_id'=>$stu_id,'a.cur_id'=>$cur_id])
+          ->join('erp2_teachers b','a.t_id=b.t_id')
+          ->join('erp2_curriculums c','c.cur_id=a.cur_id')
+          ->select();
+
+      $this->returnData($data,"");
+  }
 }
