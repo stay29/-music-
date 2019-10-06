@@ -14,6 +14,7 @@ return [
     'type'            => 'mysql',
     // 服务器地址
     'hostname'        => '192.168.1.88',
+//    'hostname'        => '127.0.0.1',
     // 数据库名
     'database'        => 'zihao',
     // 用户名

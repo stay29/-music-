@@ -258,4 +258,10 @@ class BaseController extends Controller
         }
 
     }
+    public function check_param($param_name){
+        $param=input($param_name);
+        if($param==null){
+            $this->returnError('10000','学生必填参数'.$param_name);
+        }
+    }
 }
