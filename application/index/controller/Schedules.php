@@ -228,7 +228,7 @@ class Schedules extends BaseController
         $start_time = input('start_time');
         $end_time = input('end_time');
         $map['a.t_id'] = input('t_id');
-        $map['is_del'] = 0;
+        $map['a.is_del'] = 0;
         $subject = input('subject');
         if ($subject != null)
             $map['d.subject'] = $subject;
