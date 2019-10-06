@@ -265,8 +265,9 @@ class Schedules extends BaseController
                     array_push($day_a, $datum);
 
                 }
-                $day_object['tb'] = $day_a;
+
             }
+            $day_object['tb'] = $day_a;
             array_push($data1, $day_object);
         }
 
