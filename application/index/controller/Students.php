@@ -2,6 +2,7 @@
 
 namespace app\index\controller;
 
+use app\index\model\MealCurRelations;
 use app\index\model\Purchase_Lessons;
 use MongoDB\BSON\Decimal128;
 use function PHPSTORM_META\type;
@@ -314,74 +315,133 @@ class Students extends BaseController
     {
         $this->auth_get_token();
         $orgid= \think\facade\Request::instance()->header()['orgid'];
-        $give_class=input('post.give_class/d', 0);
-        $class_hour=input('post.class_hour/d', '');
-        $real_price=input('post.real_price/f', '');
-        $totol_ch=$class_hour+$give_class;
-        $data = [
-            'stu_id' => input('post.stu_id/d', ''),
-            'uid'   => input('post.uid/d', ''),
-            't_id'    => input('post.t_id/d', ''),
-            'sen_id'  => input('post.sen_id/d', ''),
-            'pay_id'  => input('post.pay_id/d', ''),
-            'single_price' => $real_price/$totol_ch,
-            'type'      => input('post.type/d', ''),
-            'type_num'  => input('post.type_num/d', ''),
-            'give_class' => $give_class,
-            'class_hour' => $totol_ch,
-            'surplus_hour'=>$totol_ch,
-            'original_price' => input('post.original/f', ''),
-            'disc_price'   => input('post.disc_price/f', ''),
-            'real_price'    => $real_price,
-            'valid_day'   => input('post.real_price/f', ''),
-            'buy_time'      => input('post.buy_time/d', ''),
-            'or_id'     =>$orgid
-        ];
-        foreach ($data as $key => $val)
-        {
-            if ($val='')
-            {
-                if($key=='type_num'&&$data['type']==1){
 
-                }else
-                $this->return_data('0', '10000', $key."不能为空");
-            }
-        }
         $classify = input('post.classify/d', '');   // 购课类型
-        $cur_id = input('post.cur_id/d', '');  // 课程id
-        $meal_id = input('post.meal_id/d', ''); // 套餐id
         $remarks = input('post.remarks/s', '');
         if (empty($classify)) {
             $this->return_data(0, '10000', '缺少classify参数');
         }
 
-        if ($classify == 1 and empty($cur_id))  // 普通购课
+        if ($classify == 1)  // 普通购课
         {
-            $this->return_data('0', '10000', '普通购课cur_id不能为空');
-        }
-        if ($classify == 2 and empty($meal_id)) //套餐购课
-        {
-            $this->return_data('0', '10000', '普通购课meal_id不能为空');
-        }
-        $data['cur_id'] = $cur_id;
-        $data['meal_id'] = $meal_id;
-        $data['remarks'] = $remarks;
-        $data['manager'] = $data['uid'];
-        unset($data['uid']);
-        $data['buy_time'] = time();
-        $data['create_time'] = time();
-        Db::startTrans();
-        try
-        {
+            $cur_id = input('post.cur_id/d', '');  // 课程id
+            $give_class=input('post.give_class/d', 0);
+            $class_hour=input('post.class_hour/d', '');
+            $real_price=input('post.real_price/f', '');
+            $totol_ch=$class_hour+$give_class;
+            $data_record=[
+                'pay_id'  => input('post.pay_id/d', ''),
+                'type'      => input('post.type/d', ''),
+                'type_num'  => input('post.type_num/d', ''),
+                'original_price' => input('post.original/f', ''),
+                'disc_price'   => input('post.disc_price/f', ''),
+                'real_price'    => $real_price,
+                'valid_day'   => input('post.real_price/f', ''),
+                'buy_time'      => input('post.buy_time/d', ''),
+                'give_class' => $give_class,
+                'or_id'     =>$orgid
+            ]  ;
+            $data = [
+                'stu_id' => input('post.stu_id/d', ''),
+                'uid'   => input('post.uid/d', ''),
+                't_id'    => input('post.t_id/d', ''),
+                'sen_id'  => input('post.sen_id/d', ''),
+                'single_price' => $real_price/$totol_ch,
+                'class_hour' => $totol_ch,
+                'surplus_hour'=>$totol_ch,
+                'or_id'     =>$orgid
+            ];
+            foreach ($data as $key => $val)
+            {
+                if ($val='')
+                {
+                    if($key=='type_num'&&$data['type']==1){
 
-            Db::table('erp2_purchase_lessons')->insert($data);
-            Db::commit();
-            $this->return_data('1', '', '购课成功', true);
-        }catch (Exception $e)
-        {
-            Db::rollback();
-            $this->return_data('0', '', $e->getMessage(), false);
+                    }else
+                        $this->return_data('0', '10000', $key."不能为空");
+                }
+            }
+            if(empty($cur_id))
+            $this->return_data('0', '10000', '普通购课cur_id不能为空');
+            $data['cur_id'] = $cur_id;
+            $data['remarks'] = $remarks;
+            $data['manager'] = $data['uid'];
+            unset($data['uid']);
+            $data['buy_time'] = time();
+            $data['create_time'] = time();
+            $data_record['name']=input('cur_name');
+            Db::startTrans();
+            try
+            {
+               $record=  Db::table('erp2_purchase_lessons_record')->insert($data_record);
+                $data['r_id']=$record['r_id'];
+                Db::table('erp2_purchase_lessons')->insert($data);
+                Db::commit();
+                $this->return_data('1', '', '购课成功', true);
+            }catch (Exception $e)
+            {
+                Db::rollback();
+                $this->return_data('0', '', $e->getMessage(), false);
+            }
         }
+        if ($classify == 2) //套餐购课
+        {
+            $meal_id = input('post.meal_id/d', ''); // 套餐id
+            if(empty($meal_id))
+            $this->return_data('0', '10000', '普通购课meal_id不能为空');
+           $meals= \app\index\model\Meals::where('meal_id',$meal_id)->find();
+            $data_record=[
+                'pay_id'  => input('post.pay_id/d', ''),
+                'type'      => input('post.type/d', ''),
+                'type_num'  => input('post.type_num/d', ''),
+                'original_price' => input('post.original/f', ''),
+                'disc_price'   => input('post.disc_price/f', ''),
+                'real_price'    => $real_price,
+                'valid_day'   => input('post.real_price/f', ''),
+                'buy_time'      => input('post.buy_time/d', ''),
+                'or_id'     =>$orgid
+            ]  ;
+            $data_record['name']=$meals['meal_name'];
+            Db::startTrans();
+            try
+            {
+            $record=  Db::table('erp2_purchase_lessons_record')->insert($data_record);
+           $meals_cur_id= explode('/',$meals['meals_cur']);
+           $cur_objs= MealCurRelations::where('meal_cur_id','in',$meals_cur_id)->select();
+
+            foreach ($cur_objs as $cur_obj){
+                $data['cur_id'] = $cur_obj['cur_id'];
+                $data['meal_id'] = $meal_id;
+                $data['remarks'] = $remarks;
+                $data['manager'] = $data['uid'];
+                unset($data['uid']);
+                $data['buy_time'] = time();
+                $data['create_time'] = time();
+                $class_hour=$cur_obj['cur_name'];
+                $real_price=$cur_obj['actual_price'];
+                $totol_ch=$class_hour;
+                $data = [
+                    'r_id'=>$record['r_id'],
+                    'stu_id' => input('post.stu_id/d', ''),
+                    'uid'   => input('post.uid/d', ''),
+                    'single_price' => $real_price/$totol_ch,
+                    'class_hour' => $totol_ch,
+                    'surplus_hour'=>$totol_ch,
+                    'or_id'     =>$orgid
+                ];
+
+                    Db::table('erp2_purchase_lessons')->insert($data);
+                    Db::commit();
+                    $this->return_data('1', '', '购课成功', true);
+
+            }
+            }catch (Exception $e)
+            {
+                Db::rollback();
+                $this->return_data('0', '', $e->getMessage(), false);
+            }
+        }
+
     }
 
     /*

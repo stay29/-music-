@@ -7,6 +7,7 @@ use app\index\model\Purchase_Lessons as Plessons;
 use app\index\model\Purchase_Lessons;
 use app\index\model\Schedule;
 use app\index\model\TSchedulesHistory;
+use app\index\validate\Teachers;
 use think\console\Table;
 use think\Db;
 use think\db\Where;
@@ -293,7 +294,54 @@ class Schedules extends BaseController
      */
     public function today_schedule()
     {
+        $start_time = input('start_time');
+        $end_time = input('end_time');
+        $map['a.is_del'] = 0;
+        $subject = input('subject');
+        $or_id= Request::instance()->header()['orgid'];  //从header里面拿orgid
 
+        if ($subject != null)
+            $map['d.subject'] = $subject;
+        $curid = input('cur_id');
+        if ($curid != null)
+            $map['d.cur_id'] = $curid;
+        $teachers=\app\index\model\Teacher::where('org_id',$or_id)->select();
+
+        $data1 = array();
+        foreach ($teachers as $t){
+            $day_object = null;
+            $day_a = array();
+            $map['a.t_id'] = $t['t_id'];
+            $data = Schedule::where($map)->alias('a')
+                ->join('erp2_curriculums d', 'a.cur_id=d.cur_id')
+                ->join('erp2_classrooms e', 'a.room_id=e.room_id')
+                ->field('sc_id,a.order,a.cost,a.stu_id,cur_time,d.cur_name,d.tmethods,end_time,e.room_name,a.day')
+                ->whereTime('cur_time', '<=', $end_time)
+                ->whereTime('cur_time', '>=', $start_time)
+//            ->group('a.day')
+                ->select();
+            foreach ($data as $datum) {
+                    $gt = Schedule::where('cur_time', '>', $datum['cur_time'])->find();  //处理是不是最后一节课
+                    if ($gt != NULL) {
+                        $datum['is_last'] = false;
+                    } else {
+                        $datum['is_last'] = true;
+                    }
+                    $stu_id_array = explode(',', $datum['stu_id']);
+
+                    $stu_name_array = Students::field('stu_id,truename')
+                        ->where('stu_id', 'in', $stu_id_array)->select()->toArray();
+                    $datum['student'] = $stu_name_array;
+                    array_push($day_a, $datum);
+
+
+
+            }
+            $day_object[$t['t_name']] = $day_a;
+            array_push($data1, $day_object);
+        }
+
+        return $this->returnData($data1, "");
     }
 
     /**
