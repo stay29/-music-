@@ -374,7 +374,7 @@ class Students extends BaseController
             try
             {
                $record=  Db::table('erp2_purchase_lessons_record')->insert($data_record);
-                $data['r_id']=$record['r_id'];
+                $data['r_id']=$record;
                 Db::table('erp2_purchase_lessons')->insert($data);
                 Db::commit();
                 $this->return_data('1', '', '购课成功', true);
@@ -421,7 +421,7 @@ class Students extends BaseController
                 $real_price=$cur_obj['actual_price'];
                 $totol_ch=$class_hour;
                 $data = [
-                    'r_id'=>$record['r_id'],
+                    'r_id'=>$record,
                     'stu_id' => input('post.stu_id/d', ''),
                     'uid'   => input('post.uid/d', ''),
                     'single_price' => $real_price/$totol_ch,
