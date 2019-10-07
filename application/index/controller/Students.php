@@ -414,7 +414,7 @@ class Students extends BaseController
                 $data['meal_id'] = $meal_id;
                 $data['remarks'] = $remarks;
                 $data['manager'] = $data['uid'];
-                unset($data['uid']);
+//                unset($data['uid']);
                 $data['buy_time'] = time();
                 $data['create_time'] = time();
                 $class_hour=$cur_obj['cur_name'];
