@@ -486,7 +486,7 @@ class Students extends BaseController
         }catch (Exception $e)
         {
             Db::rollback();
-            $this->return_data('0', '50000', '服务器错误');
+            $this->return_data('0', '50000', $e->getMessage());
         }
     }
 
