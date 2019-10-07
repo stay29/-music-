@@ -413,17 +413,17 @@ class Students extends BaseController
                 $data['cur_id'] = $cur_obj['cur_id'];
                 $data['meal_id'] = $meal_id;
                 $data['remarks'] = $remarks;
-                $data['manager'] = $data['uid'];
+                $data['manager'] = input('post.uid/d', '');
 //                unset($data['uid']);
                 $data['buy_time'] = time();
                 $data['create_time'] = time();
-                $class_hour=$cur_obj['cur_name'];
+                $class_hour=$cur_obj['cur_num'];
                 $real_price=$cur_obj['actual_price'];
                 $totol_ch=$class_hour;
                 $data = [
                     'r_id'=>$record,
                     'stu_id' => input('post.stu_id/d', ''),
-                    'uid'   => input('post.uid/d', ''),
+//                    'uid'   => input('post.uid/d', ''),
                     'single_price' => $real_price/$totol_ch,
                     'class_hour' => $totol_ch,
                     'surplus_hour'=>$totol_ch,
@@ -431,10 +431,10 @@ class Students extends BaseController
                 ];
 
                     Db::table('erp2_purchase_lessons')->insert($data);
-                    Db::commit();
-                    $this->return_data('1', '', '购课成功', true);
 
             }
+                Db::commit();
+                $this->return_data('1', '', '购课成功', true);
             }catch (Exception $e)
             {
                 Db::rollback();
