@@ -82,7 +82,6 @@ class Staff extends BaseController
 
             $this->returnData($response, '请求成功');
         }catch (\Exception $e){
-            dump($e);
             $this->returnError(50000, '服务器错误');
         }
     }
@@ -136,7 +135,6 @@ class Staff extends BaseController
            db('teachers')->where(['t_id' => $id, 'org_id' => $org_id])->update($data);
            $this->returnData(1,'修改成功');
         }catch (\Exception $e){
-            dump($e);
             $this->returnError(50000, '服务器错误');
         }
     } 
