@@ -315,7 +315,7 @@ class Students extends BaseController
     {
         $this->auth_get_token();
         $orgid= \think\facade\Request::instance()->header()['orgid'];
-
+        $real_price=input('post.real_price/f', '');
         $classify = input('post.classify/d', '');   // 购课类型
         $remarks = input('post.remarks/s', '');
         if (empty($classify)) {
@@ -327,7 +327,7 @@ class Students extends BaseController
             $cur_id = input('post.cur_id/d', '');  // 课程id
             $give_class=input('post.give_class/d', 0);
             $class_hour=input('post.class_hour/d', '');
-            $real_price=input('post.real_price/f', '');
+
             $totol_ch=$class_hour+$give_class;
             $data_record=[
                 'pay_id'  => input('post.pay_id/d', ''),
