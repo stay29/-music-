@@ -415,7 +415,7 @@ class Students extends BaseController
                         $log['amount']=-$real_price;
                         $log['presenter']=-$money['gift_balance'];
                     }
-                    var_dump($money['recharge_balance']);
+//                    var_dump($money['recharge_balance']);
                     $log['balance']=$account['gift_balance']+$account['recharge_balance']-$real_price;
                 }else{
                     $log['amount']=-$real_price;
