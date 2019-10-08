@@ -384,12 +384,13 @@ class Students extends BaseController
                 $account=Db::table('erp2_stu_balance')->where('stu_id',$stu_id)->find();
 //                 var_dump($account);
                 $money=[
-                    'total_buylesson'=>$account['total_buylesson']+$real_price
+                    'total_buylesson'=>$account['total_buylesson']+$real_price,
                 ];
                $log= ['type'=>'购课',
                     'pay_id'=>$pay_id,
                     'pid'=>$stu_id,
-
+                     'create_time'=>time(),
+                    'update_time'=>time()
                     ];
 //                switch ($type){
 //                    case  1: //不使用优惠
@@ -568,12 +569,20 @@ class Students extends BaseController
     */
     public function bug_schedule_list_record(){
         $stu_id=input('stu_id');
-        $data=Purchase_Lessons::field('c.cur_name,a.single_price,a.class_hour,a.type,a.type_num,a.classify,b.payment_method,a.real_price,a.remarks')
+        $data=Db::table('erp2_purchase_lessons_record')->field('a.name,a.type,a.type_num,a.classify,b.payment_method,a.real_price,a.remarks,a.r_id')
             ->alias('a')
             ->where('a.stu_id',$stu_id)
-            ->join('erp2_curriculums c','c.cur_id=a.cur_id')
+
             ->join('erp2_payments b','b.pay_id=a.pay_id')
             ->select();
+        foreach ($data as $k=>$value){
+//            var_dump($value['r_id']);
+        $data[$k]['cur'] =Purchase_Lessons::field('single_price,give_class,class_hour,c.cur_name')
+            ->alias('a')
+            ->where('r_id',$value['r_id'])
+            ->join('erp2_curriculums c','c.cur_id=a.cur_id')
+            ->select();
+        }
         $this->returnData($data,"");
     }
 }
