@@ -373,7 +373,7 @@ class Students extends BaseController
             Db::startTrans();
             try
             {
-               $record=  Db::table('erp2_purchase_lessons_record')->insert($data_record);
+               $record=  Db::table('erp2_purchase_lessons_record')->insertGetId($data_record);
                 $data['r_id']=$record;
                 Db::table('erp2_purchase_lessons')->insert($data);
                 Db::commit();
@@ -452,6 +452,7 @@ class Students extends BaseController
         $this->auth_get_token();
         $recharge_amount = input('recharge/f', 0.00);
         $give_amount = input('give/f', 0.00);
+//        var_dump($give_amount);
         $remark = input('remark/s', '');
         $stu_id = input('stu_id', '');
         if (empty($stu_id))
@@ -461,18 +462,25 @@ class Students extends BaseController
         Db::startTrans();
         try{
             $data = Db::table('erp2_stu_balance')->where(['stu_id' => $stu_id])->find();
+
             if (empty($data))
             {   // 未创建钱包的用户
-                $this->return_data('0', '50000', '系统错误');
+            Db::table('erp2_stu_balance')->insert(['stu_id'=>$stu_id,
+                    'create_time'=>time(),
+                    'update_time'=>time()
+                    ]);
+                $data = Db::table('erp2_stu_balance')->where(['stu_id' => $stu_id])->find();
+//                var_dump($data['gift_balance']);
             }
             $data['gift_balance'] += $give_amount;
             $data['recharge_balance'] += $recharge_amount;
             $data['total_recharge']+=$recharge_amount;
             $data['total_gift']+=$give_amount;
+
             Db::table('erp2_stu_balance')->where(['stu_id'=>$stu_id])->update($data);
             //　充值记录，　账号明细需求是有个充值余额和赠送余额的概念，保持一至。
             $recharge_log = [
-                'p_id' => $stu_id,
+                'pid' => $stu_id,
                 'amount' => $recharge_amount,
                 'presenter' => $give_amount,
                 'remark' => $remark,
@@ -485,7 +493,7 @@ class Students extends BaseController
             ];
             Db::table('erp2_stu_balance_log')->insert($recharge_log);
             Db::commit();
-            $this->return_data('0', '', '充值成功', true);
+            $this->return_data('1', '', '充值成功', '');
         }catch (Exception $e)
         {
             Db::rollback();
