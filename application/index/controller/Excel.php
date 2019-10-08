@@ -1105,7 +1105,8 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                     'sto_code'  => $log['sto_code'],
                     'entry_time' => date('Y/m/d', $log['entry_time']),
                     'sto_total_money' => $log['sto_num'] * $log['sto_single_price'],
-                    'manager' => $log['nickname']
+                    'manager' => $log['nickname'],
+                    'remark' => $log['remark']
                 ];
             }
             
@@ -1117,7 +1118,8 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 array('sto_num', '入库数量'),
                 array('entry_time', '入库时间'),
                 array('sto_total_money', '入款总额'),
-                array('manager', '操作人')
+                array('manager', '操作人'),
+                array('remark', '备注')
             ];
             $this->exportExcel($xls_name, $xls_cell, $data);
         }catch (Exception $e)
@@ -1132,7 +1134,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
     public function dep_record_ept()
     {
         $goods_name = input('goods_name/s', '');
-        $org_id = request()->header('orgid');
+        $org_id = input('org_id', '');
         
         if(!$org_id){
             $this->returnError(5001, '缺少参数');
