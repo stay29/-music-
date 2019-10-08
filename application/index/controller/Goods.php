@@ -145,6 +145,9 @@ class Goods extends BaseController
         {
             $this->returnError(10000, '缺少参数');
         }
+        if($cate_id == $cate_pid){
+           $this->returnError(10000, '上级分类不能为自己'); 
+        }
         Db::startTrans();
         try
         {
@@ -759,7 +762,7 @@ class Goods extends BaseController
         {
             $this->returnError('10000', '缺少参数', '');
         }
-        if (strlen($remarks) > 200)
+        if (mb_strlen($remarks) > 200)
         {
             $this->returnError( '10000', '备注200字符内');
         }
