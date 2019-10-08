@@ -111,7 +111,7 @@ class Students extends BaseController
             $surplus_lesson = 0;    // 剩余课程写死为0
             $already_arrange=0;//已排课程
             $remark=$v['remark'];
-            $balance=StuBalance::field('gift_balance,recharge_balance')->find();
+            $balance=StuBalance::field('gift_balance,recharge_balance')->where('stu_id',$stu_id)->find();
             $res_data[] = [
                 'stu_id' => $stu_id,
                 'stu_name' => $v['truename'],
