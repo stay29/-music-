@@ -428,13 +428,12 @@ class Records extends BaseController
             'end_time' => $end_time,
             'rent_margin' => $re_margin + $rent_margin,
             'prepay' => $re_prepay + $prepay,
-            'remark' => $remark,
             'update_time' => time()
         ];
         try{
             db('goods_rent_record')->where([['status', '=', 1], ['record_id', '=', $record_id]])->update($data);
             $old = db('goods_rent_log')->where([['status', '=', 1], ['record_id', '=', $record_id]])->find();
-            db('goods_rent_log')->where([['status', '=', 1], ['record_id', '=', $record_id]])->update(['status' => 0]);
+            db('goods_rent_log')->where([['status', '=', 1], ['record_id', '=', $record_id]])->update(['status' => 0, 'remark' => $remark]);
             $new_data = $data;
             $new_data['record_id'] = $record_id;
             $new_data['start_time'] = $old['end_time'];
