@@ -105,7 +105,7 @@ class ExcelBase extends Controller
     {
         // save excel file to path: public/uploads/excel/
         $dirPath = "./upload/file/";
-        $info = $file->validate(['size'=>104857600,'ext'=>'xls,xlsx'])->move( $dirPath);
+        $info = $file->validate(['size'=>104857600,'ext'=>'xls,xlsx'])->move($dirPath);
         if($info){
             $fileName = $info->getSaveName();
             $filePath = $dirPath . $fileName;
@@ -116,7 +116,7 @@ class ExcelBase extends Controller
                 $reader = \PHPExcel_IOFactory::createReader('Excel5');
             }
         }else{
-            $this->returnError('30000', '上传失败');
+            $this->returnError('30000', '请上传正确文件类型和大小');
         }
 
         $excel = $reader->load($filePath, $encode = 'utf-8');
@@ -525,15 +525,17 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $t['sex'] = $t['sex'] == '男' ? 1 : 2;
                 $t['entry_time'] = strtotime($t['entry_time']);
                 $t['birthday'] = strtotime($t['birthday']);
+                $res = db('teachers')->where('cellphone', '=', $t['cellphone'])->find();
+                if($res){
+                    $this->returnError('10001', '电话号码不能重复');
+                }
                 $t_id = Db::table('erp2_teachers')->insertGetId($t);
 
                 // 添加教师薪酬
                 Db::name('teacher_salary')->insert(['t_id'=>$t_id]);
                 unset($t, $v);
             }
-
             Db::commit();
-
             $this->returnData('导入成功', true);
         }catch (\Exception $e){
             Db::rollback();

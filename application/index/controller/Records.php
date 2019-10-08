@@ -557,6 +557,7 @@ class Records extends BaseController
                            gs.entry_time, gs.manager, gs.remark, u.nickname, ed.goods_name')->where('gs.goods_id', 'in', $goods_list)
                 ->leftJoin('erp2_users u', 'gs.manager=u.uid')
                 ->leftJoin('erp2_goods_detail ed', 'ed.goods_id=gs.goods_id')
+                ->order('create_time DESC')
                 ->paginate($limit, false, ['page' => $page])
                 ->each(function($log, $lk){
                     $log['sto_total_money'] = $log['sto_num'] * $log['sto_single_price'];
