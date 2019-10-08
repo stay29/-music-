@@ -220,6 +220,12 @@ class Index extends Basess
         $kname = ['cur_name', 'subject', 'tmethods', 'ctime', 'describe', 'remarks'];
         $uid = input('uid');
         $orgid = input('orgid');
+        $file = request()->file('excel');
+        if (empty($file))
+        {
+            $this->return_data(0,10000,'缺少上传文件');
+            exit();
+        }
         $res = Phpexcil::import($kname);
         $infos = array();
         foreach ($res as $ks=>&$vs) {
