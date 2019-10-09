@@ -183,13 +183,14 @@ class Goods extends BaseController
         $categories = db('goods_cate')->field('cate_id as id,  cate_pid, cate_name')->
             order('order, create_time DESC')->where('org_id', '=', $org_id)->select();
         $data = getTree($categories);
-        $response = [
-            [
-                'id' => 0,
-                'cate_name' => '顶级分类',
-                'sub' => $data
-            ]
-        ];
+        $response = $data;
+//        $response = [
+//            [
+//                'id' => 0,
+//                'cate_name' => '顶级分类',
+//                'sub' => $data
+//            ]
+//        ];
 //        array_push($data, $top_cate);
         $this->returnData($response, '请求成功');
     }
