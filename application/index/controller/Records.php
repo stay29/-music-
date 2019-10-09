@@ -433,13 +433,14 @@ class Records extends BaseController
         try{
             db('goods_rent_record')->where([['status', '=', 1], ['record_id', '=', $record_id]])->update($data);
             $old = db('goods_rent_log')->where([['status', '=', 1], ['record_id', '=', $record_id]])->find();
-            db('goods_rent_log')->where([['status', '=', 1], ['record_id', '=', $record_id]])->update(['status' => 0, 'remark' => $remark]);
+            db('goods_rent_log')->where([['status', '=', 1], ['record_id', '=', $record_id]])->update(['status' => 0]);
             $new_data = $data;
             $new_data['record_id'] = $record_id;
             $new_data['start_time'] = $old['end_time'];
             $new_data['pay_id'] = $pay_id;
             $new_data['manager'] = ret_session_name('uid');
             $new_data['status'] = 1;
+            $new_data['remark'] = $remark;
             db('goods_rent_log')->insert($new_data);
             
             $this->returnData(true, '续租成功');

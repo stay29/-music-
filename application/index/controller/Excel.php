@@ -1134,7 +1134,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
     public function dep_record_ept()
     {
         $goods_name = input('goods_name/s', '');
-        $org_id = input('org_id', '');
+        $org_id = input('orgid', '');
         
         if(!$org_id){
             $this->returnError(5001, '缺少参数');
