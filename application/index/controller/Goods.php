@@ -933,7 +933,8 @@ class Goods extends BaseController
                 'remark' => $remark,
                 'create_time' => $create_time,
                 'update_time' => $update_time,
-                'status' => 1
+                'status' => 1,
+                'manager' => ret_session_name('uid')
             ];
             $record_id = Db::name('goods_rent_record')->insertGetId($record_data);
             if($record_id){
@@ -948,15 +949,16 @@ class Goods extends BaseController
                     'manager' => ret_session_name('uid'),
                     'update_time' => $update_time,
                     'remark' => $remark,
-                    'status' => 1
+                    'status' => 1,
+                    'manager' => ret_session_name('uid')
                 ];
                 db('goods_rent_log')->insert($log_data);
             }
-            $this->returnData(1, '租凭成功');
+            $this->returnData(1, '租赁成功');
         }catch (Exception $e)
         {
             Db::rollback();
-            $this->returnError('50000', '租凭失败' . $e->getMessage());
+            $this->returnError('50000', '租赁失败' . $e->getMessage());
         }
     }
 

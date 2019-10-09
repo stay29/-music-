@@ -190,7 +190,7 @@ class Records extends BaseController
         $start_time = input('start_time/d', '');
         $end_time = input('end_time/d', '');
         $key = input('key/s', '');  // 租客姓名/商品名称
-        $status = input('status/d', ''); // 0 全部， 1未归还， 2已归还。
+        $status = input('status/d', ''); // 0 全部， 1未归还，2超期 3已归还。
         $page = input('page/d', 1);
         $limit = input('limit/d', 20);
         if (empty($org_id))
@@ -204,74 +204,93 @@ class Records extends BaseController
             # 租客名称或者商品民粹
             $gsdb =  db('goods_detail')->where('org_id', '=', $org_id);
             $studb = db('students')->where('org_id', '=', $org_id);
-            if (!empty($key))
+            if ($key != null)
             {
                 $studb->where('truename', 'like', '%' . $key . '%');
 
                 $gsdb->where('goods_name', 'like', '%' . $key . '%'); 
 
             }
-            $rent_obj_id = $studb->column('stu_id');array_push($rent_obj_id, 0);
+            $rent_obj_id = $studb->column('stu_id');
             $goods_id = $gsdb->column('goods_id');
-            # 租赁记录表
-            $table = db('goods_rent_record')->alias('record')->field("record.*, gd.goods_name, stu.stu_id, stu.truename, gd.rent_amount_day, gd.rent_amount_mon, gd.rent_amount_year");
-            //$table->where('org_id', '=', $org_id);
-            if ($goods_id) {$table->whereOr('record.goods_id', 'in', $goods_id);}
-            if ($rent_obj_id) {$table->whereOr('record.stu_id', 'in', $rent_obj_id);}
-            # 前端参数１是全部，数据库存储状态１是在租
-            if (!empty($status)) 
-            { 
-                if($status === 3){
-                   $table->where('record.status', '=', 0); 
-                }elseif($status === 2){
-                   $table->where('record.status', '=', 1);
-                   $table->whereTime('end_time', '<', time());
-                }else{
-                    $table->where('record.status', '=', 1);
-                    $table->whereTime('end_time', '>=', time()); 
-                }
-            }
+            
+            if($rent_obj_id || $goods_id){
+                
+                    # 租赁记录表
+                    $table = db('goods_rent_record')->alias('record')->field("record.*, gd.goods_name, stu.stu_id, stu.truename, gd.rent_amount_day, gd.rent_amount_mon, gd.rent_amount_year");
+                    //$table->where('org_id', '=', $org_id);
+//                    if ($goods_id) {$table->whereOr('record.goods_id', 'in', $goods_id);}
+//                    if ($rent_obj_id) {$table->whereOr('record.stu_id', 'in', $rent_obj_id);}
+                    $table->where(function ($query) use($goods_id, $rent_obj_id) {
+                            if($goods_id){
+                               $query->whereOr('record.goods_id', 'in', $goods_id);
+                            }
+                            if($rent_obj_id){
+                              $query->whereOr('record.stu_id', 'in', $rent_obj_id);
+                            }
+                        });
+                    # 前端参数１是全部，数据库存储状态１是在租
+                    if (!empty($status)) 
+                    { 
+                        if($status === 3){
+                           $table->where('record.status', '=', 0); 
+                        }elseif($status === 2){
+                           $table->where('record.status', '=', 1);
+                           $table->whereTime('record.end_time', '<', time());
+                        }else{
+                            $table->where('record.status', '=', 1);
+                            $table->whereTime('record.end_time', '>=', time()); 
+                        }
+                    }
 
-            if (!empty($start_time) and !empty($end_time)) {$table->whereBetweenTime('record.create_time',  $start_time,  $end_time);}
-            $table->order('record.update_time DESC');
-            $total_margin = $table->sum('rent_margin'); // 总押金
-            $total_amount = $table->sum('rent_amount');  // 总租金
-            $total_prepaid_rent = $table->sum('prepay');  // 总预收租金
-               
-            $rent_logs = $table->leftJoin('erp2_goods_detail gd', 'gd.goods_id=record.goods_id')
-                                ->leftJoin('erp2_students stu', 'stu.stu_id = record.stu_id')
-                                ->where('gd.org_id', '=', $org_id)
-                                ->paginate($limit, false, ['page' => $page])
-                                ->each(function($log, $lk) use ($rent_type_amount_arr, $status_arr){
-                                    $rent_obj_name = '其他';
-                                    if ($log['obj_type'] == 1){
-                                        $rent_obj_name = $log['truename'];
-                                    }
-                                    $log['rent_obj_name'] = $rent_obj_name;
-                                    //每日/月/年租金
-                                    $rent_type_money = $log[$rent_type_amount_arr[$log['count_type']]];
-                                    $log['rent_type_money'] = $rent_type_money;
-                                    
-                                    if (time() > $log['end_time'] and intval($log['status']) !== 0) // 超时未归还
-                                    {
-                                        $log['status'] = 2;
-                                    }
-                                    $log['status_text'] = $status_arr[intval($log['status'])];
-                                    return $log;
-                                });
-            $data = [
-                'total_margin' => $total_margin,
-                'total_amount' => $total_amount,
-                'total_prepaid_rent' => $total_prepaid_rent,
-                'records' => $rent_logs->items()
-                ];
-            $response = [
-                'last_page' => $rent_logs->lastPage(),
-                'per_page' => $rent_logs->listRows(),
-                'total' => $rent_logs->total(),
-                'data' => $data
-            ];
-//            dump($data);die;
+                    if (!empty($start_time) and !empty($end_time)) {$table->whereBetweenTime('record.start_time',  $start_time,  $end_time);}
+                    $table->order('record.update_time DESC');
+                    $total_margin = $table->sum('rent_margin'); // 总押金
+                    $total_amount = $table->sum('rent_amount');  // 总租金
+                    $total_prepaid_rent = $table->sum('prepay');  // 总预收租金
+
+                    $rent_logs = $table->leftJoin('erp2_goods_detail gd', 'gd.goods_id=record.goods_id')
+                                        ->leftJoin('erp2_students stu', 'stu.stu_id = record.stu_id')
+                                        ->where('gd.org_id', '=', $org_id)
+                                        ->paginate($limit, false, ['page' => $page])
+                                        ->each(function($log, $lk) use ($rent_type_amount_arr, $status_arr){
+                                            $rent_obj_name = '其他';
+                                            if ($log['obj_type'] == 1){
+                                                $rent_obj_name = $log['truename'];
+                                            }
+                                            $log['rent_obj_name'] = $rent_obj_name;
+                                            //每日/月/年租金
+                                            $rent_type_money = $log[$rent_type_amount_arr[$log['count_type']]];
+                                            $log['rent_type_money'] = $rent_type_money;
+                                            
+                                            if (time() > $log['end_time'] and intval($log['status']) !== 0) // 超时未归还
+                                            {
+                                                $log['status'] = 2;
+                                            }
+                                            $log['status_text'] = $status_arr[intval($log['status'])];
+                                            return $log;
+                                        });
+                    $data = [
+                        'total_margin' => $total_margin,
+                        'total_amount' => $total_amount,
+                        'total_prepaid_rent' => $total_prepaid_rent,
+                        'records' => $rent_logs->items()
+                        ];
+
+                    $response = [
+                        'last_page' => $rent_logs->lastPage(),
+                        'per_page' => $rent_logs->listRows(),
+                        'total' => $rent_logs->total(),
+                        'data' => $data
+                    ];
+            }else{
+                    $response = [
+                        'last_page' => 0,
+                        'per_page' => 0,
+                        'total' => 0,
+                        'data' => ''
+                    ];               
+            }
             $this->returnData($response, '请求成功');
         }catch (Exception $e)
         {
@@ -344,13 +363,13 @@ class Records extends BaseController
         $remark = input('remark/s', '');
         $record_id = input('record_id/d', '');
 
-        if (is_empty($pay_amount, $pay_id, $record_id, $return_time))
+        if (is_empty($pay_id, $record_id, $return_time))
         {
             $this->returnError(10000, '缺少参数');
         }
-        if ($pay_amount < 0)
+        if ($pay_amount === '' || $pay_amount < 0)
         {
-            $this->returnError(10001, '请输入正确的金额');
+            $this->returnError(10000, '请写入正确的金额');
         }
         Db::startTrans();
         try
@@ -360,7 +379,7 @@ class Records extends BaseController
             $margin = $record['rent_margin'];
             $prepay = $record['prepay'];
             $goods_id = $record['goods_id'];
-            Db::name('goods_rent_record')->where('record_id', '=', $record_id)->update(['status'=>0, 'rent_margin'=>0, 'prepay'=>0, 'rent_amount' => $pay_amount, 'return_time' => $return_time, 'remark' => $remark]);
+            Db::name('goods_rent_record')->where('record_id', '=', $record_id)->update(['status'=>0, 'rent_margin'=>0, 'prepay'=>0, 'rent_amount' => $pay_amount, 'return_time' => $return_time]);
             db('goods_rent_log')->where([['record_id', '=', $record_id], ['status', '=', 1]])->update(['status'=>0, 'rent_margin'=>0, 'prepay'=>0, 'remark'=>$remark]);
             db('goods_sku')->where('goods_id', '=', $goods_id)->setInc('sku_num', $rent_num);
             $data = [
@@ -421,7 +440,7 @@ class Records extends BaseController
         if($end_time <= $re_end){
             $this->returnError(10001, '续租时间不能比结束时间早');
         }
-        if($rent_margin < 0 || $prepay < 0){
+        if($rent_margin === ''|| $rent_margin < 0 || $prepay === '' || $prepay < 0){
             $this->returnError(10002, '请输入正确的数字');
         }
         $data = [
@@ -433,13 +452,14 @@ class Records extends BaseController
         try{
             db('goods_rent_record')->where([['status', '=', 1], ['record_id', '=', $record_id]])->update($data);
             $old = db('goods_rent_log')->where([['status', '=', 1], ['record_id', '=', $record_id]])->find();
-            db('goods_rent_log')->where([['status', '=', 1], ['record_id', '=', $record_id]])->update(['status' => 0, 'remark' => $remark]);
+            db('goods_rent_log')->where([['status', '=', 1], ['record_id', '=', $record_id]])->update(['status' => 0]);
             $new_data = $data;
             $new_data['record_id'] = $record_id;
             $new_data['start_time'] = $old['end_time'];
             $new_data['pay_id'] = $pay_id;
             $new_data['manager'] = ret_session_name('uid');
             $new_data['status'] = 1;
+            $new_data['remark'] = $remark;
             db('goods_rent_log')->insert($new_data);
             
             $this->returnData(true, '续租成功');
@@ -462,9 +482,12 @@ class Records extends BaseController
         $prepaid_rent = input('prepay/f', ''); // 预付租金
         $end_time = input('end_time/d', '');
         $remark = input('remark', '');
-        if (is_empty($record_id, $rent_margin, $prepaid_rent, $end_time))
+        if (is_empty($record_id, $end_time))
         {
             $this->returnError(10000, '缺少参数');
+        }
+        if($rent_margin === '' || $rent_margin < 0 || $prepaid_rent === '' || $prepaid_rent < 0){
+            $this->returnError(10000, '请输入正确的金额');
         }
         try
         {
@@ -557,7 +580,7 @@ class Records extends BaseController
                            gs.entry_time, gs.manager, gs.remark, u.nickname, ed.goods_name')->where('gs.goods_id', 'in', $goods_list)
                 ->leftJoin('erp2_users u', 'gs.manager=u.uid')
                 ->leftJoin('erp2_goods_detail ed', 'ed.goods_id=gs.goods_id')
-                ->order('create_time DESC')
+                ->order('gs.create_time DESC')
                 ->paginate($limit, false, ['page' => $page])
                 ->each(function($log, $lk){
                     $log['sto_total_money'] = $log['sto_num'] * $log['sto_single_price'];
@@ -569,7 +592,6 @@ class Records extends BaseController
                 'last_page' => $sto_logs->lastPage(),
                 'data' => $sto_logs->items()
             ];
-
             $this->returnData($response, '请求成功');
         }catch (Exception $e)
         {
@@ -763,12 +785,15 @@ class Records extends BaseController
         }
         if ($cate_id)
         {
+            $categories = db('goods_cate')->field('cate_id as id,  cate_pid, cate_name')->
+                            order('create_time DESC')->where("org_id=$org_id and (cate_id=$cate_id or cate_pid=$cate_id)")->select();
             $where[] = ['cate_id', '=', $cate_id];
         }
         $goods_list = db('goods_detail')->where($where)->order('create_time DESC')->column('goods_id');
 
         try{
                 $sale_db = db('goods_sale_log')->alias('gs');
+                
                 $sale_db->where('gs.goods_id', 'in', $goods_list);
                 if (!empty($sman_type))
                 {
@@ -787,8 +812,8 @@ class Records extends BaseController
                 static $total_amount = 0.00;
                 static $total_profit = 0.00;
                 $sale_logs =  $sale_db->field('gs.goods_id, ed.unit_name, gc.cate_name, ed.goods_name, COALESCE(sum(gs.sale_num),0) as stol, COALESCE(sum(gs.pay_amount),0) as sale_total, 
-                           COALESCE(sum(goodsto.sto_num*goodsto.sto_single_price),0) as gmtol, COALESCE(sum(goodsto.sto_num),0) as sto_num')
-                ->leftJoin('erp2_goods_storage goodsto', 'goodsto.goods_id=gs.goods_id')
+                           goodsto.gmtol,goodsto.sto_num')
+                ->leftJoin('(select goods_id,COALESCE(sum(sto_num*sto_single_price),0) as gmtol, COALESCE(sum(sto_num),0) as sto_num from erp2_goods_storage GROUP BY goods_id) goodsto', 'goodsto.goods_id=gs.goods_id')
                 ->leftJoin('erp2_goods_detail ed', 'ed.goods_id=gs.goods_id')
                 ->leftJoin('erp2_goods_cate gc', 'gc.cate_id=ed.cate_id')
                 ->group('gs.goods_id')
