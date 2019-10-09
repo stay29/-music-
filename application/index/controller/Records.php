@@ -557,7 +557,7 @@ class Records extends BaseController
                            gs.entry_time, gs.manager, gs.remark, u.nickname, ed.goods_name')->where('gs.goods_id', 'in', $goods_list)
                 ->leftJoin('erp2_users u', 'gs.manager=u.uid')
                 ->leftJoin('erp2_goods_detail ed', 'ed.goods_id=gs.goods_id')
-                ->order('create_time DESC')
+                ->order('gs.create_time DESC')
                 ->paginate($limit, false, ['page' => $page])
                 ->each(function($log, $lk){
                     $log['sto_total_money'] = $log['sto_num'] * $log['sto_single_price'];
@@ -569,7 +569,6 @@ class Records extends BaseController
                 'last_page' => $sto_logs->lastPage(),
                 'data' => $sto_logs->items()
             ];
-
             $this->returnData($response, '请求成功');
         }catch (Exception $e)
         {
@@ -763,6 +762,8 @@ class Records extends BaseController
         }
         if ($cate_id)
         {
+            $categories = db('goods_cate')->field('cate_id as id,  cate_pid, cate_name')->
+                            order('create_time DESC')->where("org_id=$org_id and cate_id=$cate_id or cate_pid=$cate_id")->select();
             $where[] = ['cate_id', '=', $cate_id];
         }
         $goods_list = db('goods_detail')->where($where)->order('create_time DESC')->column('goods_id');
