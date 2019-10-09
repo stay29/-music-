@@ -95,8 +95,9 @@ class Students extends BaseController
 
             if(!empty($cur_name)){
 //                var_dump($cur_name);
+                $is_over=false;
                 foreach ($cur_list as $cur){
-                    $is_over=false;
+
                     if(strpos($cur['cur_name'],$cur_name)!==FALSE){
                         $is_over=true;
                         break;
