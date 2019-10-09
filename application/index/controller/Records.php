@@ -243,7 +243,7 @@ class Records extends BaseController
                         }
                     }
 
-                    if (!empty($start_time) and !empty($end_time)) {$table->whereBetweenTime('record.create_time',  $start_time,  $end_time);}
+                    if (!empty($start_time) and !empty($end_time)) {$table->whereBetweenTime('record.start_time',  $start_time,  $end_time);}
                     $table->order('record.update_time DESC');
                     $total_margin = $table->sum('rent_margin'); // 总押金
                     $total_amount = $table->sum('rent_amount');  // 总租金
@@ -786,13 +786,14 @@ class Records extends BaseController
         if ($cate_id)
         {
             $categories = db('goods_cate')->field('cate_id as id,  cate_pid, cate_name')->
-                            order('create_time DESC')->where("org_id=$org_id and cate_id=$cate_id or cate_pid=$cate_id")->select();
+                            order('create_time DESC')->where("org_id=$org_id and (cate_id=$cate_id or cate_pid=$cate_id)")->select();
             $where[] = ['cate_id', '=', $cate_id];
         }
         $goods_list = db('goods_detail')->where($where)->order('create_time DESC')->column('goods_id');
 
         try{
                 $sale_db = db('goods_sale_log')->alias('gs');
+                
                 $sale_db->where('gs.goods_id', 'in', $goods_list);
                 if (!empty($sman_type))
                 {
@@ -811,8 +812,8 @@ class Records extends BaseController
                 static $total_amount = 0.00;
                 static $total_profit = 0.00;
                 $sale_logs =  $sale_db->field('gs.goods_id, ed.unit_name, gc.cate_name, ed.goods_name, COALESCE(sum(gs.sale_num),0) as stol, COALESCE(sum(gs.pay_amount),0) as sale_total, 
-                           COALESCE(sum(goodsto.sto_num*goodsto.sto_single_price),0) as gmtol, COALESCE(sum(goodsto.sto_num),0) as sto_num')
-                ->leftJoin('erp2_goods_storage goodsto', 'goodsto.goods_id=gs.goods_id')
+                           goodsto.gmtol,goodsto.sto_num')
+                ->leftJoin('(select goods_id,COALESCE(sum(sto_num*sto_single_price),0) as gmtol, COALESCE(sum(sto_num),0) as sto_num from erp2_goods_storage GROUP BY goods_id) goodsto', 'goodsto.goods_id=gs.goods_id')
                 ->leftJoin('erp2_goods_detail ed', 'ed.goods_id=gs.goods_id')
                 ->leftJoin('erp2_goods_cate gc', 'gc.cate_id=ed.cate_id')
                 ->group('gs.goods_id')
