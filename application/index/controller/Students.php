@@ -4,6 +4,7 @@ namespace app\index\controller;
 
 use app\index\model\MealCurRelations;
 use app\index\model\Purchase_Lessons;
+use app\index\model\Schedule;
 use MongoDB\BSON\Decimal128;
 use function PHPSTORM_META\type;
 use think\Controller;
@@ -75,34 +76,64 @@ class Students extends BaseController
         {
             $tb->where('truename', 'like', '%' . $stu_name . '%');
         }
+
+//        var_dump($cur_name);
+//        if (!empty($cur_name))
+//        {
+//            $cur_id = db('curriculums')->where('cur_name', 'like', '%'.$cur_name.'%')->value('cur_id');
+//            $cur_id = $cur_id ? $cur_id : -1;
+//            $sql = "SELECT * FROM erp2_students WHERE stu_id IN (SELECT stu_id FROM erp2_stu_cur WHERE cur_id={$cur_id});";
+//            array_push($data, Db::query($sql));
+//        }
         $data = $tb->select();
-        if (!empty($t_name))
-        {
-            $t_id = db('teachers')->where(['t_id', 'like', '%' . $t_name . '%'])->value('t_id');
-            $t_id = $t_id ? $t_id : -1;
-            $sql = "SELECT * FROM erp2_students WHERE stu_id IN 
-                    (SELECT stu_id FROM erp2_classes_teachers_realations
-                     AS A INNER JOIN erp2_class_student_relations AS 
-                     B ON A.cls_id=B.class_id WHERE A.t_id={$t_id});";
-            array_push($data, Db::query($sql));
-        }
-        if (!empty($cur_name))
-        {
-            $cur_id = db('curriculums')->where('cur_name', 'like', '%'.$cur_name.'%')->value('cur_id');
-            $cur_id = $cur_id ? $cur_id : -1;
-            $sql = "SELECT * FROM erp2_students WHERE stu_id IN (SELECT stu_id FROM erp2_stu_cur WHERE cur_id={$cur_id});";
-            array_push($data, Db::query($sql));
-        }
         $res_data = [];
         foreach ($data as $k=>$v)
         {
             $stu_id = $v['stu_id'];
-            $cur_sql = "SELECT cur_name FROM erp2_curriculums WHERE cur_id IN (SELECT cur_id FROM erp2_purchase_lessons WHERE stu_id={$stu_id});";
+            $cur_sql = "SELECT cur_name FROM erp2_curriculums WHERE cur_id IN (SELECT cur_id FROM erp2_teach_schedules WHERE stu_id={$stu_id});";
             $cur_list = Db::query($cur_sql);
-            $t_sql = "SELECT t_name FROM erp2_teachers WHERE t_id IN 
-(SELECT t_id FROM erp2_purchase_lessons WHERE stu_id={$stu_id})";
-            $res = Db::query($t_sql);
-            $t_name = empty($res) ? '' : $res;
+
+            if(!empty($cur_name)){
+//                var_dump($cur_name);
+                foreach ($cur_list as $cur){
+                    $is_over=false;
+                    if(strpos($cur['cur_name'],$cur_name)!==FALSE){
+                        $is_over=true;
+                        break;
+                    }
+
+                }
+                if(!$is_over){
+                    continue;
+                }
+            }
+//           var_dump(!empty($t_name));
+
+                $res=\app\index\model\Teacher::field('a.t_name')
+                    ->alias('a')
+                    ->where('a.org_id',$org_id)
+                    ->where('b.org_id',$org_id)
+                    ->join('erp2_teach_schedules b','b.t_id=a.t_id')
+                    ->where('FIND_IN_SET(:stu_id,stu_id)', ['stu_id' => $stu_id])
+                    ->distinct(true)
+                    ->select();
+            if(!empty($t_name)){
+//                var_dump($res);
+                $is_over=false;
+                foreach ($res as $value){
+//                    var_dump(strpos($value['t_name'],$t_name));
+                  if(strpos($value['t_name'],$t_name)!==FALSE){
+                      $is_over=true;
+                      break;
+                  }
+                }
+                if(!$is_over){
+                    continue;
+                }
+
+
+            }
+            $t_name_list = empty($res) ? '' : $res;
             // 已购课程
             $already_buy = db('teach_schedules')->where(['status'=>1, 'stu_id'=>$stu_id])->count('*');
             // 已上课程
@@ -117,7 +148,7 @@ class Students extends BaseController
                 'stu_name' => $v['truename'],
                 'mobile'    => $v['cellphone'],
                 'cur_list'  => $cur_list,
-                't_name'    => $t_name,
+                't_name'    => $t_name_list,
                 'already_done' => $already_done,
                 'already_buy'   => $already_buy,
                 'surplus_lesson' => $surplus_lesson,
@@ -316,11 +347,11 @@ class Students extends BaseController
         $this->auth_get_token();
         $orgid= \think\facade\Request::instance()->header()['orgid'];
         $real_price=input('post.real_price/f', '');
-        $classify = input('post.classify/d', '');   // 购课类型
+        $classify = input('classify/d', '');   // 购课类型
         $remarks = input('post.remarks/s', '');
         $pay_id= input('post.pay_id/d', '');
         $type=input('post.type/d', '');
-        $stu_id=input('post.stu_id/d', '');
+        $stu_id=input('stu_id/d', '');
         if (empty($classify)) {
             $this->return_data(0, '10000', '缺少classify参数');
         }
@@ -333,6 +364,7 @@ class Students extends BaseController
 
             $totol_ch=$class_hour+$give_class;
             $data_record=[
+                'stu_id' =>$stu_id ,
                 'pay_id'  =>$pay_id,
                 'type'      => $type,
                 'type_num'  => input('post.type_num/d', ''),
@@ -342,7 +374,8 @@ class Students extends BaseController
                 'valid_day'   => input('post.real_price/f', ''),
                 'buy_time'      => input('post.buy_time/d', ''),
                 'give_class' => $give_class,
-                'or_id'     =>$orgid
+                'or_id'     =>$orgid,
+                'classify'=>$classify
             ]  ;
             $data = [
                 'stu_id' =>$stu_id ,
@@ -352,7 +385,7 @@ class Students extends BaseController
                 'single_price' => $real_price/$totol_ch,
                 'class_hour' => $totol_ch,
                 'surplus_hour'=>$totol_ch,
-                'or_id'     =>$orgid
+                'or_id'     =>$orgid,
             ];
             foreach ($data as $key => $val)
             {
@@ -381,49 +414,7 @@ class Students extends BaseController
                 Db::table('erp2_purchase_lessons')->insert($data);
                 //处理账户钱
 
-                $account=Db::table('erp2_stu_balance')->where('stu_id',$stu_id)->find();
-//                 var_dump($account);
-                $money=[
-                    'total_buylesson'=>$account['total_buylesson']+$real_price,
-                ];
-               $log= ['type'=>'购课',
-                    'pay_id'=>$pay_id,
-                    'pid'=>$stu_id,
-                     'create_time'=>time(),
-                    'update_time'=>time()
-                    ];
-//                switch ($type){
-//                    case  1: //不使用优惠
-//                        break;
-//                    case 2:// 折扣
-//                        break;
-//                    case 3://优惠金额
-//                        break;
-//                }
-//                var_dump($pay_id);
-                if($pay_id==6){
-                    if($real_price<$account['recharge_balance']){
-                        $money['recharge_balance'] =$account['recharge_balance']-$real_price;
-                        $log['amount']=$real_price;
-                    }else if($real_price<$account['recharge_balance']+$account['gift_balance']){
-                        $money['recharge_balance'] =0;
-                        $money['gift_balance']=$account['gift_balance']+$account['recharge_balance']-$real_price;
-                        $log['amount']=-$account['recharge_balance'];
-                        $log['presenter']=$account['recharge_balance']-$real_price;
-                    }else{
-                        $money['recharge_balance'] =$account['gift_balance']+$account['recharge_balance']-$real_price;
-                        $money['gift_balance']=0;
-                        $log['amount']=-$real_price;
-                        $log['presenter']=-$money['gift_balance'];
-                    }
-//                    var_dump($money['recharge_balance']);
-                    $log['balance']=$account['gift_balance']+$account['recharge_balance']-$real_price;
-                }else{
-                    $log['amount']=-$real_price;
-                }
-                StuBalance::where('stu_id',$stu_id)->update($money);
-                Db::table('erp2_stu_balance_log')
-                    ->insert($log);
+                $this->money_count($stu_id, $real_price, $pay_id);
                 Db::commit();
                 $this->return_data('1', '', '购课成功', true);
             }catch (Exception $e)
@@ -439,6 +430,7 @@ class Students extends BaseController
             $this->return_data('0', '10000', '普通购课meal_id不能为空');
            $meals= \app\index\model\Meals::where('meal_id',$meal_id)->find();
             $data_record=[
+                'stu_id' =>$stu_id ,
                 'pay_id'  => $pay_id,
                 'type'      => $type,
                 'type_num'  => input('post.type_num/d', ''),
@@ -447,27 +439,24 @@ class Students extends BaseController
                 'real_price'    => $real_price,
                 'valid_day'   => input('post.real_price/f', ''),
                 'buy_time'      => input('post.buy_time/d', ''),
-                'or_id'     =>$orgid
+                'or_id'     =>$orgid,
+                'classify'=>$classify
             ]  ;
             $data_record['name']=$meals['meal_name'];
             Db::startTrans();
             try
             {
-            $record=  Db::table('erp2_purchase_lessons_record')->insert($data_record);
+            $record=  Db::table('erp2_purchase_lessons_record')->insertGetId($data_record);
            $meals_cur_id= explode('/',$meals['meals_cur']);
            $cur_objs= MealCurRelations::where('meal_cur_id','in',$meals_cur_id)->select();
 
             foreach ($cur_objs as $cur_obj){
-                $data['cur_id'] = $cur_obj['cur_id'];
-                $data['meal_id'] = $meal_id;
-                $data['remarks'] = $remarks;
-                $data['manager'] = input('post.uid/d', '');
-//                unset($data['uid']);
-                $data['buy_time'] = time();
-                $data['create_time'] = time();
+//                var_dump( $cur_obj['cur_id']);
                 $class_hour=$cur_obj['cur_num'];
                 $real_price=$cur_obj['actual_price'];
                 $totol_ch=$class_hour;
+//                var_dump($data['cur_id']);
+                var_dump($stu_id);
                 $data = [
                     'r_id'=>$record,
                     'stu_id' => $stu_id,
@@ -477,12 +466,18 @@ class Students extends BaseController
                     'surplus_hour'=>$totol_ch,
                     'or_id'     =>$orgid
                 ];
-
+                $data['cur_id'] = $cur_obj['cur_id'];
+                $data['meal_id'] = $meal_id;
+                $data['remarks'] = $remarks;
+                $data['manager'] = input('post.uid/d', '');
+//                unset($data['uid']);
+                $data['buy_time'] = time();
+                $data['create_time'] = time();
                     Db::table('erp2_purchase_lessons')->insert($data);
 
             }
                 //处理账户钱
-
+                $this->money_count($stu_id, $real_price, $pay_id);
                 Db::commit();
                 $this->return_data('1', '', '购课成功', true);
             }catch (Exception $e)
@@ -584,6 +579,63 @@ class Students extends BaseController
             ->select();
         }
         $this->returnData($data,"");
+    }
+
+    /**
+     * @param $stu_id
+     * @param $real_price
+     * @param $pay_id
+     * @throws Exception
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     * @throws \think\exception\PDOException
+     */
+    public function money_count($stu_id, $real_price, $pay_id)
+    {
+        $account = Db::table('erp2_stu_balance')->where('stu_id', $stu_id)->find();
+//                 var_dump($account);
+        $money = [
+            'total_buylesson' => $account['total_buylesson'] + $real_price,
+        ];
+        $log = ['type' => '购课',
+            'pay_id' => $pay_id,
+            'pid' => $stu_id,
+            'create_time' => time(),
+            'update_time' => time()
+        ];
+//                switch ($type){
+//                    case  1: //不使用优惠
+//                        break;
+//                    case 2:// 折扣
+//                        break;
+//                    case 3://优惠金额
+//                        break;
+//                }
+//                var_dump($pay_id);
+        if ($pay_id == 6) {
+            if ($real_price < $account['recharge_balance']) {
+                $money['recharge_balance'] = $account['recharge_balance'] - $real_price;
+                $log['amount'] = $real_price;
+            } else if ($real_price < $account['recharge_balance'] + $account['gift_balance']) {
+                $money['recharge_balance'] = 0;
+                $money['gift_balance'] = $account['gift_balance'] + $account['recharge_balance'] - $real_price;
+                $log['amount'] = -$account['recharge_balance'];
+                $log['presenter'] = $account['recharge_balance'] - $real_price;
+            } else {
+                $money['recharge_balance'] = $account['gift_balance'] + $account['recharge_balance'] - $real_price;
+                $money['gift_balance'] = 0;
+                $log['amount'] = -$real_price;
+                $log['presenter'] = -$money['gift_balance'];
+            }
+//                    var_dump($money['recharge_balance']);
+            $log['balance'] = $account['gift_balance'] + $account['recharge_balance'] - $real_price;
+        } else {
+            $log['amount'] = -$real_price;
+        }
+        StuBalance::where('stu_id', $stu_id)->update($money);
+        Db::table('erp2_stu_balance_log')
+            ->insert($log);
     }
 }
 

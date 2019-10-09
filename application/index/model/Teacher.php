@@ -16,7 +16,7 @@ class Teacher extends BaseModel
     protected $field = true;
     protected $autoWriteTimestamp = true;
     protected $auto = ['manager','entry_time'];//操作人id，对应users表主键
-    protected $append = ['seniority_name'];
+//    protected $append = ['seniority_name'];
     protected $update = [];
 
     protected function setManagerAttr(){
