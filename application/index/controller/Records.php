@@ -190,7 +190,7 @@ class Records extends BaseController
         $start_time = input('start_time/d', '');
         $end_time = input('end_time/d', '');
         $key = input('key/s', '');  // 租客姓名/商品名称
-        $status = input('status/d', ''); // 0 全部， 1未归还， 2已归还。
+        $status = input('status/d', ''); // 0 全部， 1未归还，2超期 3已归还。
         $page = input('page/d', 1);
         $limit = input('limit/d', 20);
         if (empty($org_id))
@@ -219,8 +219,16 @@ class Records extends BaseController
                     # 租赁记录表
                     $table = db('goods_rent_record')->alias('record')->field("record.*, gd.goods_name, stu.stu_id, stu.truename, gd.rent_amount_day, gd.rent_amount_mon, gd.rent_amount_year");
                     //$table->where('org_id', '=', $org_id);
-                    if ($goods_id) {$table->whereOr('record.goods_id', 'in', $goods_id);}
-                    if ($rent_obj_id) {$table->whereOr('record.stu_id', 'in', $rent_obj_id);}
+//                    if ($goods_id) {$table->whereOr('record.goods_id', 'in', $goods_id);}
+//                    if ($rent_obj_id) {$table->whereOr('record.stu_id', 'in', $rent_obj_id);}
+                    $table->where(function ($query) use($goods_id, $rent_obj_id) {
+                            if($goods_id){
+                               $query->whereOr('record.goods_id', 'in', $goods_id);
+                            }
+                            if($rent_obj_id){
+                              $query->whereOr('record.stu_id', 'in', $rent_obj_id);
+                            }
+                        });
                     # 前端参数１是全部，数据库存储状态１是在租
                     if (!empty($status)) 
                     { 
@@ -228,10 +236,10 @@ class Records extends BaseController
                            $table->where('record.status', '=', 0); 
                         }elseif($status === 2){
                            $table->where('record.status', '=', 1);
-                           $table->whereTime('end_time', '<', time());
+                           $table->whereTime('record.end_time', '<', time());
                         }else{
                             $table->where('record.status', '=', 1);
-                            $table->whereTime('end_time', '>=', time()); 
+                            $table->whereTime('record.end_time', '>=', time()); 
                         }
                     }
 
