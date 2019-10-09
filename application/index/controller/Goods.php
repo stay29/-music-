@@ -513,8 +513,7 @@ class Goods extends BaseController
                 $sto_total_money = $res?$res:0;
 
                 // 入库平均单价
-                $sto_avg_money = db('goods_storage')->
-                    where('goods_id','=', $goods_id)->avg('sto_single_price');
+                $sto_avg_money = $sto_total_num?sprintf("%.2f", ($res/$sto_total_num)) : 0;
 
                 // 出库总量
                 $dep_total_num = db('goods_deposit')->where(['goods_id'=>$goods_id])->sum('dep_num');

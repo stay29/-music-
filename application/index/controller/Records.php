@@ -671,7 +671,7 @@ class Records extends BaseController
             $this->returnError(5001, '缺少参数');
         }
         $goods_db = db('goods_detail')->where('org_id', '=', $org_id);
-        if (!empty($goods_name))
+        if ($goods_name != null)
         {
             $goods_db->where('goods_name', 'like', '%' . $goods_name . '%');
         }
@@ -779,15 +779,14 @@ class Records extends BaseController
         }
         //名下的商品id
         $where = [['org_id','=', $org_id]];
-        if (!empty($goods_name))
+        if ($goods_name != null)
         {
             $where[] = ['goods_name', 'like', '%' . $goods_name . '%'];
         }
         if ($cate_id)
         {
-            $categories = db('goods_cate')->field('cate_id as id,  cate_pid, cate_name')->
-                            order('create_time DESC')->where("org_id=$org_id and (cate_id=$cate_id or cate_pid=$cate_id)")->select();
-            $where[] = ['cate_id', '=', $cate_id];
+            $inda = $this->find_sons($cate_id);
+            $where[] = ['cate_id', 'in', $inda];
         }
         $goods_list = db('goods_detail')->where($where)->order('create_time DESC')->column('goods_id');
 
@@ -802,6 +801,10 @@ class Records extends BaseController
                 if (!empty($start_time) and !empty($end_time))
                 {
                     $sale_db->whereBetweenTime('sale_time', $start_time, $end_time);
+                } elseif(!empty($start_time) && empty($end_time)){
+                    $sale_db->where('sale_time', '>', $start_time);
+                }elseif(empty($start_time) && !empty($end_time)){
+                    $sale_db->where('sale_time', '<=', $end_time);
                 }elseif ($time_type)
                 {
                     if ($time_type == 1) {$sale_db->whereTime('sale_time', 'm');}
@@ -834,55 +837,6 @@ class Records extends BaseController
                     return $log; 
                 });
             
-//            $goods_list = $goods_db->field('goods_id, cate_id, unit_name, goods_name')->order('create_time DESC')->select();
-//            $data = [];
-//            foreach ($goods_list as $goods)
-//            {
-//                $goods_id =  $goods['goods_id'];
-//                $goods_name = $goods['goods_name'];
-//                $unit_name = $goods['unit_name'];
-////                $cate_name = db('goods_cate')->where('cate_id', '=', $cate_id)->value('cate_name');
-//                $sale_db = db('goods_sale_log')->where('goods_id', '=', $goods_id);
-//                if (!$sman_type)
-//                {
-//                    $sale_db->where('sman_type', '=', $sman_type);
-//                }
-//                if (!empty($start_time) and !empty($end_time))
-//                {
-//                    $sale_db->whereBetweenTime('sale_time', $start_time, $end_time);
-//                }elseif ($time_type)
-//                {
-//                    if ($time_type == 1) {$sale_db->whereTime('sale_time', 'd');}
-//                    elseif ($time_type == 2) {$sale_db->whereTime('sale_time', 'm');}
-//                    elseif ($time_type == 3) {$sale_db->whereTime('sale_time', 'y');}
-//                }
-//                 销售总额
-//                $sale_total_money = $sale_db->sum('pay_amount');
-//                // 销售数量
-//                $sale_num = $sale_db->sum('sale_num');
-//                $sale_num = $sale_num > 0 ? $sale_num : 1;
-//                // 入库总额
-//                $sto_total_money = db('goods_storage')->where('goods_id', '=', $goods_id)
-//                    ->sum('sto_num*sto_single_price');
-//                // 入库数量
-//                $sto_num = db('goods_storage')->where('goods_id', '=', $goods_id)
-//                    ->sum('sto_num');
-//                $sto_num = $sto_num > 0 ? $sto_num : 1;
-//                // 入库平均单价
-//                $sto_single_price = $sto_total_money / $sto_num;
-//                // 销售利润
-//                $sale_profit = $sale_total_money - $sto_single_price * $sale_num;
-
-//                $data[] = [
-//                    'goods_name' => $goods_name,
-////                    'cate_name' => $cate_name,
-//                    'unit_name' => $unit_name,
-//                    'sto_num'  => $sto_num,
-//                    'sale_num' => $sale_num,
-//                    'sale_total' => $sale_total_money,
-//                    'sale_profit' => $sale_profit
-//                ];
-//            }
             $response = [
                 'current_page' => $sale_logs->currentPage(),
                 'per_page' => $sale_logs->listRows(),
@@ -897,6 +851,22 @@ class Records extends BaseController
         {
             $this->returnError(50000, '系统异常' . $e->getMessage());
         }
+    }
+    /**
+     * 找子孙分类
+     * 
+     */
+    private function find_sons($cate_id)
+    {
+        static $inda = [];
+        array_push($inda, $cate_id);
+        $sons = db('goods_cate')->where('cate_pid', $cate_id)->column('cate_id');
+        if($sons){
+            foreach ($sons as $k => $son) {
+                $this->find_sons($son, $inda);
+            }
+        }
+        return $inda;
     }
 
 }
