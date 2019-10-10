@@ -954,15 +954,15 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             $xls_name = '商品信息表';
             $xls_cell = array(
                 array('goods_name', '商品名称'),
-                array('cate_name','分类名称'),
-                array('unit_name', '计量单位'),
-                array('sto_avg_money', '平均进价'),
-                array('goods_amount', '商品售价'),
-                array('goods_sku', '商品库存'),
-                array('sto_total_num', '入库总量'),
-                array('sto_total_money', '入库总额'),
-                array('dep_total_num', '出库数量'),
-                array('dep_total_money', '出库总额'),
+                array('cate_name','所属分类'),
+                array('unit_name', '单位'),
+                array('sto_avg_money', '平均成本'),
+                array('goods_amount', '参考售价'),
+                array('goods_sku', '库存'),
+                array('sto_total_num', '进货总量'),
+                array('sto_total_money', '进货总额'),
+                array('dep_total_num', '出货总量'),
+                array('dep_total_money', '出货总额'),
                 array('sale_total_num', '销售总量'),
                 array('sale_total_money', '销售总额'),
                 array('remarks', '备注')
@@ -993,6 +993,11 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             }
 
             $goods_list = $db->field('goods_id, goods_name, cate_id')->select();
+            //支付方式
+            $res = db('payments')->field('pay_id, payment_method')->select();
+            $ids = array_column($res, 'pay_id');
+            $iname = array_column($res, 'payment_method');
+            $idens = array_combine($ids, $iname);
 //            $response = [];
             $data = [];
             foreach ($goods_list as $goods) {
@@ -1038,10 +1043,11 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                         'sale_obj_name' => $sale_obj_name,
                         'manager' => $manager,
                         'pay_type' => $pay_type,
-                        'pay_id' => $log['pay_id'],
+                        'payment' => $idens[$log['pay_id']],
                         'single_price' => $log['single_price'],
                         'sum_payable' => $log['sum_payable'],
                         'pay_amount' => $log['pay_amount'],
+                        'sale_time' => date('Y/m/d H:i:s', $log['sale_time']),
                         'remark' => $log['remark'],
                     ];
                 }
@@ -1050,16 +1056,17 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             $xls_name = "销售记录列表";
             $xls_cell = [
                 array('goods_name', '商品名称'),
-                array('cate_name', '分类名称'),
+                array('cate_name', '商品分类'),
                 array('sale_num', '销售数量'),
+                array('single_price', '零售价（元）'),
+                array('sum_payable', '应付款（元）'),
+                array('pay_amount', '实付款（元）'),
+                array('sale_time', '销售时间'),
                 array('sale_code', '销售单号'),
-                array('sman_name', '销售员姓名'),
-                array('sman_type', '销售员类型'),
-                array('sale_obj_name', '销售对象类型'),
-                array('single_price', '销售单价'),
-                array('sum_payable', '应付金额'),
-                array('pay_amount', '实际付款'),
-                array('remark', '备注')
+                array('manager', '操作员'),
+//                array('sale_obj_name', '销售对象'),
+                array('remark', '备注'),
+                array('payment', '付款方式')
             ];
             $this->exportExcel($xls_name, $xls_cell, $data);
         }catch (Exception $e)
@@ -1115,8 +1122,8 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
 
                 array('goods_name', '商品名称'),
                 array('sto_num', '入库数量'),
-                array('sto_single_price', '入库单价'),
-                array('sto_total_money', '入款总价'),
+                array('sto_single_price', '入库价格'),
+                array('sto_total_money', '入库总价'),
                 array('entry_time', '入库时间'),
                 array('sto_code', '入库单号'),                
                 array('manager', '操作员'),
