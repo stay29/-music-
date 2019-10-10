@@ -875,7 +875,76 @@ class Goods extends BaseController
             $this->returnError(50000, '系统出错，销售失败' . $e->getMessage());
         }
     }
+    
+    /*
+     * 学生模块多个销售
+     */
+    public function multi_sale(){
+        $this->auth_get_token();
+        $uid = input('uid/d', '');
+        $goods_id = input('goods_id', '');  // 商品id
+        $sman_type = input('sman_type/d', ''); //销售员类型, 1销售员,2老师
+        $sman_id = input('sman_id/d', ''); // 销售员id或教师id
+        $sale_obj_type = input('sale_obj_type', ''); // 销售对象,1学生2其他
+        $sale_obj_id = input('sale_obj_id', ''); // 学生id, 或其他则为0
+        $pay_id = input('pay_id/d', ''); // 支付方式
+        $sale_num = input('sale_num', ''); // 销售数量
+        $single_price = input('single_price', '');   // 单价
+        $remark = input('remark/s', ''); // 备注
+        $sale_time = input('sale_time/d', time()); // 销售时间
 
+        if (is_empty($goods_id, $sman_type, $sman_id, $sale_obj_type, $sale_obj_id, $pay_id))
+        {
+            if ($sale_obj_type!=2 && $sale_obj_id!=0)
+            {
+                $this->returnError('10000', '缺少必填参数');
+            }
+        }
+        Db::startTrans();
+        try
+        {
+            $comman_data = [
+                'sman_type'     => $sman_type,
+                'sman_id'  => $sman_id,
+                'sale_obj_type' => $sale_obj_type,
+                'sale_obj_id'  => $sale_obj_id,
+                'pay_id' => $pay_id,
+                'sale_time' => $sale_time,
+                'remark' => $remark,
+                'create_time' => time(),
+                'update_time' => time(),
+                'manager' => $uid,
+            ];
+            
+            foreach ($goods_id as $gk => $gval) {  
+                $num = $sale_num[$gk];
+                $sku_num = Db::name('goods_sku')->where('goods_id', '=', $gval)->value('sku_num');
+                if ($sku_num < 1 ||  $sku_num < $num)
+                {
+                    $this->returnError(10001, '当中商品'.$gk.'库存不足');
+                }
+                
+                $new_data = $comman_data;
+                $new_data['goods_id'] = $gval;
+                $new_data['sale_code'] = random_code();
+                $new_data['sale_num'] = $num;
+                $new_data['single_price'] = $single_price[$gk];
+                $new_data['pay_amount'] = $new_data['sum_payable'] = $single_price[$gk] * $num;
+
+                Db::name('goods_sale_log')->insert($new_data);
+                $sku_num -= $num;
+                Db::name('goods_sku')->where('goods_id', '=', $gval)->update(['sku_num' => $sku_num]);
+                unset($new_data);
+            }
+
+            Db::commit();
+            $this->returnData(1, '销售成功');
+        }catch (Exception $e)
+        {
+            Db::rollback();
+            $this->returnError(50000, '系统出错，销售失败' . $e->getMessage());
+        } 
+    }
     /*
      * 商品租凭
      */
