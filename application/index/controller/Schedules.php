@@ -72,7 +72,7 @@ class Schedules extends BaseController
             } else {
                 $start_time += $sub * 24 * 60 * 60;
             }
-
+//            var_dump('dd');
             //扣购课的课时,先扣最先购买的记录
             foreach ($pl_array as $key => $value) {
 
@@ -80,22 +80,6 @@ class Schedules extends BaseController
                     //for循环一节一节添加
 //                    var_dump($value);
                     for ($n = 0; $n < $value['class_hour']; $n++) {
-                        //3种排课类型相隔天数不同
-                        switch ($type) {
-                            case 0:   //每天
-                                $schedule['cur_time'] = $start_time + input('post.day_time') + $n * 24 * 60 * 60;
-                                break;
-                            case 1:  //每周
-                                $schedule['cur_time'] = $start_time + input('post.day_time') + $n * 24 * 60 * 60 * 7;
-                                break;
-                            case 2:  //隔周
-                                $schedule['cur_time'] = $start_time + input('post.day_time') + $n * 24 * 60 * 60 * 7 * 2;
-                                break;
-                        }
-                        if ($n = $value['class_hour']) {
-                            TSchedulesHistory::where('id', $history['id'])->update(['next_time', $schedule['cur_time']]);
-                            break;
-                        }
                         $schedule = [
                             'stu_id' => input('post.stu_id'),
                             't_id' => $t_id,
@@ -110,6 +94,25 @@ class Schedules extends BaseController
                             'cost' => $value['single_price'],
 //                            'stu_name'=>$stu_name
                         ];
+                        //3种排课类型相隔天数不同
+                        switch ($type) {
+                            case 0:   //每天
+                                $schedule['cur_time'] = $start_time + input('post.day_time') + $n * 24 * 60 * 60;
+                                break;
+                            case 1:  //每周
+                                $schedule['cur_time'] = $start_time + input('post.day_time') + $n * 24 * 60 * 60 * 7;
+                                break;
+                            case 2:  //隔周
+                                $schedule['cur_time'] = $start_time + input('post.day_time') + $n * 24 * 60 * 60 * 7 * 2;
+                                break;
+                        }
+
+                        if ($n == $value['class_hour']) {
+//                            var_dump($schedule['cur_time']);
+                            TSchedulesHistory::where('id', $history['id'])->update(['next_time', $schedule['cur_time']]);
+                            break;
+                        }
+
 
                         $schedule['end_time'] = $schedule['cur_time'] + $cur_durtion * 60;
 //            var_dump($schedule['end_time']);
@@ -240,7 +243,7 @@ class Schedules extends BaseController
             ->join('erp2_teachers b', 'a.t_id=b.t_id')
             ->join('erp2_curriculums d', 'a.cur_id=d.cur_id')
             ->join('erp2_classrooms e', 'a.room_id=e.room_id')
-            ->field('sc_id,a.order,a.cost,b.t_name,a.stu_id,cur_time,d.cur_name,d.tmethods,end_time,e.room_name,a.day')
+            ->field('sc_id,a.order,a.cost,b.t_name,a.stu_id,cur_time,d.cur_name,d.tmethods,end_time,e.room_name,a.day,a.status,a.leave_status')
             ->whereTime('cur_time', '<=', $end_time)
             ->whereTime('cur_time', '>=', $start_time)
 //            ->group('a.day')
@@ -557,6 +560,30 @@ class Schedules extends BaseController
      * 课程请假
      */
     public function leave(){
+        try{
+//            var_dump(input('sc_id'));
+         $num=Schedule::where('sc_id',input('sc_id') )
+                ->update(['leave_status'=>2]);
+//         var_dump($num);
+            return $this->returnData('','请假成功！');
+        }catch ( Exception $exception){
+            $this->returnError('20002',$exception->getMessage());
+        }
 
+
+    }
+    /**
+     * 请假待处理
+     */
+    public function  leave_manage_list(){
+        $or_id= Request::instance()->header()['orgid'];  //从header里面拿orgid
+        $data =Purchase_Lessons::where([
+            ['a.or_id','=',$or_id],
+            ['b.leave_status','<>','0']
+        ])
+            ->alias('a')
+            ->join('erp2_teach_schedules b','a.id=b.th_id')
+            ->select();
+        $this->returnData($data,"");
     }
 }
