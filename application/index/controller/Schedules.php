@@ -60,8 +60,10 @@ class Schedules extends BaseController
             $start_time = input('post.start_time');
             //获取今日开始时间戳
             $today_start = time();//mktime(0, 0, 0, date('m'), date('d'), date('Y'));
+            $hint='';
             if ($start_time < $today_start) {
                 $start_time = $today_start;
+                $hint=",因课程时间已过去，所以自动续排到下一周";
             }
             $type = input('post.type');
             //将开始时间移到周几开始的时间
@@ -169,7 +171,7 @@ class Schedules extends BaseController
 
 
             Db::commit();
-            return $this->returnData('', "排课成功");
+            return $this->returnData('', "排课成功".$hint);
         } catch (Exception $exception) {
             Db::rollback();
             $this->returnError("", $exception->getMessage());
