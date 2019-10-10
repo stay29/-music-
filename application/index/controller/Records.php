@@ -243,7 +243,7 @@ class Records extends BaseController
                         }
                     }
 
-                    if (!empty($start_time) and !empty($end_time)) {$table->whereBetweenTime('record.start_time',  $start_time,  $end_time);}
+                    if (!empty($start_time) and !empty($end_time)) {$table->whereBetweenTime('record.start_time',  $start_time,  $end_time+86400);}
                     $table->order('record.update_time DESC');
                     $total_margin = $table->sum('rent_margin'); // 总押金
                     $total_amount = $table->sum('rent_amount');  // 总租金
@@ -318,7 +318,7 @@ class Records extends BaseController
             $ren_db->where('grent.record_id', '=', $record_id);
             $rw = [];
             if(!empty($start_time)){$rw[] = ['rec.start_time', '>=', $start_time];}
-            if(!empty($end_time)){$rw[] = ['rec.end_time', '<=',  $end_time];}
+            if(!empty($end_time)){$rw[] = ['rec.end_time', '<=',  $end_time+86400];}
             $rent_logs = $ren_db
                     ->leftJoin('erp2_goods_rent_record rec', 'grent.record_id=rec.record_id')
                     ->leftJoin('erp2_goods_detail gd', 'gd.goods_id=rec.goods_id')
@@ -800,11 +800,11 @@ class Records extends BaseController
                 }
                 if (!empty($start_time) and !empty($end_time))
                 {
-                    $sale_db->whereBetweenTime('sale_time', $start_time, $end_time);
+                    $sale_db->whereBetweenTime('sale_time', $start_time, $end_time+86400);
                 } elseif(!empty($start_time) && empty($end_time)){
                     $sale_db->where('sale_time', '>', $start_time);
                 }elseif(empty($start_time) && !empty($end_time)){
-                    $sale_db->where('sale_time', '<=', $end_time);
+                    $sale_db->where('sale_time', '<=', $end_time+86400);
                 }elseif ($time_type)
                 {
                     if ($time_type == 1) {$sale_db->whereTime('sale_time', 'm');}
