@@ -357,9 +357,18 @@ class Students extends BaseController
             $this->return_data(0, '10000', '缺少classify参数');
         }
 
+
         if ($classify == 1)  // 普通购课
         {
             $cur_id = input('post.cur_id/d', '');  // 课程id
+//            //如果之前学生有购过这个课，只需要更新记录不需要创建
+//            $pl=Purchase_Lessons::where(['cur_id'=>$cur_id,'stu_id'=>$stu_id])->find();
+//                if($pl!=null){
+//                    Purchase_Lessons::where(['cur_id'=>$cur_id,'stu_id'=>$stu_id])->update([
+//                        'bug_time'=>time(),
+//                        ''
+//                    ]);
+//                }
             $give_class=input('post.give_class/d', 0);
             $class_hour=input('post.class_hour/d', '');
 

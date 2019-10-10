@@ -59,7 +59,7 @@ class Schedules extends BaseController
 //        }
             $start_time = input('post.start_time');
             //获取今日开始时间戳
-            $today_start = mktime(0, 0, 0, date('m'), date('d'), date('Y'));
+            $today_start = time();//mktime(0, 0, 0, date('m'), date('d'), date('Y'));
             if ($start_time < $today_start) {
                 $start_time = $today_start;
             }
@@ -88,7 +88,7 @@ class Schedules extends BaseController
                             'type' => input('post.c_type'),
                             'org_id' => $or_id,
                             'th_id' => $history['id'],
-                            'bug_id' => $value['id'],
+                            'buy_id' => $value['id'],
                             'order' => $n + 1,
                             'day' => $day,
                             'cost' => $value['single_price'],
@@ -123,7 +123,7 @@ class Schedules extends BaseController
                     }
                     $pitch_num = $pitch_num - $value['class_hour'];
 
-                    Purchase_Lessons::where('id', $schedule['bug_id'])->update(['surplus_hour' => 0]);
+                    Purchase_Lessons::where('id', $schedule['buy_id'])->update(['surplus_hour' => 0]);
                 } else { //这次要排完了
                     //for循环一节一节添加
                     for ($n = 0; $n < $pitch_num; $n++) {
@@ -135,7 +135,7 @@ class Schedules extends BaseController
                             'type' => input('post.c_type'),
                             'org_id' => $or_id,
                             'th_id' => $history['id'],
-                            'bug_id' => $value['id'],
+                            'buy_id' => $value['id'],
                             'order' => $n + 1,
                             'day' => $day,
                             'cost' => $value['single_price']
@@ -161,7 +161,7 @@ class Schedules extends BaseController
                         Schedule::create($schedule);
                     }
 
-                    Purchase_Lessons::where('id', $schedule['bug_id'])->update(['surplus_hour' => $value['class_hour'] - $pitch_num]);
+                    Purchase_Lessons::where('id', $schedule['buy_id'])->update(['surplus_hour' => $value['class_hour'] - $pitch_num]);
                     break;
                 }
 
@@ -562,14 +562,32 @@ class Schedules extends BaseController
     public function leave(){
         try{
 //            var_dump(input('sc_id'));
-         $num=Schedule::where('sc_id',input('sc_id') )
+         Schedule::where('sc_id',input('sc_id') )
                 ->update(['leave_status'=>2]);
-//         var_dump($num);
+         Db::name("erp2_leave_record")->insert([
+            'time'=>time(),
+            'remark'=>input('remark'),
+            'result'=>'同意',
+             'buy_id'=>input('buy_id'),
+             'or_id'=>Request::instance()->header()['orgid']
+         ]);
             return $this->returnData('','请假成功！');
         }catch ( Exception $exception){
             $this->returnError('20002',$exception->getMessage());
         }
 
+
+    }
+    /*
+     * 请假记录
+     */
+    public function leave_list(){
+        $buy_id=input('buy_id');
+        $where['or_id']=Request::instance()->header()['orgid'];
+        if($buy_id!=null){
+            $data['buy_id']=$buy_id;
+        }
+            Db::name("erp2_leave_record")->where($where)->select();
 
     }
     /**
@@ -582,7 +600,7 @@ class Schedules extends BaseController
             ['b.leave_status','<>','0']
         ])
             ->alias('a')
-            ->join('erp2_teach_schedules b','a.id=b.th_id')
+            ->join('erp2_teach_schedules b','a.id=b.buy_id')
             ->select();
         $this->returnData($data,"");
     }
