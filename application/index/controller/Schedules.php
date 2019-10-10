@@ -405,7 +405,7 @@ class Schedules extends BaseController
         if ($truename != null) {
             $map[] = ['b.truename', 'like', '%' . $truename . '%'];
         }
-        $data = Purchase_Lessons::field('b.truename,a.single_price,a.give_class,a.surplus_hour,a.class_hour')
+        $data = Purchase_Lessons::field('b.stu_id,b.truename,a.single_price,a.give_class,a.surplus_hour,a.class_hour')
             ->alias('a')
             ->where($map)
             ->join('erp2_students b', 'a.stu_id=b.stu_id')
@@ -514,7 +514,6 @@ class Schedules extends BaseController
             ->select();
         $this->returnData($data, '');
     }
-
     /**
      * @param $t_id
      * @param array $schedule
@@ -552,5 +551,12 @@ class Schedules extends BaseController
                 $this->returnError(20001, "学生当前时间段有课，冲突");
             }
         }
+    }
+
+    /**
+     * 课程请假
+     */
+    public function leave(){
+
     }
 }
