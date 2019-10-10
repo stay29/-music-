@@ -821,7 +821,7 @@ class Records extends BaseController
                 ->leftJoin('erp2_goods_cate gc', 'gc.cate_id=ed.cate_id')
                 ->group('gs.goods_id')
                 ->paginate($limit, false, ['page' => $page])
-                ->each(function($log, $lk) use ($total_amount, $total_profit){
+                ->each(function($log, $lk) use (&$total_amount, &$total_profit){
                     //销售数量
                     $log['sale_num'] = $log['stol'] >= 0 ? $log['stol'] : 0;
                     //入库数量
