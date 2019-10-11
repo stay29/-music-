@@ -566,7 +566,7 @@ class Schedules extends BaseController
 //            var_dump(input('sc_id'));
          Schedule::where('sc_id',input('sc_id') )
                 ->update(['leave_status'=>2]);
-         Db::name("erp2_leave_record")->insert([
+         Db::name("leave_record")->insert([
             'time'=>time(),
             'remark'=>input('remark'),
             'result'=>'同意',
@@ -589,8 +589,8 @@ class Schedules extends BaseController
         if($buy_id!=null){
             $data['buy_id']=$buy_id;
         }
-            Db::name("erp2_leave_record")->where($where)->select();
-
+        $data=    Db::name("leave_record")->where($where)->select();
+        $this->returnData($data,'');
     }
     /**
      * 请假待处理
