@@ -68,7 +68,7 @@ class Schedules extends BaseController
             $type = input('post.type');
             //将开始时间移到周几开始的时间
             $day = input('post.day');
-            $sub = date('w', $start_time) - $day;
+            $sub = (date('w', $start_time) ==0)? 7:date('w', $start_time) - $day;
             if ($sub > 0) {
                 $start_time += (7 - $sub) * 24 * 60 * 60;
             } else {
