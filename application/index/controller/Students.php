@@ -574,7 +574,7 @@ class Students extends BaseController
     */
     public function bug_schedule_list_record(){
         $stu_id=input('stu_id');
-        $data=Db::table('erp2_purchase_lessons_record')->field('a.name,a.type,a.type_num,a.classify,b.payment_method,a.real_price,a.remarks,a.r_id')
+        $data=Db::table('erp2_purchase_lessons_record')->field('a.name,a.type,a.type_num,a.classify,b.payment_method,a.real_price,a.remarks,a.r_id,a.create_time')
             ->alias('a')
             ->where('a.stu_id',$stu_id)
 

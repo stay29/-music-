@@ -597,7 +597,11 @@ class Schedules extends BaseController
      */
     public function  leave_manage_list(){
         $or_id= Request::instance()->header()['orgid'];  //从header里面拿orgid
-        $data =Purchase_Lessons::where([
+        $data =Purchase_Lessons::field('b.truename,c.cur_name c')
+            ->alias("a")
+            ->join('erp2_students b','b.stu_id=a.stu_id')
+            ->join('erp2_curriculums  c','c.cur_id=a.cur_id')
+            ->where([
             ['a.or_id','=',$or_id],
             ['b.leave_status','<>','0']
         ])
