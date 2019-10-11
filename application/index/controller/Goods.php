@@ -859,12 +859,20 @@ class Goods extends BaseController
                 'update_time' => $update_time,
                 'manager' => $uid,
             ];
-            Db::name('goods_sale_log')->insert($sale_data);
             $sku_num = Db::name('goods_sku')->where('goods_id', '=', $goods_id)->value('sku_num');
             if ($sku_num < 1 ||  $sku_num < $sale_num)
             {
                 $this->returnError(10001, '库存不足');
             }
+            //是否余额支付
+            if($pay_id === BALANCE_PAY && $sale_obj_type == 1 && $sale_obj_id){
+                $res = db('stu_balance')->where('stu_id', '=', $sale_obj_id)->field('gift_balance, recharge_balance')->find();
+                $stu_balance = $res['gift_balance'] + $res['recharge_balance'];
+                if($stu_balance < $pay_amount){
+                   $this->returnError(10001, '余额不足'); 
+                }
+            }
+            Db::name('goods_sale_log')->insert($sale_data);
             $sku_num -= $sale_num;
             Db::name('goods_sku')->where('goods_id', '=', $goods_id)->update(['sku_num' => $sku_num]);
             Db::commit();
@@ -915,7 +923,20 @@ class Goods extends BaseController
                 'update_time' => time(),
                 'manager' => $uid,
             ];
-            
+            //是否余额支付
+            if($pay_id === BALANCE_PAY && $sale_obj_type == 1 && $sale_obj_id){
+                $res = db('stu_balance')->where('stu_id', '=', $sale_obj_id)->field('gift_balance, recharge_balance')->find();
+                $stu_balance = $res['gift_balance'] + $res['recharge_balance'];
+                $total = [];
+                foreach ($goods_id as $k => $v) {  
+                    $one_price = $single_price[$gk] * $sale_num[$gk];
+                    $total[] = $one_price;
+                }
+                if($stu_balance < array_sum($total)){
+                   $this->returnError(10001, '余额不足'); 
+                }
+            }
+
             foreach ($goods_id as $gk => $gval) {  
                 $num = $sale_num[$gk];
                 $sku_num = Db::name('goods_sku')->where('goods_id', '=', $gval)->value('sku_num');
