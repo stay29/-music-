@@ -16,5 +16,7 @@ $_SERVER['PATH_INFO'] = $_SERVER['REQUEST_URI' ];
 define('UPLOAD_DIR', __DIR__ . '/public/upload'.DIRECTORY_SEPARATOR);
 define('MA','erp2');
 define('MB','Piano_');
+//定义余额支付id，根据数据库id,后续只要定义一个常量数组就好
+define('BALANCE_PAY', 6);
 Container::get('app',[__DIR__ . '/application/'])->run()->send();
 
