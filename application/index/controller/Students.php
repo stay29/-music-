@@ -664,7 +664,31 @@ class Students extends BaseController
          ->select();
      $this->returnData($data,'');
     }
-
+    /**
+     * 学生其他购买
+     */
+     public function other_buy(){
+         $stu_id=input('stu_id');
+         //销售员的记录
+            $data= Db::field("a.create_time,b.payment_method,a.sum_payable,c.goods_name,a.sale_num,a.sale_num,a.remark,d.sm_name as name,a.sman_type")
+                 ->name('goods_sale_log')
+                 ->alias("a")
+                 ->where(['a.sale_obj_id'=>$stu_id,"a.sale_obj_type"=>1,'a.sman_type'=>1])
+                 ->join('erp2_payments b','a.pay_id=b.pay_id')
+                ->join('erp2_goods_detail c','c.goods_id=a.goods_id')
+                ->join('erp2_salesmans d','d.sm_id=a.sale_obj_id')
+                 ->select();
+            //老师的记录
+         $data1=Db::field("a.create_time,b.payment_method,a.sum_payable,c.goods_name,a.sale_num,a.sale_num,a.remark,d.t_name as name,a.sman_type")
+             ->name('goods_sale_log')
+             ->alias("a")
+             ->where(['a.sale_obj_id'=>$stu_id,"a.sale_obj_type"=>1,'a.sman_type'=>2])
+             ->join('erp2_payments b','a.pay_id=b.pay_id')
+             ->join('erp2_goods_detail c','c.goods_id=a.goods_id')
+             ->join('erp2_teachers d','d.t_id=a.sale_obj_id')
+             ->select();
+            $this->returnData(array_merge($data,$data1));
+     }
 }
 
 
