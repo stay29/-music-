@@ -865,16 +865,61 @@ class Goods extends BaseController
                 $this->returnError(10001, '库存不足');
             }
             //是否余额支付
+            $can_balance = false;
             if($pay_id === BALANCE_PAY && $sale_obj_type == 1 && $sale_obj_id){
                 $res = db('stu_balance')->where('stu_id', '=', $sale_obj_id)->field('gift_balance, recharge_balance')->find();
                 $stu_balance = $res['gift_balance'] + $res['recharge_balance'];
                 if($stu_balance < $pay_amount){
                    $this->returnError(10001, '余额不足'); 
                 }
+                $can_balance = true;
             }
             Db::name('goods_sale_log')->insert($sale_data);
             $sku_num -= $sale_num;
             Db::name('goods_sku')->where('goods_id', '=', $goods_id)->update(['sku_num' => $sku_num]);
+            
+            //扣除余额
+            if($can_balance){
+                $update = ['update_time' => time()];
+                $recharge_log = [
+                        'pid' => $sale_obj_id,
+                        'remark' => $remark,
+                        'pay_id'=> BALANCE_PAY,
+                        'type'=>'购物',
+                        'create_time' => time(),
+                        'update_time' => time()
+                ];
+                $balance = db('erp2_stu_balance')->field('gift_balance, recharge_balance, total_shop')->where(['stu_id' => $sale_obj_id])->find();
+                if($balance){
+                    $bsum = $balance['gift_balance'] + $balance['recharge_balance'];
+                    if($balance['gift_balance'] === 0){
+                        $updata['recharge_balance'] -= $pay_amount;
+                        
+                        $recharge_log['amount'] = -$pay_amount;
+                        $recharge_log['presenter'] = 0;
+                        $recharge_log['balance'] = $bsum - $pay_amount;
+                    }elseif(0 < $balance['gift_balance'] && $balance['gift_balance']< $pay_amount){
+                        $rest = $pay_amount - $balance['gift_balance'];
+                        $udpata['gift_balance'] = 0;
+                        $udpata['recharge_balance'] -= $rest;
+                         
+                        $recharge_log['amount'] = -$rest;
+                        $recharge_log['presenter'] = -$balance['gift_balance'];
+                        $recharge_log['balance'] = $bsum - $pay_amount;
+                    }elseif($balance['gift_balance'] > $pay_amount){
+                        $udpata['gift_balance'] -= $pay_amount;
+                        
+                        $recharge_log['amount'] = 0;
+                        $recharge_log['presenter'] = -$pay_amount;
+                        $recharge_log['balance'] = $bsum - $pay_amount;
+                    }else{
+                       $this->returnError(10001, '计算错误'); 
+                    }
+                    
+                    db('erp2_stu_balance')->where(['stu_id'=>$stu_id])->udpate($udpata);
+                    Db::table('erp2_stu_balance_log')->insert($recharge_log); 
+                }
+            }
             Db::commit();
             $this->returnData(1, '销售成功');
         }catch (Exception $e)
@@ -924,6 +969,8 @@ class Goods extends BaseController
                 'manager' => $uid,
             ];
             //是否余额支付
+            $can_balance = false;
+            $pay_sum = 0.00;
             if($pay_id === BALANCE_PAY && $sale_obj_type == 1 && $sale_obj_id){
                 $res = db('stu_balance')->where('stu_id', '=', $sale_obj_id)->field('gift_balance, recharge_balance')->find();
                 $stu_balance = $res['gift_balance'] + $res['recharge_balance'];
@@ -932,9 +979,11 @@ class Goods extends BaseController
                     $one_price = $single_price[$gk] * $sale_num[$gk];
                     $total[] = $one_price;
                 }
-                if($stu_balance < array_sum($total)){
+                $pay_sum = array_sum($total);
+                if($stu_balance < $pay_sum){
                    $this->returnError(10001, '余额不足'); 
                 }
+                $can_balance = true;
             }
 
             foreach ($goods_id as $gk => $gval) {  
@@ -956,6 +1005,47 @@ class Goods extends BaseController
                 $sku_num -= $num;
                 Db::name('goods_sku')->where('goods_id', '=', $gval)->update(['sku_num' => $sku_num]);
                 unset($new_data);
+            }
+            if($can_balance){
+                $update = ['update_time' => time()];
+                $recharge_log = [
+                        'pid' => $sale_obj_id,
+                        'remark' => $remark,
+                        'pay_id'=> BALANCE_PAY,
+                        'type'=>'购物',
+                        'create_time' => time(),
+                        'update_time' => time()
+                ];
+                $balance = db('erp2_stu_balance')->field('gift_balance, recharge_balance, total_shop')->where(['stu_id'=>$sale_obj_id])->find();
+                if($balance){
+                    $bsum = $balance['gift_balance'] + $balance['recharge_balance'];
+                    if($balance['gift_balance'] === 0){
+                        $updata['recharge_balance'] -= $pay_sum;
+                        
+                        $recharge_log['amount'] = -$pay_sum;
+                        $recharge_log['presenter'] = 0;
+                        $recharge_log['balance'] = $bsum - $pay_sum;
+                    }elseif(0 < $balance['gift_balance'] && $balance['gift_balance']< $pay_sum){
+                        $rest = $pay_sum - $balance['gift_balance'];
+                        $udpata['gift_balance'] = 0;
+                        $udpata['recharge_balance'] -= $rest;
+                         
+                        $recharge_log['amount'] = -$rest;
+                        $recharge_log['presenter'] = -$balance['gift_balance'];
+                        $recharge_log['balance'] = $bsum - $pay_sum;
+                    }elseif($balance['gift_balance'] > $pay_amount){
+                        $udpata['gift_balance'] -= $pay_amount;
+                        
+                        $recharge_log['amount'] = 0;
+                        $recharge_log['presenter'] = -$pay_sum;
+                        $recharge_log['balance'] = $bsum - $pay_sum;
+                    }else{
+                       $this->returnError(10001, '计算错误'); 
+                    }
+                    
+                    db('erp2_stu_balance')->where(['stu_id'=>$stu_id])->udpate($udpata);
+                    Db::table('erp2_stu_balance_log')->insert($recharge_log); 
+                }
             }
 
             Db::commit();
