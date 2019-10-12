@@ -237,14 +237,18 @@ class Login extends Basess{
      //验证码获取
     public  function  get_vieryie()
     {
-        $phone = input('user_aco');
-        $is_new = input('is_new');
+        $phone = input('user_aco', '');
+        $is_new = input('is_new', '');
 
         if($phone){
             $res = db('users')->where('account', '=', $phone)->count();
             if (!$res && !$is_new)
             {
                 $this->return_data(0, '10000', '账号不存在');
+            }
+            if ($res && $is_new)
+            {
+                $this->return_data(0, '10000', '该账号已注册');
             }
             $len = 4;
             $chars = array(
