@@ -407,6 +407,9 @@ class Index extends Basess
             if($kl==0){
                 unset($fils[$kl]);
             }else{
+                if($vl['class_count'] > 200){
+                    $this->return_data(0, '10000', '班级容量不能超过200', '');
+                }
                  $vl['status'] = 1;
                  $vl['orgid'] = $orgid;
                  $vl['is_del'] = 0;

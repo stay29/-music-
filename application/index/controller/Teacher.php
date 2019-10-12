@@ -106,6 +106,7 @@ class Teacher extends BaseController
             'resume' => input('post.resume/s', ''),
             'identity_card' => input('post.id_card/s', ''),
             'manager' => input('post.uid/d', 1),
+            'status' => input('post.status/d', ''),
             'update_time' => time(),
         ];
         $validate = new TeachersValidate();

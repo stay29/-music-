@@ -33,6 +33,7 @@ class Login extends Basess{
                  $mup['cellphone'] = $data['cellphone'];
                  $mup['password'] =md5_return($data['password']);
                  $mup['incumbency'] =1;
+                 $mup['is_del'] = 0;
                  $user_login_info = Users::where($mup)->find();
                  if($user_login_info){
                      $arr = Users::loginsession($user_login_info['uid']);
