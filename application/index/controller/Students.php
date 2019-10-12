@@ -658,9 +658,11 @@ class Students extends BaseController
      $data[0]['details']=Db::field('c.truename,a.amount,a.presenter,b.payment_method,a.balance,a.remark,a.create_time,a.type')
          ->name('stu_balance_log')
          ->alias('a')
-         ->join('erp2_payments b','a.pay_id=b.pay_id')
-         ->join('erp2_students c',['c.stu_id'=>$stu_id])
          ->where('pid',$stu_id)
+         ->join('erp2_students c','c.stu_id=a.pid')
+         ->join('erp2_payments b','a.pay_id=b.pay_id')
+
+         ->distinct(true)
          ->order('a.create_time desc')
          ->select();
      $this->returnData($data,'');
