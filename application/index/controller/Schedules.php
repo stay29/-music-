@@ -32,6 +32,7 @@ class Schedules extends BaseController
         //获得stu_id 对应的 学生姓名1/学生姓名2/学生姓名3
         $stu_id = input('stu_id');
         $stu_id_array = explode(',', $stu_id);
+        $day_time=input('post.day_time');
 //
 //        $stu_name_array=Students::field('truename')
 //               ->where('stu_id','in',$stu_id_array)->select()->toArray();
@@ -61,8 +62,8 @@ class Schedules extends BaseController
             //获取今日开始时间戳
             $today_start = time();//mktime(0, 0, 0, date('m'), date('d'), date('Y'));
             $hint='';
-            if ($start_time < $today_start) {
-                $start_time = $today_start;
+            if ($start_time+ $day_time< $today_start) {
+                $start_time = mktime(0, 0, 0, date('m'), date('d'), date('Y'));
                 $hint=",因课程时间已过去，所以自动续排到下一周";
             }
             $type = input('post.type');
@@ -597,7 +598,7 @@ class Schedules extends BaseController
      */
     public function  leave_manage_list(){
         $or_id= Request::instance()->header()['orgid'];  //从header里面拿orgid
-        $data =Purchase_Lessons::field('b.truename,c.cur_name c')
+        $data =Purchase_Lessons::field('b.truename,c.cur_name count()')
             ->alias("a")
             ->join('erp2_students b','b.stu_id=a.stu_id')
             ->join('erp2_curriculums  c','c.cur_id=a.cur_id')
