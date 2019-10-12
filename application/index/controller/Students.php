@@ -671,7 +671,7 @@ class Students extends BaseController
      public function other_buy(){
          $stu_id=input('stu_id');
          //销售员的记录
-            $data= Db::field("a.create_time,b.payment_method,a.sum_payable,c.goods_name,a.sale_num,a.sale_num,a.remark,d.sm_name as name,a.sman_type")
+            $data= Db::field("a.create_time,b.payment_method,a.sum_payable,c.goods_name,a.sale_code,a.sale_num,a.remark,d.sm_name as name,a.sman_type")
                  ->name('goods_sale_log')
                  ->alias("a")
                  ->where(['a.sale_obj_id'=>$stu_id,"a.sale_obj_type"=>1,'a.sman_type'=>1])
@@ -680,7 +680,7 @@ class Students extends BaseController
                 ->join('erp2_salesmans d','d.sm_id=a.sale_obj_id')
                  ->select();
             //老师的记录
-         $data1=Db::field("a.create_time,b.payment_method,a.sum_payable,c.goods_name,a.sale_num,a.sale_num,a.remark,d.t_name as name,a.sman_type")
+         $data1=Db::field("a.create_time,b.payment_method,a.sum_payable,c.goods_name,a.sale_code,a.sale_num,a.remark,d.t_name as name,a.sman_type")
              ->name('goods_sale_log')
              ->alias("a")
              ->where(['a.sale_obj_id'=>$stu_id,"a.sale_obj_type"=>1,'a.sman_type'=>2])
