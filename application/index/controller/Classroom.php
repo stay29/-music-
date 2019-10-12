@@ -47,7 +47,7 @@ class Classroom extends BaseController
         }
         $where[] = ['is_del', '=', 0];
         $res = ClsModel::where($where)->field('room_id as id,room_name as 
-            name,status,room_count as total')->paginate($limit);
+            name,status,room_count as total')->order('create_time desc')->paginate($limit);
 //        $this->return_data(1, 0, '', $res);
         $this->returnData($res,'请求成功');
     }

@@ -209,7 +209,7 @@ class ExcelBase extends Controller
     {
         $pattern = "/^\d{4}\/\d{1,2}\/\d{1,2}$/";
         if (!preg_match($pattern, $date))
-        {;
+        {
             return false;
         }
         $t = explode('/', $date);
