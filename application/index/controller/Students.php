@@ -694,6 +694,14 @@ class Students extends BaseController
              ->select();
             $this->returnData(array_merge($data,$data1));
      }
+     /**
+      * 获得学生个人信息
+      */
+     public function stu_info(){
+        $student= \app\index\model\Students::where('stu_id',input('stu_id'))
+             ->find();
+        $this->returnData($student,'');
+     }
 }
 
 
