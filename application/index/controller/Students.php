@@ -561,11 +561,13 @@ class Students extends BaseController
      */
     public function bug_schedule_list(){
         $stu_id=input('stu_id');
-       $data=Purchase_Lessons::field('b.t_name,c.cur_name,a.single_price,a.give_class,a.surplus_hour,a.class_hour')
+       $data=Purchase_Lessons::field('b.t_name,c.cur_name,a.single_price,a.give_class,a.surplus_hour,a.class_hour,count(d.sc_id) as already_hours')
            ->alias('a')
        ->where('a.stu_id',$stu_id)
            ->join('erp2_teachers b','a.t_id=b.t_id')
            ->join('erp2_curriculums c','c.cur_id=a.cur_id')
+           ->leftJoin('erp2_teach_schedules d','d.buy_id=a.id and d.status=2')
+//           ->where('d.status',2)
            ->select();
        $this->returnData($data,"");
     }
