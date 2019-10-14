@@ -53,6 +53,7 @@ class Login extends Basess{
                      $this->return_data(1,0,'登录成功',$arr);
                  }else{
                          $mup1['cellphone'] = $data['cellphone'];
+                         $mup1['is_del'] = 0;
                           $user_login_info1 =    Users::where($mup1)->find();
                           if($user_login_info1['incumbency']==2){
                               $this->return_data(0,60000,'你已经离职无法登陆平台');
@@ -241,7 +242,7 @@ class Login extends Basess{
         $is_new = input('is_new', '');
 
         if($phone){
-            $res = db('users')->where('account', '=', $phone)->count();
+            $res = db('users')->where(['account' => $phone, 'is_del' => 0])->count();
             if (!$res && !$is_new)
             {
                 $this->return_data(0, '10000', '账号不存在');
@@ -291,6 +292,7 @@ class Login extends Basess{
                 $this->return_data(0,$error[1],$error[0]);
             }else{
                 $mup['account']   = $data['cellphone'];
+                $mup['is_del']   = 0;
                 $oldinfo =Users::get_one_info($mup);
                 if($oldinfo)
                 {

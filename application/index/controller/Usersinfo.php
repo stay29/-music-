@@ -84,7 +84,7 @@ class Usersinfo extends BaseController
         }
         $account = input('account');
         if($account){
-                $orgid[] = ['account','like','%'.$account.'%'];
+                $orgid[] = ['account|nickname','like','%'.$account.'%'];
         }
         $orgid[] = ['is_del','=',"0"];
         $res = select_find('erp2_users',$orgid,'nickname,uid,cellphone,incumbency,rid,organization,sex,senfen');
@@ -236,9 +236,15 @@ class Usersinfo extends BaseController
     public  function  deluser()
     {
         $uid['uid'] = input('uid');
-        $data['is_del'] = 1;
-        $res = edit('erp2_users',$uid,$data);
+        $uid['is_del'] = 0;
+        $res = db('users')->where($uid)->find();
         if($res){
+            $del = db('users')->where($uid)->delete();
+            if($del){
+               db('users_delete')->insert($res); 
+            }else{
+               $this->return_data(0,10000,'操作失败'); 
+            }
             $this->return_data(1,0,'操作成功');
         }else{
             $this->return_data(0,10000,'操作失败');
