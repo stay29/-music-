@@ -84,7 +84,7 @@ class Usersinfo extends BaseController
         }
         $account = input('account');
         if($account){
-                $orgid[] = ['account','like','%'.$account.'%'];
+            $orgid[] = ['account|nickname','like','%'.$account.'%'];
         }
         $orgid[] = ['is_del','=',"0"];
         $res = select_find('erp2_users',$orgid,'nickname,uid,cellphone,incumbency,rid,organization,sex,senfen');
