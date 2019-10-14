@@ -106,7 +106,7 @@ class Staff extends BaseController
             'org_id' => $org_id
         ];
         try{
-           db('teachers')->where('cellphone', '=', $data['cellphone'])->find();
+           db('teachers')->where(['cellphone='=> $data['cellphone'], 'org_id' => $data['org_id']])->find();
            $this->returnError(50000, '该手机号码已有员工使用');
            db('teachers')->insert($data);
            $this->returnData(1,'员工新增成功');
