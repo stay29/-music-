@@ -702,6 +702,60 @@ class Students extends BaseController
              ->find();
         $this->returnData($student,'');
      }
+     /*
+      * 保存学生个人信息
+      */
+     public function  save_stu_info(){
+         $data= [
+             'truename'=>input('truename'),
+             'sex'=>input('sex'),
+             'birthday'=>input('birthday'),
+             'cellphone'=>input('cellphone'),
+             'wechat'=>input('wechat'),
+             'address'=>input('address'),
+             'remark'=>input('remark')
+         ]
+         ;
+         try{
+             \app\index\model\Students::where('stu_id',input('stu_id'))->update($data);
+             $this->returnData('','更新成功');
+         }catch (Exception $exception){
+             $this->returnError(20002,$exception->getMessage());
+         }
+
+     }
+     /**
+      * 学生退学
+      */
+    public function  stu_leave(){
+        $data= [
+            'is_del'=>1,
+        ]
+        ;
+        try{
+            \app\index\model\Students::where('stu_id',input('stu_id'))->update($data);
+            $this->returnData('','更新成功');
+        }catch (Exception $exception){
+            $this->returnError(20002,$exception->getMessage());
+        }
+
+    }
+    /**
+     * 删除学生
+     */
+    public function del_stu(){
+        $stu_id=input('stu_id');
+        try{
+            Db::name('class_student_relations')->where('stu_id',$stu_id)
+                ->delete();
+            $is_del=\app\index\model\Students::where('stu_id',$stu_id)
+                ->delete();
+        $this->returnData('','删除成功！');
+        }catch (Exception $e){
+            $this->returnError('20003',$e->getMessage());
+        }
+
+    }
 }
 
 
