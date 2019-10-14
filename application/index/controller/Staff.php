@@ -109,7 +109,7 @@ class Staff extends BaseController
            db('teachers')->insert($data);
            $this->returnData(1,'员工新增成功');
         }catch (\Exception $e){
-            $this->returnError(50000, '服务器错误');
+            $this->returnError(50000, $e->getMessage());
         }
     }
     
