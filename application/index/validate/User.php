@@ -14,7 +14,7 @@ use app\index\model\Organization;
 class User extends Validate
 {
     protected $rule = [
-        'cellphone'=>'unique:users, is_del=1|max:11|mobile',
+        'cellphone'=>'unique:users, 0, 1,is_del|max:11|mobile',
         'password'=>'require|length:6,18',
         'repassword'=>'require|confirm:password',
         'remember'=>'integer|rem_password',//记住密码
