@@ -169,14 +169,14 @@ class Staff extends BaseController
             $this->returnError('10000', '缺少参数');
         }
         try{
-            $res = db('teachers')->where('t_id', '=', $id)->update(['status'=>$status]);
+            $res = db('teachers')->where(['t_id'=>$id, 'is_teacher'=>0])->update(['status'=>$status]);
             if($res)
             {
                 $this->returnData('', '操作成功');
             }
             else
             {
-                $this->returnError(20003, '不能改为现在状态');
+                $this->returnError(20003, '不能更改教师或相同状态');
             }
         }catch (\Exception $e){
             $this->returnError(50000, '服务器错误');
