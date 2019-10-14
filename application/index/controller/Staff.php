@@ -30,7 +30,7 @@ class Staff extends BaseController
             $teacher->where('org_id', '=', $org_id);
             if($t_name !== null)
             {
-                $teacher->where('t_name', 'like', '%' . $t_name . '%');
+                $teacher->where('t_name|cellphone', 'like', '%' . $t_name . '%');
             }
 
             if(!empty($status))
@@ -152,6 +152,33 @@ class Staff extends BaseController
           db('teachers')->where(['is_teacher'=>0, 'org_id' => $org_id, 't_id' => $t_id])->delete();
           $this->returnData(1,'删除成功');
        }catch (\Exception $e){
+            $this->returnError(50000, '服务器错误');
+        }
+    }
+    
+    //员工在离职转换
+    public function change(){
+        if (!$this->request->isPost())
+        {
+            $this->returnError('40000', '非法请求');
+        }
+        $id = input('t_id/d', '');
+        $status = input('status', '');
+        if (!$status || !$id)
+        {
+            $this->returnError('10000', '缺少参数');
+        }
+        try{
+            $res = db('teachers')->where(['t_id'=>$id, 'is_teacher'=>0])->update(['status'=>$status]);
+            if($res)
+            {
+                $this->returnData('', '操作成功');
+            }
+            else
+            {
+                $this->returnError(20003, '不能更改教师或相同状态');
+            }
+        }catch (\Exception $e){
             $this->returnError(50000, '服务器错误');
         }
     } 
