@@ -1456,7 +1456,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
 //                }
                 if (!in_array($student['sex'], ['男', '女']))
                 {
-                    $this->returnError('10000', '性别只能是男, 女: ');
+                    $this->returnError('10000', '性别只能是男, 女: 你填的是 '.$student['sex']);
                 }
                 if (!preg_match("/^1[345789]\d{9}$/", $student['cellphone'], $matches))
                 {
