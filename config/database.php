@@ -16,7 +16,7 @@ return [
     'hostname'        => '192.168.1.88',
 //    'hostname'        => '127.0.0.1',
     // 数据库名
-    'database'        => 'zihao',
+    'database'        => 'erp2_temp',
     // 用户名
     'username'        => 'root',
     // 密码
