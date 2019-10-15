@@ -1446,7 +1446,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                     'wechat'=>$v[5],
                     'remark'=>$v[6],
                 ];
-                if (empty($t['truename']))
+                if (empty($student['truename']))
                 {
                     $this->returnError(10000, '学生姓名不能为空');
                 }
@@ -1463,12 +1463,8 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                     Db::rollback();
                     $this->returnError('10000', '手机号码有误');
                 }
-                if (!$this->validate_date($t['entry_time']))
-                {
-                    Db::rollback();
-                    $this->returnError('10000', '入职日期格式错误');
-                }
-                if (!$this->validate_date($t['birthday']))
+
+                if (!$this->validate_date($student['birthday']))
                 {
 
                     Db::rollback();
@@ -1476,7 +1472,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 }
 
                 $student['sex'] = $student['sex'] == '男' ? 1 : 2;
-                $student['birthday'] = strtotime($t['birthday']);
+                $student['birthday'] = strtotime($student['birthday']);
                 $stu_id = Db::table('erp2_students')->insertGetId($student);
                 $data  = [
                     'stu_id' => $stu_id,
