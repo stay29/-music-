@@ -222,7 +222,26 @@ class ExcelBase extends Controller
             return false;
         }
     }
-
+    /*
+     * 学生的表格日期是月日年，需要另外验证
+     */
+    public function validate_date1($date)
+    {
+        $pattern = "/^\d{4}\/\d{1,2}\/\d{1,2}$/";
+        if (!preg_match($pattern, $date))
+        {
+            return false;
+        }
+        $t = explode('/', $date);
+        if (checkdate($t[0], $t[1], $t[2]))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
     /*
      * 读取excel 单元格yyyy/mm/dd 会自动转换为 dd/mm/yyyy
      * 将读取excel的时间字段转换为正常格式
@@ -1468,7 +1487,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                     $this->returnError('10000', '手机号码有误');
                 }
 
-                if (!$this->validate_date($student['birthday']))
+                if (!$this->validate_date1($student['birthday']))
                 {
 
                     Db::rollback();
