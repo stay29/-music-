@@ -1420,7 +1420,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
      * @throws \PHPExcel_Reader_Exception
      */
     public function student_ipt(){
-        $org_id = input('orgid', '');
+        $org_id = \think\facade\Request::instance()->header()['orgid'];
         $uid = input('uid', '');
         $file = request()->file('excel');
         if (empty($file))
@@ -1484,7 +1484,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                     'recharge_balance' => 0.00,
                     'create_time' => time(),
                     'update_time' => time(),
-                    'org_id'=>\think\facade\Request::instance()->header()['orgid']
+                    'org_id'=>$org_id
                 ];
                 // 创建用户余额表
                 Db::table('erp2_stu_balance')->insert($data);
