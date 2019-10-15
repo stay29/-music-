@@ -14,6 +14,8 @@ class Attend extends BaseController
         $name = input('name/s', '');
         $status = input('status/d', '');
         $org_id = ret_session_name('orgid');
+        $start_time = input('start_time/d', '');
+        $end_time = input('end_time/d', '');
         $limit = input('limit/d', 20);
         $page = input('page/d', 1);
         if(empty($org_id))
@@ -21,20 +23,25 @@ class Attend extends BaseController
             $this->returnError('10000', '缺少参数');
         }
         try{
-            $teacher = db('staff_attend')->alias('sa')->field('sa.*, t.t_name, t.is_teacher, t.iden_id, sf.identity_name');
-            $teacher->where('t.org_id', '=', $org_id);
-            $teacher->where('sf.org_id', '=', $org_id);
+            $attend = db('staff_attend')->alias('sa')->field('sa.*, t.t_name, t.is_teacher, t.iden_id, sf.identity_name');
+            $attend->where('t.org_id', '=', $org_id);
+            $attend->where('sf.org_id', '=', $org_id);
             if($name !== null)
             {
-                $teacher->where('t.t_name', 'like', '%' . $name . '%');
+                $attend->where('t.t_name', 'like', '%' . $name . '%');
             }
 
             if(!empty($status))
             {
-                $teacher->where('sa.status', '=', $status);
+                $attend->where('sa.status', '=', $status);
+            }
+            if(!empty($start_time) && !empty($end_time))
+            {
+                
+                $attend->where('sa.date', 'between time', [$start_time, $end_time]);
             }
 
-            $data = $teacher->order('sa.id DESC')
+            $data = $attend->order('sa.id DESC')
                             ->leftJoin('erp2_teachers t', 't.t_id=sa.t_id')
                             ->leftJoin('erp2_identity sf', 'sf.id=t.iden_id')
                             ->paginate($limit, false, ['page' => $page])
@@ -75,7 +82,7 @@ class Attend extends BaseController
         {
             $this->returnError('40000', '非法请求');
         }
-        $uid = input('uid', '');
+        $uid = input('staff', '');
         $org_id = input('orgid', '');
         if(empty($uid) || empty($org_id)){
             $this->returnError('40000', '缺少参数'); 
@@ -116,6 +123,10 @@ class Attend extends BaseController
                         }
                         $msg = '，您今天早退了';
                     }
+                    //计算小时数
+                    $remain = $time - $record['on_time'];
+                    $hours = intval($remain/3600);
+                    $data['work_long'] = $hours;
                     db('staff_attend')->where('id', '=', $record['id'])->update($data);
                     $this->returnData($res, '打卡成功'.$msg);
             }else{
