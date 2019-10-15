@@ -1431,12 +1431,13 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         {
             $this->returnError('10000', '缺少orgid');
         }
-
         $data = $this->getExcelData($file);
+
         Db::startTrans();
         try
         {
             foreach ($data as $k=>$v ){
+
                 if($k==0){
                     continue;
                 }
@@ -1471,7 +1472,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 {
 
                     Db::rollback();
-                    $this->returnError('10000', '生日日期格式错误');
+                    $this->returnError('10000',  $student['birthday']);
                 }
 
                 $student['sex'] = $student['sex'] == '男' ? 1 : 2;
