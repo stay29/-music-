@@ -1468,6 +1468,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                     'address'=>$v[4],
                     'wechat'=>$v[5],
                     'remark'=>$v[6],
+                    'org_id'=>$org_id
                 ];
                 if (empty($student['truename']))
                 {
