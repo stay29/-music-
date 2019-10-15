@@ -762,6 +762,14 @@ class Students extends BaseController
     public  function  stu_schedules(){
         $start_time = input('start_time');
         $end_time = input('end_time');
+        $time_type=input('time_type');
+        if($time_type==2){
+            $start_time=mktime(0,0,0,date('m'),1,date('Y'));
+            $end_time=mktime(23,59,59,date('m'),date('t'),date('Y'));
+        }else if($time_type==3){
+           $start_time=strtotime(date("Y",time())."-1"."-1"); //本年开始
+            $end_time=strtotime(date("Y",time())."-12"."-31"); //本年结束
+        }
 //        $map['a.stu_id'] = input('stu_id');
         $map['a.is_del'] = 0;
         $subject = input('subject');
