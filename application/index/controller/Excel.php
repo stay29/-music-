@@ -1504,7 +1504,6 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                     'recharge_balance' => 0.00,
                     'create_time' => time(),
                     'update_time' => time(),
-                    'org_id'=>$org_id
                 ];
                 // 创建用户余额表
                 Db::table('erp2_stu_balance')->insert($account);
