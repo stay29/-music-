@@ -756,6 +756,42 @@ class Students extends BaseController
         }
 
     }
+    /**
+     * 获得学生课程
+     */
+    public  function  stu_schedules(){
+        $start_time = input('start_time');
+        $end_time = input('end_time');
+//        $map['a.stu_id'] = input('stu_id');
+        $map['a.is_del'] = 0;
+        $subject = input('subject');
+        if ($subject != null)
+            $map['d.subject'] = $subject;
+        $curid = input('cur_id');
+        if ($curid != null)
+            $map['d.cur_id'] = $curid;
+        if($start_time!=null)
+        $data = Schedule::where($map)->alias('a')
+            ->join('erp2_teachers b', 'a.t_id=b.t_id')
+            ->join('erp2_curriculums d', 'a.cur_id=d.cur_id')
+            ->join('erp2_classrooms e', 'a.room_id=e.room_id')
+            ->field('sc_id,a.order,a.cost,b.t_name,a.stu_id,cur_time,d.cur_name,d.tmethods,end_time,e.room_name,a.day,a.status,a.leave_status,a.buy_id')
+            ->whereTime('cur_time', '<=', $end_time)
+            ->whereTime('cur_time', '>=', $start_time)
+            ->where('FIND_IN_SET(:stu_id,stu_id)', ['stu_id' => input('stu_id')])
+//            ->group('a.day')
+            ->select();
+        else
+            $data = Schedule::where($map)->alias('a')
+                ->join('erp2_teachers b', 'a.t_id=b.t_id')
+                ->join('erp2_curriculums d', 'a.cur_id=d.cur_id')
+                ->join('erp2_classrooms e', 'a.room_id=e.room_id')
+                ->field('sc_id,a.order,a.cost,b.t_name,a.stu_id,cur_time,d.cur_name,d.tmethods,end_time,e.room_name,a.day,a.status,a.leave_status,a.buy_id')
+                ->where('FIND_IN_SET(:stu_id,stu_id)', ['stu_id' => input('stu_id')])
+//            ->group('a.day')
+                ->select();
+        $this->returnData($data,'');
+    }
 }
 
 
