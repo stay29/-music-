@@ -239,7 +239,7 @@ class ExcelBase extends Controller
         }
         else
         {
-            return false;
+            return true;
         }
     }
     /*
