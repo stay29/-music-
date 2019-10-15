@@ -1450,15 +1450,15 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 {
                     $this->returnError(10000, '学生姓名不能为空');
                 }
-                if (strlen($t['t_name']) > 20 )
-                {
-                    $this->returnError('10000', '教师名称大于10个字符');
-                }
-                if (!in_array($t['sex'], ['男', '女']))
+//                if (strlen($t['t_name']) > 20 )
+//                {
+//                    $this->returnError('10000', '教师名称大于10个字符');
+//                }
+                if (!in_array($student['sex'], ['男', '女']))
                 {
                     $this->returnError('10000', '性别只能是男, 女: ');
                 }
-                if (!preg_match("/^1[345789]\d{9}$/", $t['cellphone'], $matches))
+                if (!preg_match("/^1[345789]\d{9}$/", $student['cellphone'], $matches))
                 {
                     Db::rollback();
                     $this->returnError('10000', '手机号码有误');
@@ -1475,17 +1475,8 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                     $this->returnError('10000', '生日日期格式错误');
                 }
 
-                if ($t['resume'] == null)
-                {
-                    $t['resume'] = '';
-                }
-                if(!is_numeric($t['status']) and !in_array($t['status'], [1, 2]))
-                {
-                    $t['status'] = 1;
-                }
-                $t['sex'] = $t['sex'] == '男' ? 1 : 2;
-                $t['entry_time'] = strtotime($t['entry_time']);
-                $t['birthday'] = strtotime($t['birthday']);
+                $student['sex'] = $student['sex'] == '男' ? 1 : 2;
+                $student['birthday'] = strtotime($t['birthday']);
                 $stu_id = Db::table('erp2_students')->insertGetId($student);
                 $data  = [
                     'stu_id' => $stu_id,
@@ -1508,36 +1499,6 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
             $this->return_data(0, 50000, $e->getMessage(), false);
         }
 
-        try{
-
-
-            foreach ($data as $k => $v)
-            {
-                $t['t_name'] = trim($v[0]);
-                $t['sex'] = $v[1];
-                $t['se_id'] = $sen_default;
-                $t['cellphone'] = trim($v[3]);
-                $t['entry_time'] = $v[4];
-                $t['identity_card'] = $v[5];
-                $t['birthday'] = $v[6];
-                $t['resume'] = $v[7];
-                $t['status'] = $v[8];
-                $t['manager'] = $uid;
-                $t['org_id'] = $org_id;
-
-                $res = db('teachers')->where('cellphone', '=', $t['cellphone'])->find();
-                if($res){
-                    $this->returnError('10001', '电话号码不能重复');
-                }
-                $t_id = Db::table('erp2_teachers')->insertGetId($t);
-                unset($t, $v);
-            }
-            Db::commit();
-            $this->returnData('导入成功', true);
-        }catch (\Exception $e){
-            Db::rollback();
-            $this->returnError('20001', $e->getMessage());
-        }
 
     }
 }
