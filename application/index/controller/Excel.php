@@ -227,11 +227,11 @@ class ExcelBase extends Controller
      */
     public function validate_date1($date)
     {
-        $pattern = "/^\d{4}\/\d{1,2}\/\d{1,2}$/";
-        if (!preg_match($pattern, $date))
-        {
-            return false;
-        }
+//        $pattern = "/^\d{4}\/\d{1,2}\/\d{1,2}$/";
+//        if (!preg_match($pattern, $date))
+//        {
+//            return false;
+//        }
         $t = explode('/', $date);
         if (checkdate($t[0], $t[1], $t[2]))
         {
@@ -239,7 +239,7 @@ class ExcelBase extends Controller
         }
         else
         {
-            return true;
+            return false;
         }
     }
     /*
