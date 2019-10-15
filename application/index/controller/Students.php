@@ -783,7 +783,7 @@ class Students extends BaseController
             ->join('erp2_teachers b', 'a.t_id=b.t_id')
             ->join('erp2_curriculums d', 'a.cur_id=d.cur_id')
             ->join('erp2_classrooms e', 'a.room_id=e.room_id')
-            ->field('sc_id,a.order,a.cost,b.t_name,a.stu_id,cur_time,d.cur_name,d.tmethods,end_time,e.room_name,a.day,a.status,a.leave_status,a.buy_id')
+            ->field('sc_id,a.order,a.cost,b.t_name,a.stu_id,cur_time,d.cur_name,d.tmethods,end_time,e.room_name,a.day,a.status,a.leave_status,a.buy_id,a.remarks')
             ->whereTime('cur_time', '<=', $end_time)
             ->whereTime('cur_time', '>=', $start_time)
             ->where('FIND_IN_SET(:stu_id,stu_id)', ['stu_id' => input('stu_id')])

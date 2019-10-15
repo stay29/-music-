@@ -1414,4 +1414,130 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         return $inda;
     }
 
+    /**
+     * 学生信息导入
+     * @throws \PHPExcel_Exception
+     * @throws \PHPExcel_Reader_Exception
+     */
+    public function student_ipt(){
+        $org_id = input('orgid', '');
+        $uid = input('uid', '');
+        $file = request()->file('excel');
+        if (empty($file))
+        {
+            $this->returnError(10000, '缺少文件');
+        }
+        if (empty($org_id))
+        {
+            $this->returnError('10000', '缺少orgid');
+        }
+
+        $data = $this->getExcelData($file);
+        Db::startTrans();
+        try
+        {
+            foreach ($data as $k=>$v ){
+                $student=[
+                    'truename'=>$v[0],
+                    'sex'=>$v[1],
+                    'birthday'=>$v[2],
+                    'cellphone'=>$v[3],
+                    'adress'=>$v[4],
+                    'wechat'=>$v[5],
+                    'remark'=>$v[6],
+                ];
+                if (empty($t['truename']))
+                {
+                    $this->returnError(10000, '学生姓名不能为空');
+                }
+                if (strlen($t['t_name']) > 20 )
+                {
+                    $this->returnError('10000', '教师名称大于10个字符');
+                }
+                if (!in_array($t['sex'], ['男', '女']))
+                {
+                    $this->returnError('10000', '性别只能是男, 女: ');
+                }
+                if (!preg_match("/^1[345789]\d{9}$/", $t['cellphone'], $matches))
+                {
+                    Db::rollback();
+                    $this->returnError('10000', '手机号码有误');
+                }
+                if (!$this->validate_date($t['entry_time']))
+                {
+                    Db::rollback();
+                    $this->returnError('10000', '入职日期格式错误');
+                }
+                if (!$this->validate_date($t['birthday']))
+                {
+
+                    Db::rollback();
+                    $this->returnError('10000', '生日日期格式错误');
+                }
+
+                if ($t['resume'] == null)
+                {
+                    $t['resume'] = '';
+                }
+                if(!is_numeric($t['status']) and !in_array($t['status'], [1, 2]))
+                {
+                    $t['status'] = 1;
+                }
+                $t['sex'] = $t['sex'] == '男' ? 1 : 2;
+                $t['entry_time'] = strtotime($t['entry_time']);
+                $t['birthday'] = strtotime($t['birthday']);
+                $stu_id = Db::table('erp2_students')->insertGetId($student);
+                $data  = [
+                    'stu_id' => $stu_id,
+                    'gift_balance' => 0.00,
+                    'recharge_balance' => 0.00,
+                    'create_time' => time(),
+                    'update_time' => time(),
+                    'org_id'=>\think\facade\Request::instance()->header()['orgid']
+                ];
+                // 创建用户余额表
+                Db::table('erp2_stu_balance')->insert($data);
+            }
+
+
+            Db::commit();
+            $this->return_data(1, '', '添加学生成功', true);
+        }catch (Exception $e)
+        {
+            Db::rollback();
+            $this->return_data(0, 50000, $e->getMessage(), false);
+        }
+
+        try{
+
+
+            foreach ($data as $k => $v)
+            {
+                $t['t_name'] = trim($v[0]);
+                $t['sex'] = $v[1];
+                $t['se_id'] = $sen_default;
+                $t['cellphone'] = trim($v[3]);
+                $t['entry_time'] = $v[4];
+                $t['identity_card'] = $v[5];
+                $t['birthday'] = $v[6];
+                $t['resume'] = $v[7];
+                $t['status'] = $v[8];
+                $t['manager'] = $uid;
+                $t['org_id'] = $org_id;
+
+                $res = db('teachers')->where('cellphone', '=', $t['cellphone'])->find();
+                if($res){
+                    $this->returnError('10001', '电话号码不能重复');
+                }
+                $t_id = Db::table('erp2_teachers')->insertGetId($t);
+                unset($t, $v);
+            }
+            Db::commit();
+            $this->returnData('导入成功', true);
+        }catch (\Exception $e){
+            Db::rollback();
+            $this->returnError('20001', $e->getMessage());
+        }
+
+    }
 }
