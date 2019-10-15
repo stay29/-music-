@@ -1438,7 +1438,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         {
             foreach ($data as $k=>$v ){
                 if($k==0){
-                    break;
+                    continue;
                 }
                 $student=[
                     'truename'=>$v[0],
@@ -1477,7 +1477,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                 $student['sex'] = $student['sex'] == '男' ? 1 : 2;
                 $student['birthday'] = strtotime($student['birthday']);
                 $stu_id = Db::table('erp2_students')->insertGetId($student);
-                $data  = [
+                $account  = [
                     'stu_id' => $stu_id,
                     'gift_balance' => 0.00,
                     'recharge_balance' => 0.00,
@@ -1486,7 +1486,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                     'org_id'=>$org_id
                 ];
                 // 创建用户余额表
-                Db::table('erp2_stu_balance')->insert($data);
+                Db::table('erp2_stu_balance')->insert($account);
             }
 
 
