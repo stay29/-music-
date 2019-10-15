@@ -1437,6 +1437,9 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         try
         {
             foreach ($data as $k=>$v ){
+                if($k==0){
+                    break;
+                }
                 $student=[
                     'truename'=>$v[0],
                     'sex'=>$v[1],
