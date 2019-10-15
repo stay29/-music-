@@ -1465,7 +1465,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                     'sex'=>$v[1],
                     'birthday'=>$v[2],
                     'cellphone'=>$v[3],
-                    'adress'=>$v[4],
+                    'address'=>$v[4],
                     'wechat'=>$v[5],
                     'remark'=>$v[6],
                 ];
