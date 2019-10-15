@@ -1491,11 +1491,11 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
 
 
             Db::commit();
-            $this->return_data(1, '', '添加学生成功', true);
+            $this->returnData('','添加学生成功');
         }catch (Exception $e)
         {
             Db::rollback();
-            $this->return_data(0, 50000, $e->getMessage(), false);
+            $this->returnError( 50000, $e->getMessage());
         }
 
 
