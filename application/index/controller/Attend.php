@@ -38,7 +38,7 @@ class Attend extends BaseController
             if(!empty($start_time) && !empty($end_time))
             {
                 
-                $attend->where('sa.date', 'between time', [$start_time, $end_time]);
+                $attend->where('sa.date', 'between time', [$start_time, $end_time+86400]);
             }
 
             $data = $attend->order('sa.id DESC')
@@ -72,7 +72,7 @@ class Attend extends BaseController
 
             $this->returnData($response, '请求成功');
         }catch (\Exception $e){
-            $this->returnError(50000, '服务器错误');
+            $this->returnError(50000, $e->getMessage());
         }
     }
     
