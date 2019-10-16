@@ -207,18 +207,10 @@ class ExcelBase extends Controller
      */
     public function validate_date($date)
     {
-        $pattern = "/^\d{4}\/\d{1,2}\/\d{1,2}$/";
-        if (!preg_match($pattern, $date))
-        {
-            return false;
-        }
-        $t = explode('/', $date);
-        if (checkdate($t[1], $t[2], $t[0]))
-        {
+        $res = strtotime($date);
+        if($res){
             return true;
-        }
-        else
-        {
+        }else{
             return false;
         }
     }
@@ -528,7 +520,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                     $this->returnError('10000', '生日日期格式错误');
                 }
                 $card_pattern ='/^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}([0-9]|X)$/i';
-                if(!preg_match($card_pattern, $t['identity_card']))
+                if($t['identity_card'] && !preg_match($card_pattern, $t['identity_card']))
                 {
                     Db::rollback();
                     $this->returnError('10000', '身份证格式错误');
