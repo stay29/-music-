@@ -37,7 +37,7 @@ class Attend extends BaseController
             if(!empty($start_time) && !empty($end_time))
             {
                 
-                $attend->where('sa.date', 'between time', [$start_time, $end_time+86400]);
+                $attend->where('sa.work_date', 'between time', [$start_time, $end_time+86400]);
             }
 
             $data = $attend->order('sa.id DESC')
