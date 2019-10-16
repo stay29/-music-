@@ -519,7 +519,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
                     Db::rollback();
                     $this->returnError('10000', '生日日期格式错误');
                 }
-                $card_pattern ='/^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}([0-9]|X)$/i';
+                $card_pattern ='/^[1-9]\d{5}(18|19|20|(3\d))\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/i';
                 if($t['identity_card'] && !preg_match($card_pattern, $t['identity_card']))
                 {
                     Db::rollback();
