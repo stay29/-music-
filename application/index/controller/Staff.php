@@ -35,7 +35,11 @@ class Staff extends BaseController
 
             if(!empty($status))
             {
-                $teacher->where('status', '=', $status);
+                if($status === 2 || $status === 3){
+                   $teacher->where('status',['=', $status], ['=', 4], 'or');
+                }else{
+                    $teacher->where('status', '=', $status);
+                }
             }
             if(!empty($iden_id))
             {
