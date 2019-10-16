@@ -49,14 +49,14 @@ class Users extends Model
             'config'=> [
                 'or_id'      => $orginfo['or_id'],
                 'name'       => $orginfo['or_name'],
-                'logo'       => $orginfo['logo'],
-                'contacts'   => $orginfo['contact_man'],
-                'phone'      => $orginfo['telephone'],
-                'wechat'     => $orginfo['wechat'],
-                'intro'      => $orginfo['describe'],
-                'map'        => $orginfo['address'],
-                'remarks'    => $orginfo['remarks'],
-                'pay_state'    => $orginfo['pay_state'],
+//                'logo'       => $orginfo['logo'],
+//                'contacts'   => $orginfo['contact_man'],
+//                'phone'      => $orginfo['telephone'],
+//                'wechat'     => $orginfo['wechat'],
+//                'intro'      => $orginfo['describe'],
+//                'map'        => $orginfo['address'],
+//                'remarks'    => $orginfo['remarks'],
+//                'pay_state'    => $orginfo['pay_state'],
             ]
         ];
         session(md5(MA.'user'), $arr);
