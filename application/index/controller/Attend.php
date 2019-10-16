@@ -45,7 +45,7 @@ class Attend extends BaseController
                             ->leftJoin('erp2_teachers t', 't.t_id=sa.t_id')
                             ->leftJoin('erp2_identity sf', 'sf.id=t.iden_id')
                             ->paginate($limit, false, ['page' => $page])
-                            ->each(function($log, $lk) use ($idens){
+                            ->each(function($log, $lk){
                                 if($log['is_teacher'] === 1){
                                     $log['identity_name'] = '教师';
                                 }
