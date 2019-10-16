@@ -13,7 +13,7 @@ class Attend extends BaseController
     public function index(){
         $name = input('name/s', '');
         $status = input('status/d', '');
-        $org_id = 142;//ret_session_name('orgid');
+        $org_id = ret_session_name('orgid');
         $start_time = input('start_time/d', '');
         $end_time = input('end_time/d', '');
         $limit = input('limit/d', 20);
@@ -107,7 +107,7 @@ class Attend extends BaseController
                 $data['on_time'] = $time;
                 $stand = $temp[$on_temp[$time_key]];
                 if($time > ($stand + $temp['be_late'] * 60)){
-                    $date['status']  = 1;
+                    $date['status']  = 2;
                     $msg = '，您今天迟到了';
                 }
                 db('staff_attend')->insert($data);
@@ -116,9 +116,9 @@ class Attend extends BaseController
                     $data['off_time'] = $time;
                     $stand = $temp[$off_temp[$time_key]];
                     if($time < ($stand - $temp['be_leave'] * 60)){
-                        $date['status']  = 2;
+                        $date['status']  = 3;
                         if($record['status'] === 1){
-                            $date['status']  = 3;
+                            $date['status']  = 4;
                         }
                         $msg = '，您今天早退了';
                     }
