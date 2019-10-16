@@ -13,7 +13,7 @@ class Attend extends BaseController
     public function index(){
         $name = input('name/s', '');
         $status = input('status/d', '');
-        $org_id = ret_session_name('orgid');
+        $org_id = 142;//ret_session_name('orgid');
         $start_time = input('start_time/d', '');
         $end_time = input('end_time/d', '');
         $limit = input('limit/d', 20);
@@ -25,8 +25,7 @@ class Attend extends BaseController
         try{
             $attend = db('staff_attend')->alias('sa')->field('sa.*, t.t_name, t.is_teacher, t.iden_id, sf.identity_name');
             $attend->where('t.org_id', '=', $org_id);
-            $attend->where('sf.org_id', '=', $org_id);
-            if($name !== null)
+            if($name != null)
             {
                 $attend->where('t.t_name', 'like', '%' . $name . '%');
             }
