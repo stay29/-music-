@@ -105,7 +105,7 @@ class Attend extends BaseController
             if(!$record){
                 $data['work_day'] = $today;
                 $data['on_time'] = $time;
-                $stand = $temp[$on_temp[$time_key]];
+                $stand = strtotime($today .' '.$temp[$on_temp[$time_key]]);
                 if($time > ($stand + $temp['be_late'] * 60)){
                     $date['status']  = 2;
                     $msg = '，您今天迟到了';
@@ -114,7 +114,7 @@ class Attend extends BaseController
                 $this->returnData($res, '打卡成功'.$msg);
             }elseif(!empty($record['on_time']) && empty($record['off_time'])){
                     $data['off_time'] = $time;
-                    $stand = $temp[$off_temp[$time_key]];
+                    $stand = strtotime($today .' '.$temp[$off_temp[$time_key]]);
                     if($time < ($stand - $temp['be_leave'] * 60)){
                         $date['status']  = 3;
                         if($record['status'] === 1){
