@@ -482,8 +482,8 @@ class Schedules extends BaseController
         if ($cur_time != null&$end_time!=null){
             $map['cur_time'] = $cur_time;
             $map['end_time']=$end_time;
-           $this->check_conflict($t_id,$map,$stu_id_array);
-
+            $this->check_conflict($t_id,$map,$stu_id_array);
+            $map['day']=(date('w', $cur_time) ==0)? 7:date('w', $cur_time);
         }
 
         if ($t_id)
