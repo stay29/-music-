@@ -82,6 +82,23 @@ class AttendTemp extends BaseController
         }
     }
     
+     //修改模板
+    public  function edit_page(){
+        $org_id = ret_session_name('orgid');
+        $id = input('at_id/d', '');
+        if (!$org_id  || !$id)
+        {
+            $this->returnError('10000', '缺少参数');
+        }
+
+        try{
+           $response = db('attend_temp')->where(['id' => $id, 'org_id' => $org_id])->find();
+           $this->returnData($response, '请求成功');
+        }catch (\Exception $e){
+            $this->returnError(50000, '服务器错误');
+        }
+    }
+    
     //修改模板
     public  function edit(){
         if (!$this->request->isPost())
