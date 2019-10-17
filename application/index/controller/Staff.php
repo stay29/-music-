@@ -14,7 +14,7 @@ class Staff extends BaseController
     //主管要求员工并入到教师表中操作，is_teacher默认为1教师,0员工。0时需填入iden_id身份id
     //员工列表
     public function index(){
-        $org_id = input('orgid', '');
+        $org_id = ret_session_name('orgid');
         $t_name = input('t_name/s', ''); // 员工名称
         $iden_id = input('iden_id', ''); // 身份ID 为teacher时是教师，is_teacher = 1
         $status = input('status/d', '');  // 离职状态
@@ -96,7 +96,7 @@ class Staff extends BaseController
         {
             $this->returnError('40000', '非法请求');
         }
-        $org_id = input('orgid/d', '');
+        $org_id = ret_session_name('orgid');
         if (!$org_id)
         {
             $this->returnError('50000', '缺少参数');
@@ -115,10 +115,11 @@ class Staff extends BaseController
              $this->returnError(50000, '该手机号码已有员工使用');  
            }
            
-           db('teachers')->insert($data);
-           $this->returnData(1,'员工新增成功');
+            db('teachers')->insert($data);
+            $this->returnData(1,'员工新增成功');
         }catch (\Exception $e){
-            $this->returnError(50000, $e->getMessage());
+            $this->returnError(50000, '服务器错误');
+
         }
     }
     
@@ -128,7 +129,7 @@ class Staff extends BaseController
         {
             $this->returnError('40000', '非法请求');
         }
-        $org_id = input('orgid/d', '');
+        $org_id = ret_session_name('orgid');
         $id = input('t_id/d', '');
         if (!$org_id || !$id)
         {
@@ -151,7 +152,7 @@ class Staff extends BaseController
     //删除员工
     public function del(){
        $t_id = input('t_id/d', '');
-       $org_id = input('orgid/d', '');
+       $org_id = ret_session_name('orgid');
        if(!$t_id || !$org_id){
           $this->returnError('10000', '缺少参数'); 
        }
