@@ -16,7 +16,7 @@ class Staff extends BaseController
     public function index(){
         $org_id = input('orgid', '');
         $t_name = input('t_name/s', ''); // 员工名称
-        $iden_id = input('iden_id', ''); // 身份ID
+        $iden_id = input('iden_id', ''); // 身份ID 为teacher时是教师，is_teacher = 1
         $status = input('status/d', '');  // 离职状态
         $limit = input('limit/d', 20);
         $page = input('page/d', 1);
@@ -35,7 +35,11 @@ class Staff extends BaseController
 
             if(!empty($status))
             {
-                $teacher->where('status', '=', $status);
+                if($status === 2 || $status === 3){
+                   $teacher->where('status',['=', $status], ['=', 4], 'or');
+                }else{
+                    $teacher->where('status', '=', $status);
+                }
             }
             if(!empty($iden_id))
             {

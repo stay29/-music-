@@ -898,7 +898,7 @@ erp2_organizations AS B ON A.organization=B.or_id WHERE A.uid={$uid} LIMIT 1;";
         }
         $db = db('goods_detail')->field('goods_id, goods_name, remarks,
         unit_name, cate_id, goods_amount, rent_amount_day, rent_amount_mon, rent_amount_year');
-        $db->where('org_id', '==', '$org_id');
+        $db->where('org_id', '=', '$org_id');
         if (!empty($cate_id))
         {
             $db->where('cate_id', '=', $cate_id);
