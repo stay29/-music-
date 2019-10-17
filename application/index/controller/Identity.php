@@ -11,7 +11,7 @@ use Think\Exception;
 class Identity extends BaseController
 {
     public function index() {
-        $org_id = input('orgid/d', '');
+        $org_id = ret_session_name('orgid');
         if(empty($org_id)){
            $this->returnError('5000', '缺少参数'); 
         }
@@ -40,7 +40,7 @@ class Identity extends BaseController
     //修改身份
     public function edit() {
         $id = input('iden_id/d', '');
-        $org_id = input('orgid/d', '');
+        $org_id = ret_session_name('orgid');
         $name = input('name/s', '');
         if(empty($org_id)){
            $this->returnError('5000', '缺少参数1'); 
@@ -62,7 +62,7 @@ class Identity extends BaseController
     //删除身份
     public function del() {
         $id = input('iden_id/d', '');
-        $org_id = input('orgid/d', '');
+        $org_id = ret_session_name('orgid');
         if(empty($org_id)){
            $this->returnError('5000', '缺少参数1'); 
         }
