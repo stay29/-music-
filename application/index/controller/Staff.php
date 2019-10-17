@@ -96,7 +96,7 @@ class Staff extends BaseController
         {
             $this->returnError('40000', '非法请求');
         }
-        $org_id = ret_session_name('orgid');
+        $org_id = input('orgid/d', '');
         if (!$org_id)
         {
             $this->returnError('50000', '缺少参数');
