@@ -88,7 +88,7 @@ class AttendTemp extends BaseController
         {
             $this->returnError('40000', '非法请求');
         }
-        $org_id = input('orgid/d', '');
+        $org_id = ret_session_name('orgid');
         $id = input('at_id/d', '');
         if (!$org_id  || !$id)
         {
@@ -125,7 +125,7 @@ class AttendTemp extends BaseController
     //删除模板
     public  function del(){
         $id = input('at_id/d', '');
-        $org_id = input('orgid/d', '');
+        $org_id = ret_session_name('orgid');
         if(!$id || !$org_id){
            $this->returnError('10000', '缺少参数'); 
         }
@@ -140,7 +140,7 @@ class AttendTemp extends BaseController
     //设置为默认模板
     public  function set_default(){
         $id = input('at_id/d', '');
-        $org_id = input('orgid/d', '');
+        $org_id = ret_session_name('orgid');
         if(!$id || !$org_id){
            $this->returnError('10000', '缺少参数'); 
         }
