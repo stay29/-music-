@@ -48,17 +48,17 @@ class Attend extends BaseController
                                 if($log['is_teacher'] === 1){
                                     $log['identity_name'] = '教师';
                                 }
-                                if($log['status'] === 0){
+                                if($log['status'] === 1){
                                     $log['status_show'] = '正常';
-                                }elseif ($log['status'] === 1) //在职
+                                }elseif ($log['status'] === 2) //在职
                                 {
                                     $log['status_show'] = '迟到';
-                                }elseif ($log['status'] === 2){
-                                    $log['status_show'] = '早退';
                                 }elseif ($log['status'] === 3){
+                                    $log['status_show'] = '早退';
+                                }elseif ($log['status'] === 4){
                                     $log['status_show'] = '迟到早退';
                                 }else{
-                                    $log['status_show'] = '迟到早退'; 
+                                    $log['status_show'] = '缺卡'; 
                                 }
                                 return $log;
                             });
