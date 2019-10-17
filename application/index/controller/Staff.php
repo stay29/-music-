@@ -96,7 +96,7 @@ class Staff extends BaseController
         {
             $this->returnError('40000', '非法请求');
         }
-        $org_id = input('orgid/d', '');
+        $org_id = ret_session_name('orgid');
         if (!$org_id)
         {
             $this->returnError('50000', '缺少参数');
@@ -110,8 +110,11 @@ class Staff extends BaseController
             'org_id' => $org_id
         ];
         try{
-           db('teachers')->where(['cellphone='=> $data['cellphone'], 'org_id' => $data['org_id']])->find();
-           $this->returnError(50000, '该手机号码已有员工使用');
+           $is_copy = db('teachers')->where(['cellphone='=> $data['cellphone'], 'org_id' => $data['org_id']])->find();
+           if($is_copy){
+             $this->returnError(50000, '该手机号码已有员工使用');  
+           }
+           
            db('teachers')->insert($data);
            $this->returnData(1,'员工新增成功');
         }catch (\Exception $e){
