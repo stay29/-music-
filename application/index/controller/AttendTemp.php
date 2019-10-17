@@ -92,7 +92,7 @@ class AttendTemp extends BaseController
         }
 
         try{
-           $response = db('attend_temp')->where(['id' => $at_id, 'org_id' => $org_id])->find();
+           $response = db('attend_temp')->where(['id' => $id, 'org_id' => $org_id])->find();
            $this->returnData($response, '请求成功');
         }catch (\Exception $e){
             $this->returnError(50000, '服务器错误');
