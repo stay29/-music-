@@ -12,7 +12,7 @@ class AttendTemp extends BaseController
 {
     //模板列表
     public function index(){
-        $org_id = input('orgid', '');
+        $org_id = ret_session_name('orgid');
         $limit = input('limit/d', 20);
         $page = input('page/d', 1);
         if(empty($org_id))
@@ -20,7 +20,7 @@ class AttendTemp extends BaseController
             $this->returnError('10000', '缺少参数');
         }
         try{
-            $temp = db('attend_temp')->alias('at')->field('at.temp_name, at.create_time, at.manager, usr.nickname');
+            $temp = db('attend_temp')->alias('at')->field('at.id, at.temp_name, at.create_time, at.manager, usr.nickname');
             $temp->where('org_id', '=', $org_id);
 
             $data = $temp->leftJoin('erp2_users usr', 'usr.uid=at.manager')
