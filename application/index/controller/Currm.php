@@ -61,7 +61,7 @@ class Currm extends BaseController
     {
         try{
         $this->auth_get_token();
- 		$data = input('post.');
+ 		$data = input();
 // 		$data['manager'] = ret_session_name('uid');
  		if (empty($data['orgid']))
         {
