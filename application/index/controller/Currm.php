@@ -59,6 +59,7 @@ class Currm extends BaseController
     //添加课程
  	public function  addcurrmon()
     {
+        try{
         $this->auth_get_token();
  		$data = input('post.');
 // 		$data['manager'] = ret_session_name('uid');
@@ -73,7 +74,7 @@ class Currm extends BaseController
             $this->returnError($error[1], $error[0]);
 //            $this->return_data(0,$error[1],$error[0]);
         }
-        try{
+
             $res = Curriculums::addcurrl($data);
             $this->returnData($res, '添加成功');
 //            $this->return_data(1,0,'添加成功');
