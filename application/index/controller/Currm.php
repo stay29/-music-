@@ -59,6 +59,7 @@ class Currm extends BaseController
     //添加课程
  	public function  addcurrmon()
     {
+        $this->returnError(50000, "test");
         try{
         $this->auth_get_token();
  		$data = input();
