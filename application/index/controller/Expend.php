@@ -13,7 +13,8 @@ class Expend extends BaseController
 {
     //获取所有支出类型
     public function type() {
-        $res = db('expend_type')->order('order_num desc')->select();
+        $org = ret_session_name('orgid');
+        $res = db('expend_type')->where('org_id', '=', $org_id)->order('order_num desc')->select();
         $this->returnData($res, '请求成功');
     }
     
