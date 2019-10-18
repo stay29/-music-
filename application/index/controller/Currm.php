@@ -59,22 +59,21 @@ class Currm extends BaseController
     //添加课程
  	public function  addcurrmon()
     {
-        $this->returnError(50000, "test");
         try{
         $this->auth_get_token();
  		$data = input();
-// 		$data['manager'] = ret_session_name('uid');
+ 		$data['manager'] = ret_session_name('uid');
  		if (empty($data['orgid']))
         {
             $this->returnError(10000, '缺少ordid.');
         }
-        $validate = new \app\validate\Curriculums;
-        if(!$validate->scene('add')->check($data)){
-            //为了可以得到错误码
-            $error = explode('|',$validate->getError());
-            $this->returnError($error[1], $error[0]);
-//            $this->return_data(0,$error[1],$error[0]);
-        }
+//        $validate = new \app\validate\Curriculums;
+//        if(!$validate->scene('add')->check($data)){
+//            //为了可以得到错误码
+//            $error = explode('|',$validate->getError());
+//            $this->returnError($error[1], $error[0]);
+////            $this->return_data(0,$error[1],$error[0]);
+//        }
 
             $res = Curriculums::addcurrl($data);
             $this->returnData($res, '添加成功');
