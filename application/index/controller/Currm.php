@@ -61,7 +61,7 @@ class Currm extends BaseController
     {
         $this->auth_get_token();
  		$data = input('post.');
- 		$data['manager'] = ret_session_name('uid');
+// 		$data['manager'] = ret_session_name('uid');
  		if (empty($data['orgid']))
         {
             $this->returnError(10000, '缺少ordid.');
