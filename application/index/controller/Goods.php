@@ -183,15 +183,32 @@ class Goods extends BaseController
         $categories = db('goods_cate')->field('cate_id as id,  cate_pid, cate_name')->
             order('order, create_time DESC')->where('org_id', '=', $org_id)->select();
         $data = getTree($categories);
+        $response = [
+            [
+                'id' => 0,
+                'cate_name' => '顶级分类',
+                'sub' => $data
+            ]
+        ];
+//        array_push($response, $top_cate);
+        $this->returnData($response, '请求成功');
+    }
+    
+    /**
+     * 商品管理中的分类列表接口
+     */
+    public function goods_cate_list()
+    {
+        $this->auth_get_token();
+        $org_id = input('orgid/d', '');
+        if (is_empty($org_id))
+        {
+            $this->return_data(0, '10000', '缺少参数', false);
+        }
+        $categories = db('goods_cate')->field('cate_id as id,  cate_pid, cate_name')->
+            order('order, create_time DESC')->where('org_id', '=', $org_id)->select();
+        $data = getTree($categories);
         $response = $data;
-//        $response = [
-//            [
-//                'id' => 0,
-//                'cate_name' => '顶级分类',
-//                'sub' => $data
-//            ]
-//        ];
-//        array_push($data, $top_cate);
         $this->returnData($response, '请求成功');
     }
 
