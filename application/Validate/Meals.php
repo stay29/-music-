@@ -48,12 +48,12 @@ class Meals  extends Validate
 
     public function sceneAdd()
     {
-        return $this->only(['meal_name','value','price','cur_state','remarks','meals_cur','list_img','bg_img','orgid','manager']);
+        return $this->only(['cur_id','meal_name','value','price','cur_state','remarks','meals_cur','list_img','bg_img','orgid','manager']);
     }
 
     public function sceneAddtow()
     {
-        return $this->only(['meal_name','value','price','cur_state','meals_cur','orgid','manager']);
+        return $this->only(['cur_id','meal_name','value','price','cur_state','meals_cur','orgid','manager']);
     }
     public function sceneEdit()
     {
