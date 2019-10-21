@@ -53,7 +53,7 @@ class Meals  extends Validate
 
     public function sceneAddtow()
     {
-        return $this->only(['cur_id','meal_name','value','price','cur_state','meals_cur','orgid','manager']);
+        return $this->only(['meal_name','value','price','cur_state','meals_cur','orgid','manager']);
     }
     public function sceneEdit()
     {
