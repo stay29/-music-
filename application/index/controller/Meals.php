@@ -52,16 +52,16 @@ class Meals extends BaseController
      public  function addmealcur(){
          //print_r(input('post.'));exit();
          $data = input('mealcurlist');
-         $validate = new \app\validate\MealCurRelations;
+//         $validate = new \app\validate\MealCurRelations;
          $res = [];
          Db::startTrans();
          try{
-         foreach ($data as $k=>&$v){
+//         foreach ($data as $k=>&$v){
 //             if(!$validate->scene('add')->check($v)){
 //                 $error = explode('|',$validate->getError());
 //                 $this->return_data(0,$error[1],$error[0]);
 //                }
-                }
+//                }
                  foreach ($data as $kk=>&$vv)
                  {
                      $iiid  =  Db::table('erp2_meal_cur_relations')->insertGetId($vv);
