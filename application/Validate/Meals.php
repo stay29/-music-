@@ -46,10 +46,10 @@ class Meals  extends Validate
         'cur_id.require' =>  '套餐课程id不能为空|10000',
     ];
 
-    public function sceneAdd()
-    {
-        return $this->only(['cur_id','meal_name','value','price','cur_state','remarks','meals_cur','list_img','bg_img','orgid','manager']);
-    }
+//    public function sceneAdd()
+//    {
+//        return $this->only(['cur_id','meal_name','value','price','cur_state','remarks','meals_cur','list_img','bg_img','orgid','manager']);
+//    }
 
     public function sceneAddtow()
     {
