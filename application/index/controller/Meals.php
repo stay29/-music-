@@ -15,9 +15,7 @@ class Meals extends BaseController
 {
     public  function  addmeals()
     {
-        var_dump("cdd");
         $this->auth_get_token();
-        var_dump('kkk');
         $data = [
             'meal_name'=>input('post.meal_name'),
             'value'=>input('post.value'),
@@ -32,21 +30,18 @@ class Meals extends BaseController
         ];
         Db::startTrans();
         try{
-//            $validate = new \app\validate\Meals;
-//            var_dump("chose");
-//            if(!$validate->scene('add')->check($data)){
-//                var_dump("test");
-//                //为了可以得到错误码
-//                $error = explode('|',$validate->getError());
-//                $this->return_data(0,$error[1],$error[0]);
-//                exit();
-//            }else{
-//                var_dump("sdf");
+            $validate = new \app\validate\Meals;
+            if(!$validate->scene('add')->check($data)){
+                //为了可以得到错误码
+                $error = explode('|',$validate->getError());
+                $this->return_data(0,$error[1],$error[0]);
+                exit();
+            }else{
                 $res = Mealss::addmeals($data);
                  Db::commit();
-//                session(null);
+                session(null);
                 $this->return_data(1,0,'添加成功',$res);
-//            }
+            }
         }catch (\Exception $e){
             Db::rollback();
             $this->return_data(0,50000,$e->getMessage());
