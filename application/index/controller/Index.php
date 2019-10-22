@@ -11,7 +11,7 @@ use think\facade\Cookie;
 use app\index\model\Meals as Mealss;
 use app\index\model\MealCurRelations as Mclmodel;
 use app\index\model\PayInfo as payinfos;
-use app\validate\PayList as pays;//同名会引起报错 启用别名
+use app\index\validate\PayList as pays;//同名会引起报错 启用别名
 class Index extends Basess
 {
 
@@ -172,7 +172,7 @@ class Index extends Basess
                 $arr2['cur_value'] = $v['cur_value'];
                 $cur_id = Curriculums::where('cur_name',$v['meals_cur'])->find();
                 $arr2['cur_id'] = $cur_id['cur_id'];
-                $validate = new \app\validate\MealCurRelations;
+                $validate = new \app\index\validate\MealCurRelations;
                 if(!$validate->scene('add')->check($arr2)) {
                     $error = explode('|',$validate->getError());
                     $this->return_data(0,$error[1],$error[0]);
@@ -189,7 +189,7 @@ class Index extends Basess
                 $arr1['orgid'] =  ret_session_name('orgid');
                 $arr1['meals_cur'] = $mea_info['id'].',';
                 $arr1['manager'] = ret_session_name('uid');
-                $validate2 = new \app\validate\Meals;
+                $validate2 = new \app\index\validate\Meals;
                 if(!$validate2->scene('addtow')->check($arr1)){
                     //为了可以得到错误码
                     $error2 = explode('|',$validate2->getError());
@@ -262,7 +262,7 @@ class Index extends Basess
         if(empty($infos)){
             $this->return_data(0,10000,'请填写数据后导入');
         }
-        $validate = new \app\validate\Curriculums;
+        $validate = new \app\index\validate\Curriculums;
         //print_r($infos);exit();
         Db::startTrans();
         try {
