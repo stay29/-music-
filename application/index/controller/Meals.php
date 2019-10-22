@@ -15,7 +15,9 @@ class Meals extends BaseController
 {
     public  function  addmeals()
     {
+        var_dump("cdd");
         $this->auth_get_token();
+        var_dump('kkk');
         $data = [
             'meal_name'=>input('post.meal_name'),
             'value'=>input('post.value'),
@@ -42,7 +44,7 @@ class Meals extends BaseController
 //                var_dump("sdf");
                 $res = Mealss::addmeals($data);
                  Db::commit();
-                session(null);
+//                session(null);
                 $this->return_data(1,0,'添加成功',$res);
 //            }
         }catch (\Exception $e){
