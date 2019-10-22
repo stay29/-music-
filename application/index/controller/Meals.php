@@ -57,10 +57,10 @@ class Meals extends BaseController
          Db::startTrans();
          try{
          foreach ($data as $k=>&$v){
-             if(!$validate->scene('add')->check($v)){
-                 $error = explode('|',$validate->getError());
-                 $this->return_data(0,$error[1],$error[0]);
-                }
+//             if(!$validate->scene('add')->check($v)){
+//                 $error = explode('|',$validate->getError());
+//                 $this->return_data(0,$error[1],$error[0]);
+//                }
                 }
                  foreach ($data as $kk=>&$vv)
                  {
