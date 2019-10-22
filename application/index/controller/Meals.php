@@ -30,7 +30,7 @@ class Meals extends BaseController
         ];
         Db::startTrans();
         try{
-            $validate = new \app\validate\Meals;
+//            $validate = new \app\validate\Meals;
             var_dump("chose");
 //            if(!$validate->scene('add')->check($data)){
 //                var_dump("test");
