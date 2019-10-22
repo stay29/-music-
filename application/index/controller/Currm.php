@@ -90,13 +90,13 @@ class Currm extends BaseController
         $this->auth_get_token();
         $currid = input('post.cur_id');
         $data = input('post.');
-        $validate = new \app\validate\Curriculums;
-        if(!$validate->scene('edit')->check($data)){
-            //为了可以得到错误码
-            $error = explode('|',$validate->getError());
-//            $this->return_data(0,$error[1],$error[0]);
-            $this->returnError($error[1], $error[0]);
-        }
+//        $validate = new \app\validate\Curriculums;
+//        if(!$validate->scene('edit')->check($data)){
+//            //为了可以得到错误码
+//            $error = explode('|',$validate->getError());
+////            $this->return_data(0,$error[1],$error[0]);
+//            $this->returnError($error[1], $error[0]);
+//        }
         try{
             $res = Curriculums::editcurrm($currid,$data);
             $this->returnData($res, '修改成功');
