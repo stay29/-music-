@@ -31,12 +31,15 @@ class Meals extends BaseController
         Db::startTrans();
         try{
             $validate = new \app\validate\Meals;
+            var_dump("chose");
             if(!$validate->scene('add')->check($data)){
+                var_dump("test");
                 //为了可以得到错误码
                 $error = explode('|',$validate->getError());
                 $this->return_data(0,$error[1],$error[0]);
                 exit();
             }else{
+                var_dump("sdf");
                 $res = Mealss::addmeals($data);
                  Db::commit();
                 session(null);
