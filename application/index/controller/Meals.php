@@ -132,7 +132,7 @@ class Meals extends BaseController
         $mid = input('post.meal_id');
         Db::startTrans();
         try{
-            $validate = new \app\validate\Meals;
+            $validate = new \app\index\validate\Meals;
             if(!$validate->scene('edit')->check($data)){
                 //为了可以得到错误码
                 $error = explode('|',$validate->getError());
@@ -185,7 +185,7 @@ class Meals extends BaseController
         }
         Db::startTrans();
         try{
-            $validate = new \app\validate\MealCurRelations;
+            $validate = new \app\index\validate\MealCurRelations;
             foreach ($mealcurlist as $ks=>&$vs){
                 if(!$validate->scene('addone')->check($vs)){
                     //为了可以得到错误码

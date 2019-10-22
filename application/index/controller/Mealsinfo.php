@@ -7,7 +7,7 @@
  */
 namespace app\index\controller;
 use think\Controller;
-use app\validate\Meals;
+use app\index\validate\Meals;
 use think\Db;
 use think\facade\Session;
 use app\index\model\Meals as Mealss;
@@ -28,7 +28,7 @@ class Mealsinfo extends BaseController
         ];
         Db::startTrans();
         try{
-            $validate = new \app\validate\Meals;
+            $validate = new \app\index\validate\Meals;
             if(!$validate->scene('add')->check($data)){
                 //为了可以得到错误码
                 $error = explode('|',$validate->getError());

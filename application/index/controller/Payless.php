@@ -31,7 +31,7 @@ namespace app\index\controller;
 use think\Collection;
 use think\Db;
 use app\index\model\PayList;
-use app\validate\PayList as pays;//同名会引起报错 启用别名
+use app\index\validate\PayList as pays;//同名会引起报错 启用别名
 use app\index\model\Curriculums;
 use app\index\model\PayInfo as payinfos;
 use app\index\model\Organization as Organ;
