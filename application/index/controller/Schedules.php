@@ -512,12 +512,13 @@ class Schedules extends BaseController
     public function adjust_schedule_record()
     {
         $sc_id = input('sc_id');
+        $limit=input('limit',20);
         if ($sc_id == null) {
             $this->returnError('10000', '学生必填参数sc_id');
         }
         $data = Db::name('schedule_adjust_record')
             ->where('sc_id', input('sc_id'))
-            ->select();
+            ->paginate($limit);
         $this->returnData($data, '');
     }
     /**
