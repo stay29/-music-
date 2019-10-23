@@ -371,7 +371,7 @@ class Records extends BaseController
         {
             $this->returnError(10000, '请写入正确的金额');
         }
-        Db::startTrans();
+        
         try
         {
             $record = Db::name('goods_rent_record')->where('record_id', '=', $record_id)->find();
