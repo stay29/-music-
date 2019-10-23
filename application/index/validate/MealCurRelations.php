@@ -5,7 +5,7 @@
  * Date: 2019/7/24
  * Time: 16:21
  */
-namespace app\validate;
+namespace app\index\validate;
 use think\Validate;
 class MealCurRelations  extends Validate
 {

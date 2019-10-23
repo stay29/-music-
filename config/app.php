@@ -142,5 +142,8 @@ return [
     'show_error_msg'         => false,
     // 异常处理handle类 留空使用 \think\exception\Handle
     'exception_handle'       => '',
-
+    
+    //小程序相关
+    'WX_APPID' => '123434543gfdgfd',
+    'WX_APPSECRET' => '154ghg544f5g4h8rrt5rew',
 ];
