@@ -33,6 +33,8 @@ class Schedules extends BaseController
         $stu_id = input('stu_id');
         $stu_id_array = explode(',', $stu_id);
         $day_time=input('post.day_time');
+        //续排th_id(排课历史记录id)
+        $th_id=input('th_id');
 //
 //        $stu_name_array=Students::field('truename')
 //               ->where('stu_id','in',$stu_id_array)->select()->toArray();
@@ -49,6 +51,7 @@ class Schedules extends BaseController
 
         Db::startTrans();
         try {
+            if($th_id==null)
             $history = TSchedulesHistory::create($data);
             // validate data.
 //        $validate=new Schedule();
@@ -112,7 +115,10 @@ class Schedules extends BaseController
 
                         if ($n == $value['class_hour']) {
 //                            var_dump($schedule['cur_time']);
+                            if($th_id==null)
                             TSchedulesHistory::where('id', $history['id'])->update(['next_time', $schedule['cur_time']]);
+                            else
+                                TSchedulesHistory::where('id',$th_id)->update(['next_time', $schedule['cur_time']]);
                             break;
                         }
 
@@ -360,7 +366,7 @@ class Schedules extends BaseController
         $map['cur_id'] = input('cur_id');
         $data = db('tschedules_history')->where($map)
             ->where('FIND_IN_SET(:stu_id,stu_id)', ['stu_id' => input('stu_id')])
-            ->field('type,day,day_time,next_time,pitch_num')
+            ->field('th_id,type,day,day_time,next_time,pitch_num')
             ->select();
         return $this->returnData($data, '');
     }
@@ -611,5 +617,53 @@ class Schedules extends BaseController
             ->join('erp2_teach_schedules b','a.id=b.buy_id')
             ->select();
         $this->returnData($data,"");
+    }
+    /**
+     * 课程顺延
+     */
+    public function postpone(){
+
+    }
+    /**
+     * 记事
+     */
+    public function add_note(){
+        $data['content']=input('content');
+        $data['create_time']=time();
+        $data['org_id']=Request::instance()->header()['orgid'];
+        $data['user_id']=Request::instance()->header()['x-uid'];
+        Db::startTrans();
+        try{
+            db('notepad')->insert($data);
+            Db::commit();
+            $this->returnData('','添加成功');
+        }catch (Exception $exception){
+            Db::rollback();
+            $this->returnError('20001',$exception->getMessage());
+        }
+
+    }
+    /**
+     * 查询记事列表
+     */
+    public  function note_list(){
+        $where['org_id']=Request::instance()->header()['orgid'];
+        $where['user_id']=Request::instance()->header()['x-uid'];
+        $limit=input('limit',20);
+        $data=Db::name("notepad")->where($where)->paginate($limit);
+        $this->returnData($data,"");
+    }
+    /**
+     * 删除记事
+     */
+    public function delete_note(){
+        Db::startTrans();
+        try{
+              Db::name("notepad")->where('note_id',input('note_id'))->delete();
+              Db::commit();
+           $this->returnData('',"删除成功");
+        }catch (Exception $exception){
+            $this->returnError(20003,$exception->getMessage());
+        }
     }
 }
