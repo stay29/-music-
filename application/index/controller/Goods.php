@@ -314,7 +314,8 @@ class Goods extends BaseController
      * 全部支付方式列表
      */
     public function all_pay_list()
-    {
+    {  
+  
         $this->auth_get_token();
         $org_id = input('orgid/d', '');
         if (is_empty($org_id))

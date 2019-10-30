@@ -13,14 +13,14 @@ return [
     // 数据库类型
     'type'            => 'mysql',
     // 服务器地址
-    'hostname'        => '192.168.1.88',
-//    'hostname'        => '127.0.0.1',
+    // 'hostname'        => '192.168.1.88',
+   'hostname'        => '127.0.0.1',
     // 数据库名
-    'database'        => 'erp2',
+    'database'        => 'erp',
     // 用户名
     'username'        => 'root',
     // 密码
-    'password'        => 'chao8888',
+    'password'        => 'root',
     // 端口
     'hostport'        => '',
     // 连接dsn

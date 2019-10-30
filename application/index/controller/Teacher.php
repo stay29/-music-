@@ -1038,6 +1038,7 @@ class Teacher extends BaseController
         $map['c.cur_id']=$cur_id;
         if($subject!=null)
         $map['subject']=$subject;
+        return  json($map);
         $data=Db::name('teachers')->alias('b')
             ->field('b.t_id,b.t_name,b.cellphone')
             ->join('cur_teacher_relations a','b.t_id=a.t_id')

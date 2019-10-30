@@ -10,6 +10,8 @@
 // +----------------------------------------------------------------------
 // [ 应用入口文件 ]
 namespace think;
+// echo 333;
+// exit;
 // 加载基础文件
 require __DIR__ . '/thinkphp/base.php';
 $_SERVER['PATH_INFO'] = $_SERVER['REQUEST_URI' ];

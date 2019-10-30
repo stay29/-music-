@@ -23,12 +23,9 @@ class Index extends Basess
    {
       new Phpexcil();
    }
-
     public  function  index(){
         $this->redirect('/index.html');
     }
-
-
     public  function  sss(){
         $suball = db('subjects')->select();
         foreach ($suball as $kll=>&$vll){

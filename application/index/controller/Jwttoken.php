@@ -30,7 +30,6 @@ class Jwttoken  extends Basess
         $jwt = JWT::encode($token, $key);
         return $jwt;
     }
-
     //解密token
     public function check_token($jwt){
         $key = md5('nobita'); //jwt的签发密钥，验证token的时候需要用到

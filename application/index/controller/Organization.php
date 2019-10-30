@@ -180,14 +180,12 @@ class Organization extends Basess
     {
         $org=finds('erp2_organizations',['is_del'=>0,'or_id'=>$or_id]);     //先查到这个机构
         $p_id=$org['uid'];//获得校长id
-
         if($p_id==0){//uid默认为0的话只查询当下一个机构
             $list=Organ::where('or_id',$or_id)->field('or_id, or_name')->select()->toArray();
             return $list;
         }
         $list = Organ::where('uid',$p_id)->field('or_id, or_name')->select()->toArray();
         return $list;
-
     }
     /**
      * 获取单个机构的信息
@@ -252,8 +250,8 @@ class Organization extends Basess
      * 编辑机构新动态
      */
     public  function edit_dynamic_state(){
-        $data=input();
-//        $or_id=Request::instance()->header()['orgid'];
+         $data=input();
+//       $or_id=Request::instance()->header()['orgid'];
         $ds_id=input('post.ds_id');
         Db::startTrans();
         try{
